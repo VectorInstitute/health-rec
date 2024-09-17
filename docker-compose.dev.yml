@@ -1,0 +1,95 @@
+services:
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      args:
+        - FRONTEND_PORT=${FRONTEND_PORT}
+        - BACKEND_PORT=${BACKEND_PORT}
+        - BACKEND_HOST=${BACKEND_HOST}
+    image: vectorinstitute/adrenaline:frontend-dev-${BUILD_ID}
+    env_file: .env.development
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      - NEXT_PUBLIC_BACKEND_HOST=${BACKEND_HOST}
+      - NEXT_PUBLIC_BACKEND_PORT=${BACKEND_PORT}
+      - NEXT_PUBLIC_FRONTEND_PORT=${FRONTEND_PORT}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-dev
+    networks:
+      - app-network
+
+  clinical-ner-service-dev:
+    build:
+      context: ./backend/clinical_ner_service
+      dockerfile: Dockerfile.dev
+      args:
+        - NER_SERVICE_PORT=${NER_SERVICE_PORT}
+    image: vectorinstitute/adrenaline:clinical-ner-service-dev-${BUILD_ID}
+    env_file: .env.development
+    ports:
+      - "${NER_SERVICE_PORT}:${NER_SERVICE_PORT}"
+    environment:
+      - NER_SERVICE_PORT=${NER_SERVICE_PORT}
+      - MEDCAT_MODELS_DIR=${MEDCAT_MODELS_DIR}
+      - SELECTED_MEDCAT_MODEL=${SELECTED_MEDCAT_MODEL:-umls_sm_pt2ch_533bab5115c6c2d6.zip}
+    volumes:
+      - ./backend/clinical_ner_service:/app
+      - ${MEDCAT_MODELS_DIR}:${MEDCAT_MODELS_DIR}:ro
+    networks:
+      - app-network
+
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+      args:
+        - BACKEND_PORT=${BACKEND_PORT}
+        - FRONTEND_PORT=${FRONTEND_PORT}
+        - NER_SERVICE_PORT=${NER_SERVICE_PORT}
+    image: vectorinstitute/adrenaline:backend-dev-${BUILD_ID}
+    env_file: .env.development
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - NER_SERVICE_PORT=${NER_SERVICE_PORT}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MEDS_DATA_DIR=${MEDS_DATA_DIR}
+      - LLM_SERVICE_HOST=${LLM_SERVICE_HOST}
+      - LLM_SERVICE_PORT=${LLM_SERVICE_PORT}
+    volumes:
+      - ./backend:/app
+      - ${MEDS_DATA_DIR}:${MEDS_DATA_DIR}:ro
+    networks:
+      - app-network
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:4.4.18
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge

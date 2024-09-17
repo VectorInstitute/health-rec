@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir poetry
+
+COPY . .
+
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
+
+ARG BACKEND_PORT
+ARG FRONTEND_PORT
+ENV BACKEND_PORT=${BACKEND_PORT}
+ENV FRONTEND_PORT=${FRONTEND_PORT}
+
+# Print port values
+RUN echo "FRONTEND_PORT: ${FRONTEND_PORT}"
+RUN echo "BACKEND_PORT: ${BACKEND_PORT}"
+
+EXPOSE ${BACKEND_PORT}
+
+# Use shell form to ensure environment variable expansion
+CMD sh -c "poetry run uvicorn api.main:app --host 0.0.0.0 --reload --port ${BACKEND_PORT}"
