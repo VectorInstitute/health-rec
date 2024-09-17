@@ -14,7 +14,7 @@ const Hero: React.FC = () => {
   }, []);
 
   return (
-    <Box 
+    <Box
       bgGradient="linear(to-r, brand.pink, brand.purple)"
       position="relative"
       overflow="hidden"
@@ -22,11 +22,11 @@ const Hero: React.FC = () => {
       pt={{ base: "80px", md: "100px" }}
     >
       <Container maxW="1200px" h="full" position="relative" zIndex={1}>
-        <VStack 
-          spacing={6} 
-          alignItems={{ base: "center", md: "flex-start" }} 
-          justifyContent="center" 
-          h="full" 
+        <VStack
+          spacing={6}
+          alignItems={{ base: "center", md: "flex-start" }}
+          justifyContent="center"
+          h="full"
           maxW={{ base: "100%", md: "60%", lg: "50%" }}
           textAlign={{ base: "center", md: "left" }}
         >
@@ -42,13 +42,13 @@ const Hero: React.FC = () => {
           </Skeleton>
         </VStack>
       </Container>
-      <Box 
-        position="absolute" 
+      <Box
+        position="absolute"
         top={{ base: "60%", md: "40%" }}
         right={{ base: "-20%", md: "-5%" }}
-        width={{ base: "120%", md: "70%" }} 
-        height={{ base: "100%", md: "140%" }} 
-        bg="white" 
+        width={{ base: "120%", md: "70%" }}
+        height={{ base: "100%", md: "140%" }}
+        bg="white"
         borderTopLeftRadius={{ base: "30%", md: "50%" }}
         transform={{ base: "rotate(-5deg)", md: "rotate(-10deg)" }}
         boxShadow="0 -4px 30px rgba(0, 0, 0, 0.1)"
