@@ -1,39 +1,61 @@
-import Image from 'next/image'
-import Link from 'next/link'
+'use client';
 
-export default function Hero() {
+import React, { useState, useEffect, memo } from 'react';
+import { Box, Container, Heading, Text, VStack, useBreakpointValue, Skeleton } from '@chakra-ui/react'
+
+const Hero: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true)
+  const headingSize = useBreakpointValue({ base: "2xl", md: "3xl", lg: "4xl" });
+  const textSize = useBreakpointValue({ base: "md", md: "lg", lg: "xl" });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="relative isolate px-6 pt-14 lg:px-8">
-      <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-48">
-        <div className="hidden sm:mb-8 sm:flex sm:justify-center">
-          <Image
-            className="h-14 w-auto mx-12"
-            src="/vector-logo.webp"
-            alt=""
-            width={56}
-            height={56}
-          />
-        </div>
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Discover your community services!
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            AI-powered community service recommendation tailored for your needs. Developed by the Vector Institute and Ontario 211.
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link
-              href="/discover"
-              className="rounded-md bg-vectorpurple px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-vectorpurple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Discover now
-            </Link>
-            <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
-              Learn more <span aria-hidden="true">→</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Box 
+      bgGradient="linear(to-r, brand.pink, brand.purple)"
+      position="relative"
+      overflow="hidden"
+      minHeight={{ base: "70vh", md: "80vh" }}
+      pt={{ base: "80px", md: "100px" }}
+    >
+      <Container maxW="1200px" h="full" position="relative" zIndex={1}>
+        <VStack 
+          spacing={6} 
+          alignItems={{ base: "center", md: "flex-start" }} 
+          justifyContent="center" 
+          h="full" 
+          maxW={{ base: "100%", md: "60%", lg: "50%" }}
+          textAlign={{ base: "center", md: "left" }}
+        >
+          <Skeleton isLoaded={!isLoading} fadeDuration={0.5}>
+            <Heading as="h1" size={headingSize} color="white" fontWeight="bold">
+              Discover your community services!
+            </Heading>
+          </Skeleton>
+          <Skeleton isLoaded={!isLoading} fadeDuration={0.5}>
+            <Text fontSize={textSize} color="white">
+              Try our smart search tool to easily find health and community services for you and your family.
+            </Text>
+          </Skeleton>
+        </VStack>
+      </Container>
+      <Box 
+        position="absolute" 
+        top={{ base: "60%", md: "40%" }}
+        right={{ base: "-20%", md: "-5%" }}
+        width={{ base: "120%", md: "70%" }} 
+        height={{ base: "100%", md: "140%" }} 
+        bg="white" 
+        borderTopLeftRadius={{ base: "30%", md: "50%" }}
+        transform={{ base: "rotate(-5deg)", md: "rotate(-10deg)" }}
+        boxShadow="0 -4px 30px rgba(0, 0, 0, 0.1)"
+        transition="all 0.3s ease-in-out"
+      />
+    </Box>
   )
 }
+
+export default memo(Hero);
