@@ -20,8 +20,9 @@ const About: React.FC = () => {
           <VStack spacing={8} alignItems="center" color="white" textAlign="center">
             <Heading as="h1" size="2xl">About Our Tool</Heading>
             <Text fontSize="xl" maxW="800px">
-              This smart search tool is designed by the Vector Institute using data from Ontario 211
-              to help you easily find health and community services for you and your family.
+              This smart search tool is designed and built by the Vector Institute using data from Ontario 211,
+              for research purposes. The tool uses Retrieval Augmented Generation (RAG) to search for services and
+              information about health and social services.
             </Text>
             <Flex gap={8} alignItems="center" flexWrap="wrap" justifyContent="center">
               <Link as={NextLink} href="https://vectorinstitute.ai" isExternal>

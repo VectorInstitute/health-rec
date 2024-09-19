@@ -53,7 +53,7 @@ class Config:
     TEST_MODE: bool = getenv("TEST_MODE", "False").lower() == "true"
 
     OPENAI_API_KEY: str = getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = getenv("OPENAI_MODEL", "gpt-4-turbo")
+    OPENAI_MODEL: str = getenv("OPENAI_MODEL", "gpt-4o-mini")
     OPENAI_EMBEDDING: Optional[str] = (
         getenv("OPENAI_EMBEDDING", "text-embedding-3-small") if not TEST_MODE else None
     )
@@ -61,4 +61,4 @@ class Config:
     COHERE_API_KEY: str = getenv("COHERE_API_KEY", "")
 
     CHROMA_HOST: str = getenv("CHROMA_HOST", "localhost")
-    CHROMA_PORT: int = int(getenv("CHROMA_PORT", "8000"))
+    CHROMA_PORT: int = 8000

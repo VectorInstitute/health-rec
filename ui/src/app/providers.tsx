@@ -9,6 +9,13 @@ const theme = extendTheme({
       purple: '#8a08eb',
     },
   },
+  styles: {
+    global: {
+      body: {
+        bg: 'gray.50',
+      },
+    },
+  },
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {

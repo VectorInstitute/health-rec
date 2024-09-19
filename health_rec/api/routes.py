@@ -1,11 +1,13 @@
 """Backend API routes."""
 
 import logging
+from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from api.schemas import GetRecommendationResponse
-from services.rag import RagService
+from api.data import RecommendationResponse, Service
+from services.dev.data import ChromaService
+from services.rag import RAGService
 
 
 # Configure logging
@@ -16,8 +18,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/recommend", response_model=GetRecommendationResponse)
-async def recommend(query: str) -> GetRecommendationResponse:
+@router.get("/recommend", response_model=RecommendationResponse)
+async def recommend(query: str) -> RecommendationResponse:
     """
     Generate a recommendation based on the input query.
 
@@ -28,7 +30,7 @@ async def recommend(query: str) -> GetRecommendationResponse:
 
     Returns
     -------
-    GetRecommendationResponse
+    RecommendationResponse
         An object containing the generated recommendation and relevant services.
 
     Notes
@@ -37,6 +39,32 @@ async def recommend(query: str) -> GetRecommendationResponse:
     a response based on the query.
     """
     logger.info(f"Request query: {query}")
-    generation = RagService.generate(query)
+    generation = RAGService.generate(query)
+    logger.info(f"Generation: {generation}")
+    return RecommendationResponse(**generation.dict())
 
-    return GetRecommendationResponse(**generation.dict())
+
+@router.get("/services/all", response_model=List[Service])
+async def get_all_services(chroma_service: ChromaService = Depends(ChromaService)):  # noqa: B008
+    """
+    Get all services from the ChromaDB collection.
+
+    Returns
+    -------
+    List[Service]
+        A list of services.
+    """
+    return await chroma_service.get_all_services()
+
+
+@router.get("/services/count", response_model=int)
+async def get_services_count(chroma_service: ChromaService = Depends(ChromaService)):  # noqa: B008
+    """
+    Get the number of services in the ChromaDB collection.
+
+    Returns
+    -------
+    int
+        The number of services.
+    """
+    return await chroma_service.get_services_count()
