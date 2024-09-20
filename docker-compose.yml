@@ -1,13 +1,13 @@
 services:
   frontend:
     build:
-      context: ./frontend
+      context: ./ui
       dockerfile: Dockerfile
       args:
         - FRONTEND_PORT=${FRONTEND_PORT}
         - BACKEND_PORT=${BACKEND_PORT}
         - BACKEND_HOST=${BACKEND_HOST}
-    image: vectorinstitute/adrenaline:frontend-${BUILD_ID}
+    image: vectorinstitute/health-rec:frontend-dev-${BUILD_ID}
     env_file: .env.production
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
@@ -15,6 +15,7 @@ services:
       - NEXT_PUBLIC_BACKEND_HOST=${BACKEND_HOST}
       - NEXT_PUBLIC_BACKEND_PORT=${BACKEND_PORT}
       - NEXT_PUBLIC_FRONTEND_PORT=${FRONTEND_PORT}
+      - NEXT_PUBLIC_MAPBOX_API_KEY=${MAPBOX_API_KEY}
     depends_on:
       - backend
     networks:
@@ -22,21 +23,45 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./health_rec
       dockerfile: Dockerfile
       args:
         - BACKEND_PORT=${BACKEND_PORT}
         - FRONTEND_PORT=${FRONTEND_PORT}
-    image: vectorinstitute/adrenaline:backend-${BUILD_ID}
+    image: vectorinstitute/health-rec:backend-dev-${BUILD_ID}
     env_file: .env.production
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
       - BACKEND_PORT=${BACKEND_PORT}
       - FRONTEND_PORT=${FRONTEND_PORT}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - CHROMA_HOST=${CHROMA_HOST}
+      - CHROMA_PORT=${CHROMA_PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - app-network
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "${CHROMA_PORT}:8000"
+    environment:
+      - ALLOW_RESET=true
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  chroma_data:
 
 networks:
   app-network:

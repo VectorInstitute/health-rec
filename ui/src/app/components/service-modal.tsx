@@ -29,7 +29,7 @@ interface Service {
   PhoneNumber?: string;
   WebsiteUrl?: string;
   Hours?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ServiceModalProps {
@@ -56,18 +56,18 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
 
   const renderHtml = (html: string) => {
     const options = {
-      replace: (domNode: any) => {
-        if (domNode.type === 'tag' && domNode.name === 'a') {
+      replace: (domNode: Element) => {
+        if (domNode instanceof Element && domNode.tagName.toLowerCase() === 'a') {
           return (
             <Text
               as="a"
-              href={domNode.attribs.href}
+              href={domNode.getAttribute('href') || ''}
               target="_blank"
               rel="noopener noreferrer"
               color="blue.500"
               textDecoration="underline"
             >
-              {domNode.children[0].data}
+              {domNode.textContent}
             </Text>
           );
         }

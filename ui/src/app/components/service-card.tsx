@@ -1,5 +1,5 @@
 import React from 'react';
-import parse from 'html-react-parser';
+import parse, { DOMNode, Element, HTMLReactParserOptions } from 'html-react-parser';
 import { Box, Heading, Text, VStack, useColorModeValue, useDisclosure, Flex, Badge, Icon } from '@chakra-ui/react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import ServiceModal from './service-modal';
@@ -8,7 +8,7 @@ interface Service {
   PublicName: string;
   Description?: string;
   ServiceArea?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ServiceCardProps {
@@ -22,23 +22,24 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
   const textColor = useColorModeValue('gray.800', 'white');
 
   const renderHtml = (html: string) => {
-    const options = {
-      replace: (domNode: any) => {
-        if (domNode.type === 'tag' && domNode.name === 'a') {
+    const options: HTMLReactParserOptions = {
+      replace: (domNode) => {
+        if (domNode instanceof Element && domNode.tagName.toLowerCase() === 'a') {
           return (
             <Text
               as="a"
-              href={domNode.attribs.href}
+              href={domNode.getAttribute('href') || ''}
               target="_blank"
               rel="noopener noreferrer"
               color="blue.500"
               textDecoration="underline"
               onClick={(e) => e.stopPropagation()}
             >
-              {domNode.children[0].data}
+              {domNode.textContent}
             </Text>
           );
         }
+        return undefined;
       },
     };
     return parse(html, options);
