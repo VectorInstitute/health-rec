@@ -33,7 +33,8 @@ const Header: React.FC = () => {
                 src="/images/vector-logo.png"
                 alt="Vector Institute"
                 objectFit="contain"
-                layout="fill"
+                width="100%"
+                height="100%"
               />
             </Box>
           </NextLink>

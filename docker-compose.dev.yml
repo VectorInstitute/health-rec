@@ -43,16 +43,17 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./health_rec:/app
+      - ${DATA_DIR}:/data
     networks:
       - app-network
     depends_on:
-      chromadb:
+      chromadb-dev:
         condition: service_healthy
 
-  chromadb:
+  chromadb-dev:
     image: ghcr.io/chroma-core/chroma:latest
     volumes:
-      - chroma_data:/chroma/chroma
+      - chroma_data_dev:/chroma/chroma
     ports:
       - "${CHROMA_PORT}:8000"
     environment:
@@ -66,7 +67,7 @@ services:
       retries: 5
 
 volumes:
-  chroma_data:
+  chroma_data_dev:
 
 networks:
   app-network:

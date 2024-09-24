@@ -26,7 +26,7 @@ interface Service {
   id: string;
   PublicName: string;
   Description?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Recommendation {

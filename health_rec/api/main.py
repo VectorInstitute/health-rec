@@ -5,6 +5,7 @@ This module sets up the FastAPI application, configures CORS middleware,
 includes the main router, and loads data into Chroma on startup.
 """
 
+import glob
 import logging
 import os
 from typing import Dict
@@ -26,7 +27,8 @@ logger = logging.getLogger(__name__)
 
 CHROMA_DB_HOST = os.getenv("CHROMA_HOST", "chromadb")
 CHROMA_DB_PORT = 8000
-RELOAD_DATA = False
+RELOAD_DATA = True
+LOAD_EMBEDDINGS = False
 
 
 app = FastAPI(**FastAPIConfig().__dict__)
@@ -44,31 +46,36 @@ app.include_router(api_router)
 async def startup_event() -> None:
     """Initialize the application by loading data into Chroma on startup."""
     chroma_client = chromadb.HttpClient(host=CHROMA_DB_HOST, port=CHROMA_DB_PORT)
-    # Check if collection exists and its dimension
-    try:
-        collection = chroma_client.get_collection("test")
-        existing_dim = collection.count()
-        if existing_dim > 0:
-            sample = collection.get(limit=1, include=["embeddings"])
-            existing_dim = len(sample["embeddings"][0])
-    except ValueError:
-        existing_dim = None
-
     collection_names = [
         collection.name for collection in chroma_client.list_collections()
     ]
+    # Check if collection exists and its dimension
+    if "test" not in collection_names:
+        collection = chroma_client.create_collection("test")
+        logger.info("Collection created")
+    else:
+        collection = chroma_client.get_collection("test")
+        existing_dim = collection.count()
+        logger.info(f"No. of documents in collection: {existing_dim}")
+        if existing_dim > 0:
+            sample = collection.get(limit=1, include=["embeddings"])
+            existing_dim = len(sample["embeddings"][0])
     if "test" in collection_names and RELOAD_DATA:
         logger.info("Deleting existing collection")
         chroma_client.delete_collection("test")
         collection = chroma_client.create_collection("test")
         logger.info("Recreating collection due to dimension mismatch or non-existence")
-        load_data(
-            file_path="./data.json",
-            host=CHROMA_DB_HOST,
-            port=CHROMA_DB_PORT,
-            collection_name="test",
-            openai_api_key=os.getenv("OPENAI_API_KEY", "your_openai_api_key_here"),
-        )
+        files = sorted(glob.glob(os.path.join("/data", "*.json")))
+        logger.info(f"Loading data from {len(files)} files")
+        for file_path in files:
+            load_data(
+                file_path=file_path,
+                host=CHROMA_DB_HOST,
+                port=CHROMA_DB_PORT,
+                collection_name="test",
+                openai_api_key=os.getenv("OPENAI_API_KEY", "your_openai_api_key_here"),
+                load_embeddings=LOAD_EMBEDDINGS,
+            )
     else:
         logger.info("Collection exists already, and RELOAD_DATA is False")
 

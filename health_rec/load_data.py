@@ -148,6 +148,7 @@ def load_data(
     openai_api_key: Optional[str] = None,
     embedding_model: str = Config.OPENAI_EMBEDDING,
     batch_size: int = 100,
+    load_embeddings: bool = False,
 ) -> None:
     """Load data into Chroma database and add embeddings if OpenAI API key is provided.
 
@@ -160,6 +161,7 @@ def load_data(
     openai_api_key (Optional[str]): The OpenAI API key.
     embedding_model (str): The OpenAI embedding model to use.
     batch_size (int): The number of documents to process in a single batch.
+    load_embeddings (bool): Whether to load embeddings into the collection.
 
     """
     logger.info("Starting the data loading process")
@@ -175,7 +177,7 @@ def load_data(
         documents, metadatas, ids = prepare_documents(services)
         collection = get_or_create_collection(host, port, collection_name)
 
-        if openai_api_key:
+        if load_embeddings and openai_api_key:
             logger.info("OpenAI API key provided. Generating embeddings.")
             openai_embedding = OpenAIEmbedding(
                 api_key=openai_api_key, model=embedding_model
@@ -200,7 +202,7 @@ def load_data(
             logger.info("Completed the data loading and embedding process")
         else:
             logger.info(
-                "OpenAI API key not provided. Adding documents without embeddings."
+                "OpenAI API key not provided or load_embeddings is False. Adding documents without embeddings."
             )
             collection.add(documents=documents, metadatas=metadatas, ids=ids)
             logger.info(
