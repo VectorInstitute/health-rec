@@ -16,6 +16,7 @@ fastapi = "^0.114.2"
 uvicorn = "^0.30.6"
 openai = "^1.45.1"
 chromadb = "^0.5.5"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.test]
 optional = true

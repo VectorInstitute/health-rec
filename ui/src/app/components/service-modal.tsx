@@ -1,5 +1,5 @@
 import React from 'react';
-import parse from 'html-react-parser';
+import parse, { HTMLReactParserOptions, Element, DOMNode, Text as DOMText } from 'html-react-parser';
 import {
   Modal,
   ModalOverlay,
@@ -29,7 +29,7 @@ interface Service {
   PhoneNumber?: string;
   WebsiteUrl?: string;
   Hours?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ServiceModalProps {
@@ -55,22 +55,29 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   };
 
   const renderHtml = (html: string) => {
-    const options = {
-      replace: (domNode: any) => {
-        if (domNode.type === 'tag' && domNode.name === 'a') {
+    const options: HTMLReactParserOptions = {
+      replace: (domNode: DOMNode) => {
+        if (domNode instanceof Element && domNode.name === 'a' && domNode.attribs) {
           return (
             <Text
               as="a"
-              href={domNode.attribs.href}
+              href={domNode.attribs.href || ''}
               target="_blank"
               rel="noopener noreferrer"
               color="blue.500"
               textDecoration="underline"
             >
-              {domNode.children[0].data}
+              {domNode.children[0] instanceof Element
+                ? domNode.children[0].children[0] instanceof DOMText
+                  ? domNode.children[0].children[0].data
+                  : ''
+                : domNode.children[0] instanceof DOMText
+                  ? domNode.children[0].data
+                  : ''}
             </Text>
           );
         }
+        return undefined;
       },
     };
     return parse(html, options);

@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 
+interface Service {
+  id: string;
+  PublicName: string;
+  Description?: string;
+  [key: string]: unknown;
+}
+
 interface Recommendation {
   message: string;
-  services: any[];
+  services: Service[];
   is_emergency: boolean;
 }
 
