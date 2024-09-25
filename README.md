@@ -6,8 +6,8 @@ Welcome to the health-rec project! This project is designed to develop a recomme
 
 The project is built using a microservices architecture. It has the following components:
 
-- React frontend
-- Python backend
+- Next.js frontend
+- FastAPI backend
 - Chroma vector database
 - OpenAI for embedding and recommendation
 
