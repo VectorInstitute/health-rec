@@ -1,5 +1,6 @@
 services:
   frontend-dev:
+    profiles: ["frontend"]
     build:
       context: ./ui
       dockerfile: Dockerfile.dev
