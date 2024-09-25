@@ -68,7 +68,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     onMarkerClick && onMarkerClick(location);
   }, [onMarkerClick]);
 
-  useEffect(() => {
+  const fitMapToLocations = useCallback(() => {
     if (locations.length > 0 && mapRef.current) {
       const bounds = new mapboxgl.LngLatBounds();
       locations.forEach(location => bounds.extend([location.longitude, location.latitude]));
@@ -79,6 +79,10 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
       });
     }
   }, [locations]);
+
+  useEffect(() => {
+    fitMapToLocations();
+  }, [fitMapToLocations]);
 
   const handleViewStateChange = useCallback((evt: ViewStateChangeEvent) => {
     setViewState(evt.viewState);
@@ -134,11 +138,19 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     </VStack>
   ), [locations, handleMarkerClick]);
 
+  const handleFullScreenMapOpen = useCallback(() => {
+    setIsFullScreenMapOpen(true);
+    // Delay the fitMapToLocations call to ensure the map is fully rendered
+    setTimeout(() => {
+      fitMapToLocations();
+    }, 100);
+  }, [fitMapToLocations]);
+
   if (!MAPBOX_TOKEN) return <Box>Error: Mapbox token is not set</Box>;
 
   return (
     <>
-      <Box height={height} width={width} onClick={() => setIsFullScreenMapOpen(true)} cursor="pointer">
+      <Box height={height} width={width} onClick={handleFullScreenMapOpen} cursor="pointer">
         <Map
           ref={mapRef}
           initialViewState={viewState}
