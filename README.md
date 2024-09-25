@@ -25,21 +25,21 @@ The project is built using a microservices architecture. It has the following co
 
 ### Setup
 
-1. Clone the repository
+#### Clone the repository
 
-2. Adding API keys
+#### Adding API keys
 
 In the `.env.development` file in the root of the project, set the following environment variables:
-  - OPENAI_API_KEY
-  - 211_API_KEY
-  - MAPBOX_API_KEY
-  - DATA_DIR
-  - COLLECTION_NAME
+  - `OPENAI_API_KEY`
+  - `211_API_KEY`
+  - `MAPBOX_API_KEY`
+  - `DATA_DIR`
+  - `COLLECTION_NAME`
 
-Make sure to set appropriate values for these variables. The CHROMA_HOST, CHROMA_PORT, and COLLECTION_NAME
+Make sure to set appropriate values for these variables. The `CHROMA_HOST`, `CHROMA_PORT`, and `COLLECTION_NAME`
 are already defined in the file, but you may need to adjust their values if necessary.
 
-3. Install dependencies in a virtual environment for the backend
+#### Install dependencies in a virtual environment for the backend
 
 ```bash
 cd health_rec
@@ -68,7 +68,7 @@ To run the frontend and backend, run the following command:
 docker compose --env-file .env.development --profile frontend -f docker-compose.dev.yml up
 ```
 
-4. Download data
+#### Download data
 
 For example, to download GTA data, run the following command:
 
@@ -82,7 +82,7 @@ To download Ontario-wide data, run the following command:
 python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir /mnt/data/211
 ```
 
-5. Upload data and embeddings
+#### Upload data and embeddings
 
 First we use an interactive container:
 
@@ -100,13 +100,13 @@ python3 health_rec/manage_data.py --list
 
 Careful while loading embeddings, it uses the OpenAI API, and hence make sure the data you want to use is correct. Test with a small amount of data first.
 
-6. Navigate to the UI on the browser
+#### Navigate to the UI on the browser
 
 ```bash
 http://localhost:<frontend_port>
 ```
 
-7. In case, you wish to update frontend dependencies, run the following commands in the `ui` directory:
+#### In case, you wish to update frontend dependencies, run the following commands in the `ui` directory:
 
 ```bash
 npm install <package_name>
