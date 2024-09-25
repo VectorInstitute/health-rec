@@ -1,11 +1,19 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import Map, { Marker, Popup, NavigationControl, ViewStateChangeEvent, MapRef } from 'react-map-gl';
+import Map, {
+  Marker,
+  Popup,
+  NavigationControl,
+  ViewStateChangeEvent,
+  MapRef,
+  Source,
+  Layer
+} from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box, Text, VStack, Flex, Badge, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Icon } from '@chakra-ui/react';
 import { FaBuilding } from 'react-icons/fa';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
 import { Location } from '../types/service';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
@@ -54,8 +62,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
       mapRef.current.flyTo({
         center: [location.longitude, location.latitude],
         zoom: 15,
-        duration: 1000,
-        essential: true
+        duration: 1000
       });
     }
     onMarkerClick && onMarkerClick(location);
@@ -68,7 +75,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
       mapRef.current.fitBounds(bounds, {
         padding: { top: 50, bottom: 50, left: 50, right: 50 },
         maxZoom: 15,
-        duration: 1000
+        duration: 0 // Set to 0 for initial load to prevent movement
       });
     }
   }, [locations]);
@@ -106,7 +113,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     </Marker>
   )), [locations, handleMarkerClick]);
 
-  const renderLocationsList = () => (
+  const renderLocationsList = useCallback(() => (
     <VStack align="stretch" spacing={4} overflowY="auto" height="100%">
       {locations.map(location => (
         <Flex key={location.id} p={2} borderWidth={1} borderRadius="md" alignItems="center" cursor="pointer" onClick={() => handleMarkerClick(location)}>
@@ -125,7 +132,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
         </Flex>
       ))}
     </VStack>
-  );
+  ), [locations, handleMarkerClick]);
 
   if (!MAPBOX_TOKEN) return <Box>Error: Mapbox token is not set</Box>;
 
@@ -139,8 +146,33 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
           mapStyle="mapbox://styles/mapbox/light-v10"
           mapboxAccessToken={MAPBOX_TOKEN}
           interactive={false}
+          reuseMaps
         >
-          {markers}
+          <Source id="locations" type="geojson" data={{
+            type: 'FeatureCollection',
+            features: locations.map(location => ({
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [location.longitude, location.latitude]
+              },
+              properties: {
+                id: location.id,
+                name: location.name
+              }
+            }))
+          }}>
+            <Layer
+              id="locations-layer"
+              type="circle"
+              paint={{
+                'circle-radius': 8,
+                'circle-color': '#00bfa5',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff'
+              }}
+            />
+          </Source>
         </Map>
       </Box>
 
@@ -159,7 +191,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
                   style={{ width: '100%', height: '100%' }}
                   mapStyle="mapbox://styles/mapbox/light-v10"
                   mapboxAccessToken={MAPBOX_TOKEN}
-                  interactive={true}
+                  reuseMaps
                 >
                   {markers}
                   <NavigationControl position="top-right" />

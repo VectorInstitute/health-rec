@@ -106,7 +106,7 @@ const SearchForm: React.FC = () => {
           <Flex gap={6} direction={{ base: 'column', md: 'row' }}>
             <Box flex={1}>
               <Skeleton isLoaded={!isLoading} fadeDuration={0.5}>
-                <Text fontWeight="semibold" mb={2}>What you&apos;re looking for?</Text>
+                <Text fontWeight="semibold" mb={2}>What are you looking for?</Text>
                 <InputGroup>
                   <InputLeftElement pointerEvents="none">
                     <SearchIcon color="gray.300" />
@@ -120,7 +120,7 @@ const SearchForm: React.FC = () => {
                   />
                 </InputGroup>
                 <Text fontSize="sm" color="gray.500" mt={2}>
-                  Tell us a little about yourself and what you&apos;re looking for? The more you share, the better we can tailor our recommendations to suit your needs.
+                  Tell us a little about yourself and what you&apos;re looking for! The more you share, the better we can tailor our recommendations to suit your needs.
                 </Text>
               </Skeleton>
             </Box>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Container, Heading, Text, VStack, SimpleGrid, useColorModeValue,
   Alert, AlertIcon, AlertTitle, AlertDescription, Divider, Badge, Flex,
@@ -28,15 +28,6 @@ const RecommendationPage: React.FC = () => {
   const mapWidth = '100%';
 
   useEffect(() => {
-    if (recommendation === undefined) {
-      router.replace('/');
-    } else {
-      // Simulate loading delay
-      setTimeout(() => setIsLoading(false), 1500);
-    }
-  }, [recommendation, router]);
-
-  useEffect(() => {
     let isActive = true;
 
     if (recommendation === undefined) {
@@ -55,7 +46,7 @@ const RecommendationPage: React.FC = () => {
     };
   }, [recommendation, router]);
 
-  const mapLocations: Location[] = recommendation?.services
+  const mapLocations: Location[] = useMemo(() => recommendation?.services
     .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
       typeof service.Latitude === 'number' &&
       typeof service.Longitude === 'number' &&
@@ -70,7 +61,7 @@ const RecommendationPage: React.FC = () => {
       description: service.Description || '',
       address: service.Address || '',
       phone: service.Phone || '',
-    })) || [];
+    })) || [], [recommendation]);
 
   useEffect(() => {
     if (mapLocations.length > 0) {
