@@ -27,7 +27,7 @@ The project is built using a microservices architecture. It has the following co
 
 #### Clone the repository
 
-#### Adding API keys
+#### Add API keys
 
 In the `.env.development` file in the root of the project, set the following environment variables:
   - `OPENAI_API_KEY`
