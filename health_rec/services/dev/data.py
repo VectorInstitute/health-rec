@@ -3,9 +3,11 @@
 from typing import List
 
 import chromadb
+from chromadb.api.models.Collection import Collection
 
 from api.config import Config
 from api.data import Service
+from services.utils import _metadata_to_service
 
 
 class ChromaService:
@@ -13,48 +15,30 @@ class ChromaService:
 
     def __init__(self):
         """Initialize the ChromaDB service."""
-        self.client = chromadb.HttpClient(
+        self.client: chromadb.HttpClient = chromadb.HttpClient(
             host=Config.CHROMA_HOST, port=Config.CHROMA_PORT
         )
-        self.collection = self.client.get_collection("test")
+        self.collection: Collection = self.client.get_collection(Config.COLLECTION_NAME)
 
     async def get_all_services(self) -> List[Service]:
-        """Get all services from the ChromaDB collection.
+        """
+        Get all services from the ChromaDB collection.
 
         Returns
         -------
         List[Service]
             A list of services.
-
         """
         result = self.collection.get(include=["metadatas"])
-        services = []
-        for metadata in result["metadatas"]:
-            if "ServiceArea" in metadata and isinstance(metadata["ServiceArea"], str):
-                metadata["ServiceArea"] = [metadata["ServiceArea"]]
-            if "Latitude" in metadata:
-                metadata["Latitude"] = float(metadata["Latitude"])
-            if "Longitude" in metadata:
-                metadata["Longitude"] = float(metadata["Longitude"])
-
-            service = Service(
-                id=metadata["id"],
-                public_name=metadata["PublicName"],
-                description=metadata["Description"],
-                service_area=metadata["ServiceArea"],
-                latitude=float(metadata["Latitude"]),
-                longitude=float(metadata["Longitude"]),
-            )
-            services.append(service)
-        return services
+        return [_metadata_to_service(metadata) for metadata in result["metadatas"]]
 
     async def get_services_count(self) -> int:
-        """Get the number of services in the ChromaDB collection.
+        """
+        Get the number of services in the ChromaDB collection.
 
         Returns
         -------
         int
             The number of services.
-
         """
         return self.collection.count()

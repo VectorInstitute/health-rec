@@ -3,13 +3,7 @@ import parse, { Element, HTMLReactParserOptions, domToReact, DOMNode } from 'htm
 import { Box, Heading, Text, VStack, useColorModeValue, useDisclosure, Flex, Badge, Icon } from '@chakra-ui/react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import ServiceModal from './service-modal';
-
-interface Service {
-  PublicName: string;
-  Description?: string;
-  ServiceArea?: string[];
-  [key: string]: unknown;
-}
+import { Service } from '../types/service';
 
 interface ServiceCardProps {
   service: Service;

@@ -41,6 +41,7 @@ services:
       - CHROMA_HOST=${CHROMA_HOST}
       - CHROMA_PORT=${CHROMA_PORT}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COLLECTION_NAME=${COLLECTION_NAME}
     volumes:
       - ./health_rec:/app
       - ${DATA_DIR}:/data

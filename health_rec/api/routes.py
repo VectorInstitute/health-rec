@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Create a single instance of RAGService to be used across requests
+rag_service = RAGService()
+
 
 @router.get("/recommend", response_model=RecommendationResponse)
 async def recommend(query: str) -> RecommendationResponse:
@@ -39,7 +42,7 @@ async def recommend(query: str) -> RecommendationResponse:
     a response based on the query.
     """
     logger.info(f"Request query: {query}")
-    generation = RAGService.generate(query)
+    generation = rag_service.generate(query)
     logger.info(f"Generation: {generation}")
     return RecommendationResponse(**generation.dict())
 

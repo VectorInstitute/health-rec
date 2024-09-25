@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { Box, Container, Input, Button, Text, VStack, InputGroup, InputLeftElement, Flex, useBreakpointValue, Skeleton, useToast } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/navigation';
@@ -8,11 +8,18 @@ import { useRecommendationStore } from '../stores/recommendation-store';
 
 interface FilterButtonsProps {
   distances: string[];
+  selectedDistance: string;
+  onDistanceChange: (distance: string) => void;
 }
 
-const FilterButtons: React.FC<FilterButtonsProps> = memo(({ distances }) => (
+const FilterButtons: React.FC<FilterButtonsProps> = memo(({ distances, selectedDistance, onDistanceChange }) => (
   distances.map((distance) => (
-    <Button key={distance} variant="outline" size="sm">
+    <Button
+      key={distance}
+      variant={selectedDistance === distance ? "solid" : "outline"}
+      size="sm"
+      onClick={() => onDistanceChange(distance)}
+    >
       {distance}
     </Button>
   ))
@@ -24,18 +31,19 @@ const SearchForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedDistance, setSelectedDistance] = useState('Any');
   const formPadding = useBreakpointValue({ base: 4, md: 8 });
   const buttonSize = useBreakpointValue({ base: "md", md: "lg" });
   const router = useRouter();
   const toast = useToast();
-  const setRecommendation = useRecommendationStore((state) => state.setRecommendation);
+  const { setRecommendation, setStoreQuery } = useRecommendationStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!query.trim()) {
       toast({
         title: "Empty search",
@@ -48,12 +56,19 @@ const SearchForm: React.FC = () => {
     }
 
     setIsSearching(true);
+    setRecommendation(null);
+    setStoreQuery(query);
+    router.push('/recommendation');
+
     try {
-      const response = await fetch(`/api/recommend?query=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/recommend?query=${encodeURIComponent(query)}&distance=${selectedDistance}`);
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
-      setRecommendation(data);
-      router.push('/recommendation');
+      if (data && Object.keys(data).length > 0) {
+        setRecommendation(data);
+      } else {
+        throw new Error('No recommendations found');
+      }
     } catch (error) {
       console.error('Search error:', error);
       toast({
@@ -63,10 +78,26 @@ const SearchForm: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
+      router.push('/');
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [query, selectedDistance, toast, setRecommendation, setStoreQuery, router]);
+
+  const handleClearSearch = useCallback(() => {
+    setQuery('');
+    setSelectedDistance('Any');
+  }, []);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  const handleDistanceChange = useCallback((distance: string) => {
+    setSelectedDistance(distance);
+  }, []);
 
   return (
     <Box bg="transparent" py={12} mt={{ base: "-10vh", md: "-20vh" }} position="relative" zIndex={2}>
@@ -85,7 +116,7 @@ const SearchForm: React.FC = () => {
                     aria-label="Search box"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyPress={handleKeyPress}
                   />
                 </InputGroup>
                 <Text fontSize="sm" color="gray.500" mt={2}>
@@ -105,12 +136,16 @@ const SearchForm: React.FC = () => {
           </Flex>
           <Flex justify="space-between" direction={{ base: 'column', md: 'row' }} gap={4}>
             <Skeleton isLoaded={!isLoading} fadeDuration={0.5}>
-              <Button variant="link" colorScheme="gray" onClick={() => setQuery('')}>Clear search</Button>
+              <Button variant="link" colorScheme="gray" onClick={handleClearSearch}>Clear search</Button>
             </Skeleton>
             <Skeleton isLoaded={!isLoading} fadeDuration={0.5}>
               <Flex align="center" gap={2} wrap="wrap">
                 <Text fontWeight="semibold">Filter results to within:</Text>
-                <FilterButtons distances={['Any', '3km', '5km', '10km', '20km']} />
+                <FilterButtons
+                  distances={['Any', '3km', '5km', '10km', '20km']}
+                  selectedDistance={selectedDistance}
+                  onDistanceChange={handleDistanceChange}
+                />
               </Flex>
             </Skeleton>
           </Flex>
@@ -135,7 +170,5 @@ const SearchForm: React.FC = () => {
     </Box>
   )
 }
-
-SearchForm.displayName = 'SearchForm';
 
 export default memo(SearchForm);

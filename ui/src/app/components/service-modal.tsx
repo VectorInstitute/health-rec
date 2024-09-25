@@ -1,3 +1,5 @@
+// ui/src/app/components/service-modal.tsx
+
 import React from 'react';
 import parse, { HTMLReactParserOptions, Element, DOMNode, Text as DOMText } from 'html-react-parser';
 import {
@@ -21,16 +23,7 @@ import {
   GridItem,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaPhone, FaGlobe, FaClock } from 'react-icons/fa';
-
-interface Service {
-  PublicName: string;
-  Description?: string;
-  ServiceArea?: string | string[];
-  PhoneNumber?: string;
-  WebsiteUrl?: string;
-  Hours?: string;
-  [key: string]: unknown;
-}
+import { Service } from '../types/service';
 
 interface ServiceModalProps {
   isOpen: boolean;

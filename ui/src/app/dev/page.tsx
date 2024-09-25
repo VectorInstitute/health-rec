@@ -1,48 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { Box, Container, Heading, Text, VStack, Alert, AlertIcon, useBreakpointValue, Divider, CloseButton, Button, Skeleton } from '@chakra-ui/react';
-import { WebMercatorViewport } from '@deck.gl/core';
-import 'mapbox-gl/dist/mapbox-gl.css';
-
-const MapGL = dynamic(() => import('react-map-gl'), { ssr: false });
-const Marker = dynamic(() => import('react-map-gl').then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-map-gl').then(mod => mod.Popup), { ssr: false });
-
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
-
-interface Service {
-  id: string;
-  public_name: string;
-  latitude: number | null;
-  longitude: number | null;
-  description?: string;
-  service_area?: string[];
-}
-
-interface ValidService extends Omit<Service, 'latitude' | 'longitude'> {
-  latitude: number;
-  longitude: number;
-}
-
-interface ViewState {
-  longitude: number;
-  latitude: number;
-  zoom: number;
-}
+import React, { useEffect, useState, useCallback } from 'react';
+import { Box, Container, Heading, Text, VStack, Alert, AlertIcon, useBreakpointValue, Button, Skeleton } from '@chakra-ui/react';
+import { Service } from '../types/service';
+import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
 
 const DevPage: React.FC = () => {
-  const [services, setServices] = useState<ValidService[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedService, setSelectedService] = useState<ValidService | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [viewState, setViewState] = useState<ViewState>({ longitude: -79.4, latitude: 43.65, zoom: 10 });
-  const [initialViewState, setInitialViewState] = useState<ViewState>({ longitude: -79.4, latitude: 43.65, zoom: 10 });
+  const [mapViewState, setMapViewState] = useState(TORONTO_COORDINATES);
 
-  const mapHeight = useBreakpointValue({ base: '400px', md: '600px' });
-  const mapWidth = useBreakpointValue({ base: '100%', md: '100%', lg: '100%' });
+  const mapHeight = useBreakpointValue({ base: '400px', md: '600px' }) ?? '400px';
+  const mapWidth = useBreakpointValue({ base: '100%', md: '100%', lg: '100%' }) ?? '100%';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,46 +28,34 @@ const DevPage: React.FC = () => {
         }
 
         const servicesData: Service[] = await servicesResponse.json();
-        const countData = await countResponse.json();
+        const countData: number = await countResponse.json();
 
-        const validServices: ValidService[] = servicesData.filter(
-          (service): service is ValidService =>
-            typeof service.latitude === 'number' &&
-            typeof service.longitude === 'number' &&
-            !isNaN(service.latitude) &&
-            !isNaN(service.longitude) &&
-            !(service.latitude === 0 && service.longitude === 0)
+        const validServices = servicesData.filter(
+          (service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
+            typeof service.Latitude === 'number' &&
+            typeof service.Longitude === 'number' &&
+            !isNaN(service.Latitude) &&
+            !isNaN(service.Longitude) &&
+            !(service.Latitude === 0 && service.Longitude === 0)
         );
 
         setServices(validServices);
         setCount(countData);
 
         if (validServices.length > 0) {
-          const bounds = validServices.reduce<[number, number, number, number]>(
-            (acc, service) => [
-              Math.min(acc[0], service.longitude),
-              Math.min(acc[1], service.latitude),
-              Math.max(acc[2], service.longitude),
-              Math.max(acc[3], service.latitude),
-            ],
-            [Infinity, Infinity, -Infinity, -Infinity]
-          );
-
-          const viewport = new WebMercatorViewport({ width: 800, height: 600 })
-            .fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], { padding: 40 });
-
-          const newViewState: ViewState = {
-            longitude: viewport.longitude,
-            latitude: viewport.latitude,
-            zoom: viewport.zoom,
-          };
-
-          setViewState(newViewState);
-          setInitialViewState(newViewState);
+          const locations = validServices.map(service => ({
+            latitude: service.Latitude,
+            longitude: service.Longitude,
+          }));
+          const newViewState = computeViewState(locations);
+          setMapViewState(newViewState);
+        } else {
+          setMapViewState(TORONTO_COORDINATES);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data. Please try again later.');
+        setMapViewState(TORONTO_COORDINATES);
       } finally {
         setLoading(false);
       }
@@ -105,31 +64,17 @@ const DevPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const markers = useMemo(() => services.map((service) => (
-    <Marker
-      key={service.id}
-      latitude={service.latitude}
-      longitude={service.longitude}
-      onClick={(e) => {
-        e.originalEvent.stopPropagation();
-        setSelectedService(service);
-      }}
-    >
-      <div style={{
-        width: '12px',
-        height: '12px',
-        borderRadius: '50%',
-        backgroundColor: '#3182CE',
-        border: '2px solid #FFFFFF',
-        boxShadow: '0 0 0 2px #3182CE',
-        transition: 'transform 0.2s'
-      }} />
-    </Marker>
-  )), [services]);
-
   const resetViewport = useCallback(() => {
-    setViewState(initialViewState);
-  }, [initialViewState]);
+    setMapViewState(TORONTO_COORDINATES);
+  }, []);
+
+  const locations = services.map(service => ({
+    id: service.id,
+    name: service.PublicName,
+    latitude: service.Latitude,
+    longitude: service.Longitude,
+    service_area: service.ServiceArea,
+  }));
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -152,46 +97,12 @@ const DevPage: React.FC = () => {
         )}
         <Box height={mapHeight} width={mapWidth}>
           <Skeleton isLoaded={!loading} height="100%">
-            <MapGL
-              {...viewState}
-              onMove={evt => setViewState(evt.viewState)}
-              style={{ width: '100%', height: '100%' }}
-              mapStyle="mapbox://styles/mapbox/dark-v11"
-              mapboxAccessToken={MAPBOX_TOKEN}
-              onClick={() => setSelectedService(null)}
-            >
-              {markers}
-              {selectedService && (
-                <Popup
-                  latitude={selectedService.latitude}
-                  longitude={selectedService.longitude}
-                  closeOnClick={false}
-                  anchor="bottom"
-                  offset={[0, -10]}
-                  onClose={() => setSelectedService(null)}
-                >
-                  <Box p={3} bg="white" borderRadius="md" boxShadow="md" maxWidth="300px">
-                    <CloseButton
-                      size="sm"
-                      position="absolute"
-                      right={2}
-                      top={2}
-                      onClick={() => setSelectedService(null)}
-                    />
-                    <Heading as="h3" size="sm" mb={2}>{selectedService.public_name}</Heading>
-                    <Divider my={2} />
-                    <Text fontSize="sm" color="gray.600">
-                      <strong>Coordinates:</strong> {selectedService.latitude.toFixed(4)}, {selectedService.longitude.toFixed(4)}
-                    </Text>
-                    {selectedService.service_area && (
-                      <Text fontSize="sm" color="gray.600" mt={2}>
-                        <strong>Service Area:</strong> {selectedService.service_area.join(', ')}
-                      </Text>
-                    )}
-                  </Box>
-                </Popup>
-              )}
-            </MapGL>
+            <Map
+              locations={locations}
+              height={mapHeight}
+              width={mapWidth}
+              initialViewState={mapViewState}
+            />
           </Skeleton>
         </Box>
       </VStack>
