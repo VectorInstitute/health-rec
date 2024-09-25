@@ -54,7 +54,7 @@ Now you can run pre-commit checks and tests:
 pre-commit run --all-files
 ```
 
-### Run the services
+#### Run the services
 
 For development, we use docker compose to run the services.
 
