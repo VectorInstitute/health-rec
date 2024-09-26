@@ -95,9 +95,9 @@ docker run -it --network health-rec_app-network -v <data_dir_with_json_files>:/d
 Then we can run the following commands to upload the data to the vector database:
 
 ```bash
-python3 health_rec/manage_data.py --create <collection_name>
-OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py --load <collection_name> --data-dir /data --load-embeddings
-python3 health_rec/manage_data.py --list
+python3 health_rec/manage_data.py create --name <collection_name>
+OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --name <collection_name> --data-dir /data --load-embeddings
+python3 health_rec/manage_data.py list
 ```
 
 Careful while loading embeddings, it uses the OpenAI API, and hence make sure the data you want to use is correct. Test with a small amount of data first.
