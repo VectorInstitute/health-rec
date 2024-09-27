@@ -96,7 +96,7 @@ Then we can run the following commands to upload the data to the vector database
 
 ```bash
 python3 health_rec/manage_data.py create --name <collection_name>
-OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --name <collection_name> --data-dir /data --load-embeddings
+OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --name <collection_name> --data_dir /data --load_embeddings
 python3 health_rec/manage_data.py list
 ```
 
