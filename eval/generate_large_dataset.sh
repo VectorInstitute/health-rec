@@ -29,7 +29,7 @@ generate_samples() {
     COUNT=$3
     SUFFIX=$4
     OUTPUT_FILE="dataset_${SITUATION}_${DETAIL}_${SUFFIX}"
-    
+
     echo "Generating $COUNT $SITUATION samples with $DETAIL detail level..."
     python3 eval/generate_dataset.py --situation_type $SITUATION --detail_level $DETAIL --num_samples $COUNT --name $OUTPUT_FILE
 }

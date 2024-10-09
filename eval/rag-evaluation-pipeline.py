@@ -9,11 +9,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain_core.runnables import RunnablePassthrough
 
+
 # Load the services data
 def load_services(file_path: str) -> List[Dict[str, Any]]:
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         reader = csv.DictReader(f)
         return list(reader)
+
 
 # Create a prompt template for generating synthetic queries and answers
 query_generation_template = """
@@ -21,7 +23,7 @@ Given the following context of health services:
 
 {context}
 
-Generate a user query that correspond to 1-{max_context_services} services in the context. 
+Generate a user query that correspond to 1-{max_context_services} services in the context.
 Consider various demographics, intersectional needs, potential emergency situations, and out-of-scope queries.
 For each query, provide an expected answer based on the relevant services.
 
@@ -41,11 +43,26 @@ Output the results in the specified format.
 # Define the output schema
 response_schemas = [
     ResponseSchema(name="query", description="The user's query about health services"),
-    ResponseSchema(name="relevant_services", description="List of ResourceAgencyNum for relevant services (1-5)"),
-    ResponseSchema(name="answer", description="Expected answer based on the query and relevant services"),
-    ResponseSchema(name="is_emergency", description="Boolean indicating if this is an emergency situation"),
-    ResponseSchema(name="is_out_of_scope", description="Boolean indicating if the query is out of scope for available services"),
-    ResponseSchema(name="demographics", description="Relevant demographic information for the query"),
+    ResponseSchema(
+        name="relevant_services",
+        description="List of ResourceAgencyNum for relevant services (1-5)",
+    ),
+    ResponseSchema(
+        name="answer",
+        description="Expected answer based on the query and relevant services",
+    ),
+    ResponseSchema(
+        name="is_emergency",
+        description="Boolean indicating if this is an emergency situation",
+    ),
+    ResponseSchema(
+        name="is_out_of_scope",
+        description="Boolean indicating if the query is out of scope for available services",
+    ),
+    ResponseSchema(
+        name="demographics",
+        description="Relevant demographic information for the query",
+    ),
 ]
 
 output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
@@ -66,14 +83,24 @@ Please remain on the line to provide additional information if requested by the 
 
 OUT_OF_SCOPE_TEXT = "I apologize, but I couldn't find any relevant services that match your query. The services available may not cover this specific need. If you have a different health-related question or need, please feel free to ask, and I'll do my best to help you find appropriate resources."
 
+
 # Create the Langchain pipeline
-def create_synthetic_dataset(services: List[Dict[str, Any]], num_samples: int, num_random_services: int, max_context_services: int) -> List[Dict[str, Any]]:
+def create_synthetic_dataset(
+    services: List[Dict[str, Any]],
+    num_samples: int,
+    num_random_services: int,
+    max_context_services: int,
+) -> List[Dict[str, Any]]:
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
 
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
-        {"context": RunnablePassthrough(), "max_context_services": RunnablePassthrough(), "format_instructions": lambda _: output_parser.get_format_instructions()}
+        {
+            "context": RunnablePassthrough(),
+            "max_context_services": RunnablePassthrough(),
+            "format_instructions": lambda _: output_parser.get_format_instructions(),
+        }
         | prompt
         | llm
         | output_parser
@@ -84,11 +111,18 @@ def create_synthetic_dataset(services: List[Dict[str, Any]], num_samples: int, n
     for _ in range(num_samples):
         # Randomly select 10 services for context
         context_services = random.sample(services, num_random_services)
-        context = "\n\n".join([f"Service {s['ResourceAgencyNum']}:\n{s['PublicName']}\n{s['AgencyDescription']}" for s in context_services])
+        context = "\n\n".join(
+            [
+                f"Service {s['ResourceAgencyNum']}:\n{s['PublicName']}\n{s['AgencyDescription']}"
+                for s in context_services
+            ]
+        )
 
         # Generate queries and answers
         try:
-            result = chain.invoke({"context": context, "max_context_services": max_context_services})
+            result = chain.invoke(
+                {"context": context, "max_context_services": max_context_services}
+            )
 
             if isinstance(result, list):
                 parsed_result = result
@@ -96,32 +130,61 @@ def create_synthetic_dataset(services: List[Dict[str, Any]], num_samples: int, n
                 parsed_result = [result]
 
             for item in parsed_result:
-                relevant_services = [s for s in context_services if s['ResourceAgencyNum'] in item.get('relevant_services', [])]
-                
+                relevant_services = [
+                    s
+                    for s in context_services
+                    if s["ResourceAgencyNum"] in item.get("relevant_services", [])
+                ]
+
                 # Handle emergency and out-of-scope situations
 
-                synthetic_dataset.append({
-                    "query": item.get('query', ''),
-                    "context": relevant_services,
-                    "answer": item.get('answer', ''),
-                    "is_emergency": item.get('is_emergency', ''),
-                    "is_out_of_scope": item.get('is_out_of_scope', ''),
-                    "demographics": item.get('demographics', '')
-                })
+                synthetic_dataset.append(
+                    {
+                        "query": item.get("query", ""),
+                        "context": relevant_services,
+                        "answer": item.get("answer", ""),
+                        "is_emergency": item.get("is_emergency", ""),
+                        "is_out_of_scope": item.get("is_out_of_scope", ""),
+                        "demographics": item.get("demographics", ""),
+                    }
+                )
         except Exception as e:
             print(f"Error generating sample: {e}")
 
     return synthetic_dataset
 
+
 # Main execution
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate synthetic dataset for RAG evaluation")
-    parser.add_argument("--input_file", default="data/211_central.csv", help="Path to the input CSV file")
-    parser.add_argument("--output_dir", default="./eval", help="Directory to save the output JSON file")
-    parser.add_argument("--name", default="synthetic_dataset", help="Name of the output JSON file")
-    parser.add_argument("--num_random_services", type=int, default=10, help="Number of services to randomly select for each sample")
-    parser.add_argument("--max_context_services", type=int, default=5, help="Maximum number of services to include in the context")
-    parser.add_argument("--num_samples", type=int, default=20, help="Number of samples to generate")
+    parser = argparse.ArgumentParser(
+        description="Generate synthetic dataset for RAG evaluation"
+    )
+    parser.add_argument(
+        "--input_file",
+        default="data/211_central.csv",
+        help="Path to the input CSV file",
+    )
+    parser.add_argument(
+        "--output_dir", default="./eval", help="Directory to save the output JSON file"
+    )
+    parser.add_argument(
+        "--name", default="synthetic_dataset", help="Name of the output JSON file"
+    )
+    parser.add_argument(
+        "--num_random_services",
+        type=int,
+        default=10,
+        help="Number of services to randomly select for each sample",
+    )
+    parser.add_argument(
+        "--max_context_services",
+        type=int,
+        default=5,
+        help="Maximum number of services to include in the context",
+    )
+    parser.add_argument(
+        "--num_samples", type=int, default=20, help="Number of samples to generate"
+    )
     args = parser.parse_args()
 
     # Ensure the output directory exists
@@ -136,11 +199,18 @@ if __name__ == "__main__":
     os.environ["OPENAI_API_KEY"] = openai_api_key
 
     services = load_services(args.input_file)
-    synthetic_dataset = create_synthetic_dataset(services, num_samples=args.num_samples, num_random_services=args.num_random_services, max_context_services=args.max_context_services)
+    synthetic_dataset = create_synthetic_dataset(
+        services,
+        num_samples=args.num_samples,
+        num_random_services=args.num_random_services,
+        max_context_services=args.max_context_services,
+    )
 
     # Save the synthetic dataset to disk
     output_file = os.path.join(args.output_dir, f"{args.name}.json")
     with open(output_file, "w") as f:
         json.dump(synthetic_dataset, f, indent=2)
 
-    print(f"Generated {len(synthetic_dataset)} synthetic samples. Saved to {output_file}")
+    print(
+        f"Generated {len(synthetic_dataset)} synthetic samples. Saved to {output_file}"
+    )
