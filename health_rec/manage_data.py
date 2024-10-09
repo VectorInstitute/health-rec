@@ -25,7 +25,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def get_chroma_client() -> chromadb.HttpClient:
+def get_chroma_client() -> Any:
     """
     Get a Chroma client instance.
 

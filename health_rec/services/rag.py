@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 class RAGService:
     """RAG service."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the RAG service."""
         self.client: openai.Client = openai.Client(api_key=Config.OPENAI_API_KEY)
         self.embedding_model: str = Config.OPENAI_EMBEDDING
-        self.chroma_client: chromadb.HttpClient = chromadb.HttpClient(
+        self.chroma_client = chromadb.HttpClient(
             host=Config.CHROMA_HOST, port=Config.CHROMA_PORT
         )
         self.services_collection: Collection = self.chroma_client.get_collection(
@@ -112,7 +112,12 @@ class RAGService:
             ],
             max_tokens=500,
         )
-        response_content = completion.choices[0].message.content.strip()
+        response_content = completion.choices[0].message.content
+        if response_content is None:
+            logger.error("Received empty response from OpenAI API")
+            raise ValueError("Received empty response from OpenAI API")
+
+        response_content = response_content.strip()
         if response_content == "EMERGENCY":
             return RAGOutput(
                 is_emergency=True, message=get_emergency_services_message(), services=[]
