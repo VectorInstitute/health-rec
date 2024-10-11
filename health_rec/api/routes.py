@@ -5,7 +5,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from api.data import RecommendationResponse, Service
+from api.data import RecommendationResponse, Service, Query
 from services.dev.data import ChromaService
 from services.rag import RAGService
 
@@ -43,6 +43,31 @@ async def recommend(query: str) -> RecommendationResponse:
     """
     logger.info(f"Request query: {query}")
     generation = rag_service.generate(query)
+    logger.info(f"Generation: {generation}")
+    return RecommendationResponse(**generation.dict())
+
+@router.post("/recommend", response_model=RecommendationResponse)
+async def recommend(query: Query) -> RecommendationResponse:
+    """
+    Generate a recommendation based on the input query.
+
+    Parameters
+    ----------
+    query : Query
+        The user's input (query, location, radius) for which a recommendation is requested.
+
+    Returns
+    -------
+    RecommendationResponse
+        An object containing the generated recommendation and relevant services.
+
+    Notes
+    -----
+    This function logs the incoming query and uses the RagService to generate
+    a response based on the query.
+    """
+    logger.info(f"Request query: {query}")
+    generation = rag_service.generate(query.query)
     logger.info(f"Generation: {generation}")
     return RecommendationResponse(**generation.dict())
 
