@@ -201,11 +201,14 @@ class ServiceDocument(BaseModel):
         The content of the document.
     metadata : Dict[str, Any]
         Additional metadata associated with the document.
+    score: float
+        The distance score of the document. Larger distances mean the embeddings are less similar, hence less relevant.
     """
 
     id: str
     document: str
     metadata: Dict[str, Any]
+    relevancy_score: float
 
 
 class RAGOutput(BaseModel):
@@ -254,3 +257,24 @@ class RecommendationResponse(BaseModel):
 
     message: str
     services: List[Service]
+
+class Query(BaseModel):
+    """
+    Represents the string query and the location of the user.
+
+    Attributes
+    ----------
+    query : str
+        The query that user has entered.
+    latitude : Optional[float]
+        The latitude coordinate of the user.
+    longitude : Optional[float]
+        The latitude coordinate of the user.
+    radius : Optional[float]
+        The radius of the search.
+    """
+
+    query: str
+    latitude: Optional[float] = Field(default=None, alias="Latitude")
+    longitude: Optional[float] = Field(default=None, alias="Longitude")
+    radius: Optional[float] = Field(default=None, alias="Radius")
