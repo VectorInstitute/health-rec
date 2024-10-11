@@ -7,9 +7,12 @@ import json
 import math
 from pathlib import Path
 import argparse
+from typing import Dict, Any
 
 
-def create_payload(page_index: int, dataset: str, is_gta: bool, page_size: int) -> dict:
+def create_payload(
+    page_index: int, dataset: str, is_gta: bool, page_size: int
+) -> Dict[str, Any]:
     """Create the payload for the API request."""
     payload = {
         "Dataset": dataset,
@@ -50,7 +53,7 @@ def fetch_data(
     dataset: str,
     is_gta: bool,
     page_size: int,
-) -> dict:
+) -> Any:
     """Fetch data from the API for a given page index."""
     headers = {"Content-Type": "application/json"}
     params = {"key": api_key}
@@ -65,7 +68,7 @@ def fetch_data(
     return response.json()
 
 
-def save_to_file(data: dict, file_name: str):
+def save_to_file(data: Dict[str, Any], file_name: str) -> None:
     """Save the data to a JSON file."""
     with open(file_name, "w") as f:
         json.dump(data, f, indent=2)
@@ -78,7 +81,7 @@ def main(
     is_gta: bool,
     data_dir: str,
     page_size: int,
-):
+) -> None:
     os.makedirs(data_dir, exist_ok=True)
 
     first_page = fetch_data(0, api_key, base_url, dataset, is_gta, page_size)

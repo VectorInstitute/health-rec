@@ -1,7 +1,7 @@
 """Backend API routes."""
 
 import logging
-from typing import List
+from typing import Any, List
 
 from fastapi import APIRouter, Depends
 
@@ -48,7 +48,9 @@ async def recommend(query: str) -> RecommendationResponse:
 
 
 @router.get("/services/all", response_model=List[Service])
-async def get_all_services(chroma_service: ChromaService = Depends(ChromaService)):  # noqa: B008
+async def get_all_services(
+    chroma_service: ChromaService = Depends(ChromaService),  # noqa: B008
+) -> Any:
     """
     Get all services from the ChromaDB collection.
 
@@ -61,7 +63,9 @@ async def get_all_services(chroma_service: ChromaService = Depends(ChromaService
 
 
 @router.get("/services/count", response_model=int)
-async def get_services_count(chroma_service: ChromaService = Depends(ChromaService)):  # noqa: B008
+async def get_services_count(
+    chroma_service: ChromaService = Depends(ChromaService),  # noqa: B008
+) -> Any:
     """
     Get the number of services in the ChromaDB collection.
 
