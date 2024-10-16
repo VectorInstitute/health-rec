@@ -7,11 +7,12 @@ import { Service } from '../types/service';
 
 interface ServiceCardProps {
   service: Service;
+  bgColor?: string;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const bgColor = useColorModeValue('white', 'gray.700');
+  const defaultBgColor = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const textColor = useColorModeValue('gray.800', 'white');
 
@@ -46,7 +47,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
         borderRadius="lg"
         overflow="hidden"
         p={6}
-        bg={bgColor}
+        bg={bgColor || defaultBgColor}
         borderColor={borderColor}
         cursor="pointer"
         onClick={onOpen}

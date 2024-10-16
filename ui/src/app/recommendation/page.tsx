@@ -23,6 +23,7 @@ const RecommendationPage: React.FC = () => {
   const textColor = useColorModeValue('gray.800', 'white');
   const cardBgColor = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const highlightColor = useColorModeValue('blue.50', 'blue.900');
 
   const mapHeight = '400px';
   const mapWidth = '100%';
@@ -110,6 +111,14 @@ const RecommendationPage: React.FC = () => {
     const overview = overviewWithLabel.replace('Overview:', '').trim();
     const reasoning = reasoningParts.join('\n').replace('Reasoning:', '').trim();
 
+    const updateRecommendationCard = (recommendation: { service_name?: string, overview?: string }) => {
+      const serviceName = recommendation.service_name || 'Unknown Service';
+      const overviewSection = `<b>${serviceName}</b><br><br>\n${recommendation.overview || ''}`;
+      return overviewSection;
+    };
+
+    const updatedOverview = updateRecommendationCard({ service_name: recommendation.services[0]?.PublicName, overview });
+
     return (
       <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
         <VStack spacing={6} align="stretch">
@@ -117,7 +126,7 @@ const RecommendationPage: React.FC = () => {
             <Badge colorScheme="blue" fontSize="sm" mb={2}>
               Overview
             </Badge>
-            <Text fontSize="lg">{overview}</Text>
+            <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
           </Box>
           <Divider />
           <Box>
@@ -131,34 +140,45 @@ const RecommendationPage: React.FC = () => {
     );
   };
 
-  const renderRecommendedServices = (services: Service[] | null) => (
-    <>
-      <Heading as="h2" size="xl" color={textColor} mt={12} mb={6}>
-        Recommended Services
-      </Heading>
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, index) => (
-            <Box key={index} bg={cardBgColor} p={6} borderRadius="lg" boxShadow="md" borderWidth={1} borderColor={borderColor}>
-              <VStack align="stretch" spacing={4}>
-                <Skeleton height="20px" width="60%" />
-                <SkeletonText mt="2" noOfLines={3} spacing="2" skeletonHeight="2" />
-                <Skeleton height="20px" width="40%" />
-                <Flex>
-                  <SkeletonCircle size="8" mr={2} />
-                  <Skeleton height="20px" width="30%" />
-                </Flex>
-              </VStack>
-            </Box>
-          ))
-        ) : (
-          services?.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))
-        )}
-      </SimpleGrid>
-    </>
-  );
+  const colorTopServices = (services: Service[], topN: number, highlightColor: string) => {
+    return services.map((service, index) => ({
+      ...service,
+      bgColor: index < topN ? highlightColor : cardBgColor
+    }));
+  };
+
+  const renderRecommendedServices = (services: Service[] | null) => {
+    const coloredServices = services ? colorTopServices(services, 1, highlightColor) : null;
+
+    return (
+      <>
+        <Heading as="h2" size="xl" color={textColor} mt={12} mb={6}>
+          Recommended Services
+        </Heading>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <Box key={index} bg={cardBgColor} p={6} borderRadius="lg" boxShadow="md" borderWidth={1} borderColor={borderColor}>
+                <VStack align="stretch" spacing={4}>
+                  <Skeleton height="20px" width="60%" />
+                  <SkeletonText mt="2" noOfLines={3} spacing="2" skeletonHeight="2" />
+                  <Skeleton height="20px" width="40%" />
+                  <Flex>
+                    <SkeletonCircle size="8" mr={2} />
+                    <Skeleton height="20px" width="30%" />
+                  </Flex>
+                </VStack>
+              </Box>
+            ))
+          ) : (
+            coloredServices?.map((service) => (
+              <ServiceCard key={service.id} service={service} bgColor={service.bgColor} />
+            ))
+          )}
+        </SimpleGrid>
+      </>
+    );
+  };
 
   return (
     <Box minHeight="100vh" bg={bgColor}>
