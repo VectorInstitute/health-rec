@@ -1,5 +1,3 @@
-// ui/src/app/components/service-modal.tsx
-
 import React from 'react';
 import parse, { HTMLReactParserOptions, Element, DOMNode, Text as DOMText } from 'html-react-parser';
 import {
@@ -21,6 +19,7 @@ import {
   Divider,
   Grid,
   GridItem,
+  Link,
 } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaPhone, FaGlobe, FaClock } from 'react-icons/fa';
 import { Service } from '../types/service';
@@ -37,6 +36,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   const sectionBgColor = useColorModeValue('gray.50', 'gray.700');
   const highlightColor = useColorModeValue('blue.50', 'blue.900');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const linkColor = useColorModeValue('blue.600', 'blue.300');
 
   const formatServiceArea = (serviceArea: string | string[] | undefined): string => {
     if (Array.isArray(serviceArea)) {
@@ -52,12 +52,10 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
       replace: (domNode: DOMNode) => {
         if (domNode instanceof Element && domNode.name === 'a' && domNode.attribs) {
           return (
-            <Text
-              as="a"
+            <Link
               href={domNode.attribs.href || ''}
-              target="_blank"
-              rel="noopener noreferrer"
-              color="blue.500"
+              isExternal
+              color={linkColor}
               textDecoration="underline"
             >
               {domNode.children[0] instanceof Element
@@ -67,7 +65,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                 : domNode.children[0] instanceof DOMText
                   ? domNode.children[0].data
                   : ''}
-            </Text>
+            </Link>
           );
         }
         return undefined;
@@ -77,7 +75,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   };
 
   const renderAdditionalInfo = () => {
-    const excludedKeys = ['id', 'ParentId', 'Score', 'Hours2', 'RecordOwner', 'UniqueIDPriorSystem', 'Latitude', 'Longitude', 'TaxonomyCodes', 'TaxonomyTerm', 'TaxonomyTerms', 'PublicName', 'Description', 'ServiceArea', 'PhoneNumber', 'WebsiteUrl', 'Hours'];
+    const excludedKeys = ['id', 'ParentId', 'Score', 'Hours2', 'RecordOwner', 'UniqueIDPriorSystem', 'Latitude', 'Longitude', 'TaxonomyCodes', 'TaxonomyTerm', 'TaxonomyTerms', 'PublicName', 'Description', 'ServiceArea', 'PhoneNumbers', 'Website', 'Hours'];
     const additionalInfo = Object.entries(service).filter(([key]) => !excludedKeys.includes(key));
 
     return (
@@ -134,25 +132,33 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                 <Text color={textColor}>{formatServiceArea(service.ServiceArea)}</Text>
               </Box>
             )}
-            {service.PhoneNumber && (
-              <Flex align="center">
-                <Icon as={FaPhone} color="green.500" mr={2} />
-                <Text color={textColor}>{service.PhoneNumber}</Text>
-              </Flex>
+            {service.PhoneNumbers && service.PhoneNumbers.length > 0 && (
+              <Box bg={sectionBgColor} p={4} borderRadius="md">
+                <Flex align="center" mb={2}>
+                  <Icon as={FaPhone} color="green.500" mr={2} />
+                  <Heading as="h4" size="sm" color={textColor}>
+                    Phone
+                  </Heading>
+                </Flex>
+                <Text color={textColor}>{service.PhoneNumbers[0].phone}</Text>
+              </Box>
             )}
-            {service.WebsiteUrl && (
-              <Flex align="center">
-                <Icon as={FaGlobe} color="purple.500" mr={2} />
-                <Text
-                  color={textColor}
-                  as="a"
-                  href={service.WebsiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+            {service.Website && (
+              <Box bg={sectionBgColor} p={4} borderRadius="md">
+                <Flex align="center" mb={2}>
+                  <Icon as={FaGlobe} color="purple.500" mr={2} />
+                  <Heading as="h4" size="sm" color={textColor}>
+                    Website
+                  </Heading>
+                </Flex>
+                <Link
+                  href={service.Website}
+                  isExternal
+                  color={linkColor}
                 >
-                  {service.WebsiteUrl}
-                </Text>
-              </Flex>
+                  {service.Website}
+                </Link>
+              </Box>
             )}
             {service.Hours && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
