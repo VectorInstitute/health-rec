@@ -8,7 +8,7 @@ import openai
 from chromadb.api.models.Collection import Collection
 
 from api.config import Config
-from api.data import RAGOutput, Service, ServiceDocument
+from api.data import RecommendationResponse, Service, ServiceDocument
 from services.emergency import get_emergency_services_message
 from services.utils import _metadata_to_service
 
@@ -33,7 +33,7 @@ class RAGService:
             name=Config.COLLECTION_NAME
         )
 
-    def generate(self, query: str) -> RAGOutput:
+    def generate(self, query: str) -> RecommendationResponse:
         """
         Generate a response based on the input query using RAG methodology.
 
@@ -44,7 +44,7 @@ class RAGService:
 
         Returns
         -------
-        RAGOutput
+        RecommendationResponse
             An object containing the generated recommendation and relevant services.
 
         Raises
@@ -79,21 +79,24 @@ class RAGService:
         context: str = "\n".join([service.document for service in parsed_results])
 
         generation_template: str = """
-        You are an expert with deep knowledge of Toronto community services. You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
+        You are an expert with deep knowledge of health and community services in the Greater Toronto Area (GTA). You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
 
         <QUERY>
         {discover}
         </QUERY>
 
         If you determine that the individual has an emergency need, respond with only the word "EMERGENCY" (in all caps).
+        If you determine that the individual's query is not for a health or community service in the GTA, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
+        Response: A brief explanation of why the query is out of scope.
+        Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of GTA health and community services.
 
-        If the individual does not need emergency help, use only the following service context enclosed by the <CONTEXT> tag to provide a service recommendation.
+        If the individual does not need emergency help and the query is within scope, use only the following service context enclosed by the <CONTEXT> tag to provide a service recommendation.
 
         <CONTEXT>
         {context}
         </CONTEXT>
 
-        Your response should be structured as follows:
+        Your response for in-scope queries should be structured as follows:
         Overview: A brief overview of the most relevant service.
         Reasoning: Why this service is recommended and any other helpful information.
 
@@ -119,9 +122,22 @@ class RAGService:
 
         response_content = response_content.strip()
         if response_content == "EMERGENCY":
-            return RAGOutput(
-                is_emergency=True, message=get_emergency_services_message(), services=[]
+            return RecommendationResponse(
+                is_emergency=True,
+                message=get_emergency_services_message(),
+                services=[],
+                is_out_of_scope=False,
             )
-        return RAGOutput(
-            is_emergency=False, message=response_content, services=services
+        if response_content.startswith("Response:"):
+            return RecommendationResponse(
+                is_emergency=False,
+                message=response_content,
+                services=[],
+                is_out_of_scope=True,
+            )
+        return RecommendationResponse(
+            is_emergency=False,
+            message=response_content,
+            services=services,
+            is_out_of_scope=False,
         )

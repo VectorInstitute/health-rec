@@ -208,38 +208,6 @@ class ServiceDocument(BaseModel):
     metadata: Dict[str, Any]
 
 
-class RAGOutput(BaseModel):
-    """
-    Represents the output of a RAG (Retrieval-Augmented Generation) model.
-
-    Attributes
-    ----------
-    message : str
-        The generated message or response.
-    services : List[Service]
-        A list of services related to the generation.
-    is_emergency : bool
-        Whether the message is an emergency message.
-    """
-
-    message: str
-    services: List[Service]
-    is_emergency: bool
-
-
-class RecommendationPayload(BaseModel):
-    """
-    Represents the payload for a recommendation request.
-
-    Attributes
-    ----------
-    discover : str
-        The query or topic for which recommendations are sought.
-    """
-
-    discover: str
-
-
 class RecommendationResponse(BaseModel):
     """
     Represents the response to a recommendation request.
@@ -250,10 +218,16 @@ class RecommendationResponse(BaseModel):
         A message accompanying the recommendation.
     services : List[Service]
         A list of recommended services.
+    is_emergency : bool
+        Whether the request signifies an emergency.
+    is_out_of_scope : bool
+        Whether the request is out of scope.
     """
 
     message: str
     services: List[Service]
+    is_emergency: bool
+    is_out_of_scope: bool
 
 
 class RefineRequest(BaseModel):

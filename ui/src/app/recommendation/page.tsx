@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Container, Heading, Text, VStack, SimpleGrid, useColorModeValue,
-  Alert, AlertIcon, AlertTitle, AlertDescription, Divider, Badge, Flex,
-  Grid, GridItem, Skeleton, SkeletonText, SkeletonCircle
+  Divider, Badge, Flex, Grid, GridItem, Skeleton, SkeletonText, SkeletonCircle
 } from '@chakra-ui/react';
 import ServiceCard from '../components/service-card';
 import Header from '../components/header';
@@ -13,6 +12,8 @@ import { Service, Location } from '../types/service';
 import { useRecommendationStore, Recommendation } from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
 import AdditionalQuestions from '../components/additional-questions';
+import EmergencyAlert from '../components/emergency-alert';
+import OutOfScopeAlert from '../components/out-of-scope-alert';
 
 const RecommendationPage: React.FC = () => {
   const recommendation = useRecommendationStore((state) => state.recommendation);
@@ -144,25 +145,6 @@ const RecommendationPage: React.FC = () => {
     }
   }, [mapLocations]);
 
-  const renderEmergencyAlert = (message: string) => (
-    <Alert
-      status="error"
-      variant="subtle"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      textAlign="center"
-      height="200px"
-      borderRadius="md"
-    >
-      <AlertIcon boxSize="40px" mr={0} />
-      <AlertTitle mt={4} mb={1} fontSize="lg">
-        Emergency Situation Detected
-      </AlertTitle>
-      <AlertDescription maxWidth="sm">{message}</AlertDescription>
-    </Alert>
-  );
-
   const renderRecommendationCard = (recommendation: Recommendation | null) => {
     if (!recommendation?.message) return null;
 
@@ -236,7 +218,13 @@ const RecommendationPage: React.FC = () => {
             Your Recommendation
           </Heading>
           {recommendation?.is_emergency ? (
-            renderEmergencyAlert(recommendation.message)
+            <Box width="100%">
+              <EmergencyAlert message={recommendation.message} />
+            </Box>
+          ) : recommendation?.is_out_of_scope ? (
+            <Box width="100%">
+              <OutOfScopeAlert message={recommendation.message} />
+            </Box>
           ) : (
             <>
               <Grid templateColumns={{ base: "1fr", lg: "3fr 2fr" }} gap={8}>
@@ -270,7 +258,7 @@ const RecommendationPage: React.FC = () => {
                     </Box>
                   </Box>
                 </GridItem>
-              </Grid>
+                </Grid>
               <Divider my={1} borderColor={dividerColor} borderWidth={2} />
               {renderRecommendedServices(recommendation?.services || null)}
               <Divider my={1} borderColor={dividerColor} borderWidth={2} />

@@ -67,11 +67,9 @@ async def refine_recommendations(
         If there's an error refining the recommendations.
     """
     try:
-        logger.info(f"Received refinement request: {request}")
         refined_query = refine_service.improve_query(
             request.original_query, request.questions, request.answers
         )
-        logger.info(f"Refined query: {refined_query}")
         return rag_service.generate(refined_query)
     except Exception as e:
         logger.error(f"Error in refine_recommendations: {str(e)}")
@@ -98,10 +96,7 @@ async def recommend(query: str) -> RecommendationResponse:
     This function logs the incoming query and uses the RagService to generate
     a response based on the query.
     """
-    logger.info(f"Request query: {query}")
-    generation = rag_service.generate(query)
-    logger.info(f"Generation: {generation}")
-    return RecommendationResponse(**generation.dict())
+    return rag_service.generate(query)
 
 
 @router.get("/services/all", response_model=List[Service])
