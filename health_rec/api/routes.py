@@ -70,6 +70,7 @@ async def refine_recommendations(
         refined_query = refine_service.improve_query(
             request.original_query, request.questions, request.answers
         )
+        logger.info(f"Refined query: {refined_query}")
         return rag_service.generate(refined_query)
     except Exception as e:
         logger.error(f"Error in refine_recommendations: {str(e)}")

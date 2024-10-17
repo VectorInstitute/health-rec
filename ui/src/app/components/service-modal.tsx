@@ -51,9 +51,14 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
     const options: HTMLReactParserOptions = {
       replace: (domNode: DOMNode) => {
         if (domNode instanceof Element && domNode.name === 'a' && domNode.attribs) {
+          let href = domNode.attribs.href || '';
+          // Ensure the URL has a protocol
+          if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
+            href = `https://${href}`;
+          }
           return (
             <Link
-              href={domNode.attribs.href || ''}
+              href={href}
               isExternal
               color={linkColor}
               textDecoration="underline"
@@ -152,7 +157,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                   </Heading>
                 </Flex>
                 <Link
-                  href={service.Website}
+                  href={service.Website.startsWith('http') ? service.Website : `https://${service.Website}`}
                   isExternal
                   color={linkColor}
                 >
