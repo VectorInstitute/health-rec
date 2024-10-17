@@ -34,9 +34,9 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   const bgColor = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
   const sectionBgColor = useColorModeValue('gray.50', 'gray.700');
-  const highlightColor = useColorModeValue('blue.50', 'blue.900');
+  const highlightColor = useColorModeValue('pink.50', 'pink.900');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const linkColor = useColorModeValue('blue.600', 'blue.300');
+  const linkColor = useColorModeValue('pink.600', 'pink.300');
 
   const formatServiceArea = (serviceArea: string | string[] | undefined): string => {
     if (Array.isArray(serviceArea)) {
@@ -124,7 +124,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
             {service.ServiceArea && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
-                  <Icon as={FaMapMarkerAlt} color="blue.500" mr={2} />
+                  <Icon as={FaMapMarkerAlt} color="purple.500" mr={2} />
                   <Heading as="h4" size="sm" color={textColor}>
                     Service Area
                   </Heading>
@@ -181,7 +181,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
           </VStack>
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={onClose}>
+          <Button colorScheme="pink" mr={3} onClick={onClose}>
             Close
           </Button>
         </ModalFooter>

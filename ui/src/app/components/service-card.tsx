@@ -26,7 +26,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
               href={domNode.attribs.href || ''}
               target="_blank"
               rel="noopener noreferrer"
-              color="blue.500"
+              color="pink.500"
               textDecoration="underline"
               onClick={(e) => e.stopPropagation()}
             >
@@ -81,13 +81,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
         <Flex mt={4} align="center" justify="space-between">
           {service.ServiceArea && (
             <Flex align="center">
-              <Icon as={FaMapMarkerAlt} color="blue.500" mr={2} />
+              <Icon as={FaMapMarkerAlt} color="pink.500" mr={2} />
               <Text fontSize="sm" color={textColor}>
                 {Array.isArray(service.ServiceArea) ? service.ServiceArea[0] : service.ServiceArea}
               </Text>
             </Flex>
           )}
-          <Badge colorScheme="green">View Details</Badge>
+          <Badge colorScheme="purple">View Details</Badge>
         </Flex>
       </Box>
       <ServiceModal isOpen={isOpen} onClose={onClose} service={service} />

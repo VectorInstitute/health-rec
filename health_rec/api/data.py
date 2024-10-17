@@ -254,3 +254,22 @@ class RecommendationResponse(BaseModel):
 
     message: str
     services: List[Service]
+
+
+class RefineRequest(BaseModel):
+    """
+    Represents the request for refining recommendations.
+
+    Attributes
+    ----------
+    original_query : str
+        The original query used to generate the initial recommendations.
+    questions : List[str]
+        A list of additional questions to refine the recommendations.
+    answers : List[str]
+        A list of answers to the additional questions.
+    """
+
+    original_query: str
+    questions: List[str]
+    answers: List[str]
