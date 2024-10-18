@@ -8,9 +8,10 @@ import openai
 from chromadb.api.models.Collection import Collection
 
 from api.config import Config
-from api.data import RAGOutput, Service, ServiceDocument
+from api.data import RAGOutput, Service, ServiceDocument, Query
 from services.emergency import get_emergency_services_message
-from services.utils import _metadata_to_service
+from services.utils import _parse_chroma_result, _metadata_to_service
+from services.ranking import RankingService
 
 
 logging.basicConfig(
@@ -32,8 +33,10 @@ class RAGService:
         self.services_collection: Collection = self.chroma_client.get_collection(
             name=Config.COLLECTION_NAME
         )
+        # TODO: user defines the weight when starting the app or in the config file
+        self.ranking_service = RankingService(relevancy_weight=0.1)
 
-    def generate(self, query: str) -> RAGOutput:
+    def generate(self, query: Query) -> RAGOutput: # noqa: D102
         """
         Generate a response based on the input query using RAG methodology.
 
@@ -54,7 +57,7 @@ class RAGService:
         """
         try:
             query_embedding = (
-                self.client.embeddings.create(input=[query], model=self.embedding_model)
+                self.client.embeddings.create(input=[query.query_str], model=self.embedding_model)
                 .data[0]
                 .embedding
             )
@@ -63,21 +66,45 @@ class RAGService:
             raise ValueError("Failed to generate embedding for the query") from e
 
         chroma_results = self.services_collection.query(
-            query_embeddings=query_embedding, n_results=5
+            query_embeddings=query_embedding, n_results=10
         )
-        parsed_results: List[ServiceDocument] = [
-            ServiceDocument(id=id_, document=doc, metadata=meta)
-            for id_, doc, meta in zip(
-                chroma_results["ids"][0] if chroma_results["ids"] else [],
-                chroma_results["documents"][0] if chroma_results["documents"] else [],
-                chroma_results["metadatas"][0] if chroma_results["metadatas"] else [],
-            )
-        ]
-        services: List[Service] = [
-            _metadata_to_service(service.metadata) for service in parsed_results
-        ]
-        context: str = "\n".join([service.document for service in parsed_results])
+        
+        service_documents = _parse_chroma_result(chroma_results)
 
+        context: str = "\n".join([service.document for service in service_documents])
+
+        response_content = self._generate_response(query, context)
+        if response_content == "EMERGENCY":
+                return RAGOutput(
+                    is_emergency=True, message=get_emergency_services_message(), services=[]
+                )
+        user_location = None
+        if  query.latitude and query.longitude:
+            user_location=(query.latitude, query.longitude)
+        services: List[Service] = self.ranking_service.rank_services(
+                service_documents, user_location
+            )
+        return RAGOutput(
+            is_emergency=False, message=response_content, services=services
+        )
+
+
+    def _generate_response(self, query: str, context: str) -> str:
+        """
+        Generate a response based on the input query and context using RAG methodology.
+
+        Parameters
+        ----------
+        query : str
+            The user's input query for which a recommendation is requested.
+        context : str
+            The context of relevant services.
+
+        Returns
+        -------
+        RAGOutput
+            An object containing the generated recommendation and relevant services.
+        """
         generation_template: str = """
         You are an expert with deep knowledge of Toronto community services. You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
 
@@ -113,10 +140,5 @@ class RAGService:
             max_tokens=500,
         )
         response_content = completion.choices[0].message.content.strip()
-        if response_content == "EMERGENCY":
-            return RAGOutput(
-                is_emergency=True, message=get_emergency_services_message(), services=[]
-            )
-        return RAGOutput(
-            is_emergency=False, message=response_content, services=services
-        )
+        return response_content
+        

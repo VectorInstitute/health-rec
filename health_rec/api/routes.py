@@ -67,7 +67,7 @@ async def recommend(query: Query) -> RecommendationResponse:
     a response based on the query.
     """
     logger.info(f"Request query: {query}")
-    generation = rag_service.generate(query.query)
+    generation = rag_service.generate(query)
     logger.info(f"Generation: {generation}")
     return RecommendationResponse(**generation.dict())
 

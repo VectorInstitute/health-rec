@@ -201,7 +201,7 @@ class ServiceDocument(BaseModel):
         The content of the document.
     metadata : Dict[str, Any]
         Additional metadata associated with the document.
-    score: float
+    relevancy_score: float
         The distance score of the document. Larger distances mean the embeddings are less similar, hence less relevant.
     """
 
@@ -209,6 +209,7 @@ class ServiceDocument(BaseModel):
     document: str
     metadata: Dict[str, Any]
     relevancy_score: float
+    distance: Optional[float] = None
 
 
 class RAGOutput(BaseModel):
@@ -274,7 +275,7 @@ class Query(BaseModel):
         The radius of the search.
     """
 
-    query: str
-    latitude: Optional[float] = Field(default=None, alias="Latitude")
-    longitude: Optional[float] = Field(default=None, alias="Longitude")
-    radius: Optional[float] = Field(default=None, alias="Radius")
+    query_str: str
+    latitude: Optional[float] = Field(default=None)
+    longitude: Optional[float] = Field(default=None)
+    radius: Optional[float] = Field(default=None)
