@@ -6,7 +6,7 @@ from enum import Enum
 from typing import List, Optional, Tuple
 
 from api.config import Config
-from api.data import RAGOutput, Service, ServiceDocument
+from api.data import Service, ServiceDocument
 from services.utils import _metadata_to_service
 
 logging.basicConfig(

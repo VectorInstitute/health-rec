@@ -209,39 +209,7 @@ class ServiceDocument(BaseModel):
     document: str
     metadata: Dict[str, Any]
     relevancy_score: float
-    distance: Optional[float] = None
-
-
-class RAGOutput(BaseModel):
-    """
-    Represents the output of a RAG (Retrieval-Augmented Generation) model.
-
-    Attributes
-    ----------
-    message : str
-        The generated message or response.
-    services : List[Service]
-        A list of services related to the generation.
-    is_emergency : bool
-        Whether the message is an emergency message.
-    """
-
-    message: str
-    services: List[Service]
-    is_emergency: bool
-
-
-class RecommendationPayload(BaseModel):
-    """
-    Represents the payload for a recommendation request.
-
-    Attributes
-    ----------
-    discover : str
-        The query or topic for which recommendations are sought.
-    """
-
-    discover: str
+    distance: Optional[float] = Field(default=None)
 
 
 class RecommendationResponse(BaseModel):
@@ -252,12 +220,49 @@ class RecommendationResponse(BaseModel):
     ----------
     message : str
         A message accompanying the recommendation.
+    is_emergency : bool
+        Whether the request signifies an emergency.
+    is_out_of_scope : bool
+        Whether the request is out of scope.
+    """
+    message: str
+    is_emergency: bool
+    is_out_of_scope: bool
+
+class RecommendationServices(BaseModel):
+    """
+    Represents the response to a recommendation request encompassing 
+    both services (ranked by location and relevancy) and string response.
+
+    Attributes
+    ----------
+    response : RecommendationResponse
+        The response to the recommendation request.
     services : List[Service]
-        A list of recommended services.
+        A list of services ranked by location and relevancy.
+    """
+    message: str
+    is_emergency: bool
+    is_out_of_scope: bool
+    services: Optional[List[Service]] = Field(default=None)
+
+class RefineRequest(BaseModel):
+    """
+    Represents the request for refining recommendations.
+
+    Attributes
+    ----------
+    original_query : str
+        The original query used to generate the initial recommendations.
+    questions : List[str]
+        A list of additional questions to refine the recommendations.
+    answers : List[str]
+        A list of answers to the additional questions.
     """
 
-    message: str
-    services: List[Service]
+    original_query: str
+    questions: List[str]
+    answers: List[str]
 
 class Query(BaseModel):
     """

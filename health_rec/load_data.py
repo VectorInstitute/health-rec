@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class OpenAIEmbedding(EmbeddingFunction):
+class OpenAIEmbedding(EmbeddingFunction[Documents]):
     """A class to generate embeddings using OpenAI's API."""
 
     def __init__(self, api_key: str, model: str = Config.OPENAI_EMBEDDING):
@@ -66,7 +66,7 @@ def load_json_data(file_path: str) -> List[Dict[str, Any]]:
     try:
         with open(file_path, "r") as file:
             data = json.load(file)
-        return data["Records"]
+        return list(data["Records"])
     except FileNotFoundError:
         logger.error(f"File not found: {file_path}")
         raise
@@ -94,7 +94,9 @@ def prepare_documents(
     documents, metadata, and IDs.
 
     """
-    documents, metadatas, ids = [], [], []
+    documents: Documents = []
+    metadatas: List[Dict[str, Any]] = []
+    ids: List[str] = []
 
     for service in services:
         metadata = {
@@ -191,7 +193,7 @@ def load_data(
                 embeddings = openai_embedding(batch_docs)
                 collection.add(
                     documents=batch_docs,
-                    metadatas=batch_metadatas,
+                    metadatas=batch_metadatas,  # type: ignore
                     ids=batch_ids,
                     embeddings=embeddings,
                 )
@@ -204,7 +206,7 @@ def load_data(
             logger.info(
                 "OpenAI API key not provided or load_embeddings is False. Adding documents without embeddings."
             )
-            collection.add(documents=documents, metadatas=metadatas, ids=ids)
+            collection.add(documents=documents, metadatas=metadatas, ids=ids)  # type: ignore
             logger.info(
                 "Data uploaded successfully, but embeddings were not generated."
             )

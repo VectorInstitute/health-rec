@@ -2,23 +2,34 @@
 
 
 def get_emergency_services_message() -> str:
-    """Get the emergency services message.
-
-    Returns
-    -------
-    str
-        The emergency services message.
-    """
+    """Get the emergency services message."""
     return """
-    In an emergency, call 9‑1‑1.
+    If you are experiencing an emergency, please call 9-1-1 immediately.
 
-    - At home, you can dial 9‑1‑1 directly. At a business or other location, you may need to dial an outside line before dialing 9‑1‑1.
-    - At a pay phone, dial 9‑1‑1; the call is free. When using a cellular phone, be prepared to give the exact location of the emergency; the call is free.
-    - For TTY access (Telephone Device for the Deaf), press the space bar announcer key repeatedly until a response is received. Deaf, deafened, Hard of Hearing, or Speech Impaired persons may register for Text with 9-1-1 Service.
+    Important Information:
+    • 9-1-1 is for police, fire, or medical emergencies requiring immediate assistance.
+    • Calls to 9-1-1 are free from any phone, including pay phones and cell phones.
+    • If using a cell phone, be prepared to provide your exact location.
+    • For TTY users: Press the space bar announcer key repeatedly until you receive a response.
+    • If you don't speak English, stay on the line and a translator will be connected.
 
-    If you do not speak English, stay on the line while the call taker contacts the telephone translations service.
+    When calling 9-1-1:
+    1. Stay calm and speak clearly.
+    2. State which service you need (police, fire, or ambulance).
+    3. Provide your location, name, and phone number.
+    4. Describe the emergency situation.
+    5. Follow the dispatcher's instructions.
+    6. Don't hang up until told to do so.
 
-    When you call, remain calm and speak clearly. Identify which emergency service you require (police, fire, or ambulance) and be prepared to provide the following information: a description of what is happening, the location, and your name, address, and telephone number.
+    Additional Resources:
+    • Toronto Police Service: https://www.tps.ca/
+    • Toronto Fire Services: https://www.toronto.ca/city-government/accountability-operations-customer-service/city-administration/staff-directory-divisions-and-customer-service/fire-services/
+    • Toronto Paramedic Services: https://www.toronto.ca/community-people/public-safety-alerts/understanding-emergency-services/toronto-paramedic-services/
+    • Non-emergency City services: Call 311 or visit https://www.toronto.ca/home/311-toronto-at-your-service/
 
-    Please remain on the line to provide additional information if requested by the call taker. Do not hang up until the call taker tells you to.
+    For mental health crisis support:
+    • Toronto Distress Centres: 416-408-4357 (416-408-HELP)
+    • Gerstein Crisis Centre: 416-929-5200
+
+    Remember, your safety is the top priority. Don't hesitate to call 9-1-1 if you're unsure about the severity of your situation.
     """

@@ -1,26 +1,26 @@
 """Data services for development."""
 
-from typing import List
+from typing import Any
 
 import chromadb
 from chromadb.api.models.Collection import Collection
+from chromadb.api.types import IncludeEnum
 
 from api.config import Config
-from api.data import Service
 from services.utils import _metadata_to_service
 
 
 class ChromaService:
     """ChromaDB service for development."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the ChromaDB service."""
-        self.client: chromadb.HttpClient = chromadb.HttpClient(
+        self.client = chromadb.HttpClient(
             host=Config.CHROMA_HOST, port=Config.CHROMA_PORT
         )
         self.collection: Collection = self.client.get_collection(Config.COLLECTION_NAME)
 
-    async def get_all_services(self) -> List[Service]:
+    async def get_all_services(self) -> Any:
         """
         Get all services from the ChromaDB collection.
 
@@ -29,10 +29,12 @@ class ChromaService:
         List[Service]
             A list of services.
         """
-        result = self.collection.get(include=["metadatas"])
-        return [_metadata_to_service(metadata) for metadata in result["metadatas"]]
+        result = self.collection.get(include=[IncludeEnum.metadatas])
+        if result["metadatas"] is not None:
+            return [_metadata_to_service(metadata) for metadata in result["metadatas"]]
+        return []
 
-    async def get_services_count(self) -> int:
+    async def get_services_count(self) -> Any:
         """
         Get the number of services in the ChromaDB collection.
 

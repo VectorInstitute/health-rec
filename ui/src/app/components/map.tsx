@@ -102,7 +102,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
         width="24px"
         height="24px"
         borderRadius="50%"
-        bg="teal.500"
+        bg="brand.pink"
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -121,12 +121,12 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     <VStack align="stretch" spacing={4} overflowY="auto" height="100%">
       {locations.map(location => (
         <Flex key={location.id} p={2} borderWidth={1} borderRadius="md" alignItems="center" cursor="pointer" onClick={() => handleMarkerClick(location)}>
-          <Icon as={FaBuilding} boxSize="30px" color="teal.500" mr={3} />
+          <Icon as={FaBuilding} boxSize="30px" color="brand.pink" mr={3} />
           <VStack align="start" spacing={0}>
             <Text fontWeight="bold" fontSize="sm">{location.name}</Text>
             <Flex alignItems="center">
               {location.rating !== undefined && (
-                <Badge colorScheme="teal" mr={1}>{location.rating.toFixed(1)}</Badge>
+                <Badge colorScheme="brand.pink" mr={1}>{location.rating.toFixed(1)}</Badge>
               )}
               {location.reviewCount !== undefined && (
                 <Text fontSize="xs">{location.reviewCount} reviews</Text>
@@ -179,7 +179,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
               type="circle"
               paint={{
                 'circle-radius': 8,
-                'circle-color': '#00bfa5',
+                'circle-color': '#eb088a',
                 'circle-stroke-width': 2,
                 'circle-stroke-color': '#ffffff'
               }}
