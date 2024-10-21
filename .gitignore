@@ -53,3 +53,6 @@ next-env.d.ts
 
 # result files
 validation_results.json
+
+# data directory
+data

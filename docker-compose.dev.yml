@@ -53,7 +53,7 @@ services:
         condition: service_healthy
 
   chromadb-dev:
-    image: ghcr.io/chroma-core/chroma:latest
+    image: ghcr.io/chroma-core/chroma:0.5.15
     volumes:
       - chroma_data_dev:/chroma/chroma
     ports:
