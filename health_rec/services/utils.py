@@ -4,13 +4,16 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from api.data import PhoneNumber, Service, ServiceDocument
 from chromadb.api.types import QueryResult
+
+from api.data import PhoneNumber, Service, ServiceDocument
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 def _parse_chroma_result(chroma_results: QueryResult) -> List[ServiceDocument]:
     """
@@ -27,16 +30,15 @@ def _parse_chroma_result(chroma_results: QueryResult) -> List[ServiceDocument]:
         A list of ServiceDocument objects created from the ChromaDB results.
     """
     parsed_results: List[ServiceDocument] = [
-            ServiceDocument(id=id_, document=doc, metadata=meta, relevancy_score=score)
-            for id_, doc, meta, score in zip(
-                chroma_results["ids"][0] if chroma_results["ids"] else [],
-                chroma_results["documents"][0] if chroma_results["documents"] else [],
-                chroma_results["metadatas"][0] if chroma_results["metadatas"] else [],
-                chroma_results["distances"][0] if chroma_results["distances"] else [],
-            )
-        ]
+        ServiceDocument(id=id_, document=doc, metadata=meta, relevancy_score=score)
+        for id_, doc, meta, score in zip(
+            chroma_results["ids"][0] if chroma_results["ids"] else [],
+            chroma_results["documents"][0] if chroma_results["documents"] else [],
+            chroma_results["metadatas"][0] if chroma_results["metadatas"] else [],
+            chroma_results["distances"][0] if chroma_results["distances"] else [],
+        )
+    ]
 
-    # logger.info(f"***** Chroma results: {parsed_results}")
     return parsed_results
 
 

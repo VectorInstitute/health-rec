@@ -202,7 +202,8 @@ class ServiceDocument(BaseModel):
     metadata : Dict[str, Any]
         Additional metadata associated with the document.
     relevancy_score: float
-        The distance score of the document. Larger distances mean the embeddings are less similar, hence less relevant.
+        The distance score of the document.
+        Larger distances mean the embeddings are less similar, hence less relevant.
     """
 
     id: str
@@ -225,14 +226,17 @@ class RecommendationResponse(BaseModel):
     is_out_of_scope : bool
         Whether the request is out of scope.
     """
+
     message: str
     is_emergency: bool
     is_out_of_scope: bool
 
+
 class RecommendationServices(BaseModel):
     """
-    Represents the response to a recommendation request encompassing 
-    both services (ranked by location and relevancy) and string response.
+    Represents the response to a recommendation request.
+
+    It encompassing both services and string response.
 
     Attributes
     ----------
@@ -241,10 +245,12 @@ class RecommendationServices(BaseModel):
     services : List[Service]
         A list of services ranked by location and relevancy.
     """
+
     message: str
     is_emergency: bool
     is_out_of_scope: bool
     services: Optional[List[Service]] = Field(default=None)
+
 
 class RefineRequest(BaseModel):
     """
@@ -263,6 +269,7 @@ class RefineRequest(BaseModel):
     original_query: str
     questions: List[str]
     answers: List[str]
+
 
 class Query(BaseModel):
     """

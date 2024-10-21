@@ -8,10 +8,15 @@ import openai
 from chromadb.api.models.Collection import Collection
 
 from api.config import Config
-from api.data import RecommendationResponse, RecommendationServices, Service, ServiceDocument, Query
+from api.data import (
+    Query,
+    RecommendationResponse,
+    RecommendationServices,
+    Service,
+)
 from services.emergency import get_emergency_services_message
-from services.utils import _parse_chroma_result, _metadata_to_service
 from services.ranking import RankingService
+from services.utils import _parse_chroma_result
 
 
 logging.basicConfig(
@@ -57,7 +62,9 @@ class RAGService:
         """
         try:
             query_embedding = (
-                self.client.embeddings.create(input=[query.query_str], model=self.embedding_model)
+                self.client.embeddings.create(
+                    input=[query.query_str], model=self.embedding_model
+                )
                 .data[0]
                 .embedding
             )
@@ -68,28 +75,31 @@ class RAGService:
         chroma_results = self.services_collection.query(
             query_embeddings=query_embedding, n_results=3
         )
-        
+
         service_documents = _parse_chroma_result(chroma_results)
 
         context: str = "\n".join([service.document for service in service_documents])
 
         response = self._generate_response(query, context)
-        
+
         user_location = None
-        if  query.latitude and query.longitude:
-            user_location=(query.latitude, query.longitude)
+        if query.latitude and query.longitude:
+            user_location = (query.latitude, query.longitude)
         services: List[Service] = self.ranking_service.rank_services(
-                service_documents, user_location
-            )
+            service_documents, user_location
+        )
         logger.info(f"Generated recommendation: {response}")
         logger.info("\n-------------------\n")
         logger.info(f"Ranked services: {services}")
         if response.is_out_of_scope or response.is_emergency:
             services = []
-        
-        return RecommendationServices(message=response.message, is_emergency=response.is_emergency, 
-                                          is_out_of_scope=response.is_out_of_scope, services=services)
 
+        return RecommendationServices(
+            message=response.message,
+            is_emergency=response.is_emergency,
+            is_out_of_scope=response.is_out_of_scope,
+            services=services,
+        )
 
     def _generate_response(self, query: str, context: str) -> RecommendationResponse:
         """

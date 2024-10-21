@@ -2,12 +2,11 @@
 
 import logging
 import math
-from enum import Enum
 from typing import List, Optional, Tuple
 
-from api.config import Config
 from api.data import Service, ServiceDocument
 from services.utils import _metadata_to_service
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -24,9 +23,10 @@ class RankingService:
         self.distance_weight = 1.0 - relevancy_weight
 
     def rank_services(
-            self, services: List[ServiceDocument],
-            user_location: Optional[Tuple[float, float]]
-        ) -> List[Service]:
+        self,
+        services: List[ServiceDocument],
+        user_location: Optional[Tuple[float, float]],
+    ) -> List[Service]:
         """
         Rank services based on the specified strategy.
 
@@ -35,26 +35,36 @@ class RankingService:
         services : List[ServiceDocument]
             A list of service documents returned by ChromaDB to be ranked.
         user_location : Optional[Tuple[float, float]]
-            The user's location as a tuple of latitude and longitude coordinates. 
+            The user's location as a tuple of latitude and longitude coordinates.
 
         Returns
         -------
         List[Service]
-            A list of ranked services based on the specified strategy.  
+            A list of ranked services based on the specified strategy.
 
         """
         if user_location is None:
             services.sort(key=lambda service: service.relevancy_score, reverse=True)
             return [_metadata_to_service(service.metadata) for service in services]
         for service in services:
-            service_location = (float(service.metadata["Latitude"]), float(service.metadata["Longitude"]))
+            service_location = (
+                float(service.metadata["Latitude"]),
+                float(service.metadata["Longitude"]),
+            )
             service.distance = _calculate_distance(service_location, user_location)
-            logger.info(f"Service: {service.metadata['PublicName']}, Distance: {service.distance}")
-        
+            logger.info(
+                f"Service: {service.metadata['PublicName']}, Distance: {service.distance}"
+            )
+
         # TODO remove the following lines later
-        scores = {service.metadata["PublicName"]: self._calculate_ranking_score(service) for service in services}
+        scores = {
+            service.metadata["PublicName"]: self._calculate_ranking_score(service)
+            for service in services
+        }
         logger.info(f"Services and their scores: \n {scores}")
-        services.sort(key=lambda service: self._calculate_ranking_score(service), reverse=True)
+        services.sort(
+            key=lambda service: self._calculate_ranking_score(service), reverse=True
+        )
         return [_metadata_to_service(service.metadata) for service in services]
 
     def _calculate_ranking_score(self, service: ServiceDocument) -> float:
@@ -71,12 +81,15 @@ class RankingService:
         float
             The ranking score for the service based on the specified strategy.
         """
-        return self.relevancy_weight * service.relevancy_score + self.distance_weight * (1/service.distance)
-        
+        return float(
+            self.relevancy_weight * service.relevancy_score
+            + self.distance_weight * (1 / service.distance)
+        )
+
 
 def _calculate_distance(
-        location1: Tuple[float, float], location2: Tuple[float, float]
-    ) -> float:
+    location1: Tuple[float, float], location2: Tuple[float, float]
+) -> float:
     """
     Calculate the distance between two locations using the Haversine formula.
 
@@ -109,9 +122,9 @@ def _calculate_distance(
     dlon = lon2_rad - lon1_rad
 
     # Calculate the distance using the Haversine formula
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = radius * c
-
-    return distance
-
+    return radius * c

@@ -5,7 +5,13 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
-from api.data import RecommendationResponse, RecommendationServices,RefineRequest, Service, Query
+from api.data import (
+    Query,
+    RecommendationResponse,
+    RecommendationServices,
+    RefineRequest,
+    Service,
+)
 from services.dev.data import ChromaService
 from services.rag import RAGService
 from services.refine import RefineService
@@ -99,15 +105,16 @@ async def recommend(query: str) -> RecommendationResponse:
     """
     return rag_service.generate(query)
 
-@router.post("/recommend", response_model=RecommendationServices)
-async def recommend(query: Query) -> RecommendationServices:
+
+@router.post("/recommend", response_model=RecommendationServices)  # type: ignore[no-redef]
+async def recommend(query: Query) -> RecommendationServices:  # noqa: F811
     """
     Generate a recommendation based on the input query.
 
     Parameters
     ----------
     query : Query
-        The user's input (query, location, radius) for which a recommendation is requested.
+        The user's input (query, location, radius).
 
     Returns
     -------
@@ -120,31 +127,6 @@ async def recommend(query: Query) -> RecommendationServices:
     a response based on the query.
     """
     return rag_service.generate(query)
-
-@router.post("/recommend", response_model=RecommendationResponse)
-async def recommend(query: Query) -> RecommendationResponse:
-    """
-    Generate a recommendation based on the input query.
-
-    Parameters
-    ----------
-    query : Query
-        The user's input (query, location, radius) for which a recommendation is requested.
-
-    Returns
-    -------
-    RecommendationResponse
-        An object containing the generated recommendation and relevant services.
-
-    Notes
-    -----
-    This function logs the incoming query and uses the RagService to generate
-    a response based on the query.
-    """
-    logger.info(f"Request query: {query}")
-    generation = rag_service.generate(query)
-    logger.info(f"Generation: {generation}")
-    return RecommendationResponse(**generation.dict())
 
 
 @router.get("/services/all", response_model=List[Service])
