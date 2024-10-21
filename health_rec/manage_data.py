@@ -101,7 +101,6 @@ def load_data_to_collection(
     logger.info(
         f"Loading data from {len(files)} files into collection: {collection_name}"
     )
-
     for file_path in files:
         load_data(
             file_path=file_path,
