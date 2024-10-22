@@ -10,7 +10,6 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 import chromadb
-import numpy as np
 import openai
 from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 
@@ -46,9 +45,7 @@ class OpenAIEmbedding(EmbeddingFunction[Documents]):
         """
         try:
             response = self.client.embeddings.create(input=texts, model=self.model)
-            return [
-                np.array(data.embedding, dtype=np.float32) for data in response.data
-            ]
+            return [data.embedding for data in response.data]
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
             raise
