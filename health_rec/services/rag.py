@@ -68,7 +68,6 @@ class RAGService:
             )
 
         services = self._convert_documents_to_services(service_documents)
-        logger.info(f"Generated services: {services}")
 
         return RecommendationResponse(
             message=response.message,

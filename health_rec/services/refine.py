@@ -21,14 +21,16 @@ class RefineService:
         """Initialize."""
         self.client: openai.Client = openai.Client(api_key=Config.OPENAI_API_KEY)
 
-    def generate_questions(self, user_query: str) -> List[str]:
+    def generate_questions(self, query: str, recommendation: str) -> List[str]:
         """
         Generate new questions to refine the user query for better recommendations.
 
         Parameters
         ----------
-        user_query : str
-            The user's original query.
+        query : str
+            The user's current query.
+        recommendation : str
+            The recommendation message currently generated.
 
         Returns
         -------
@@ -42,8 +44,9 @@ class RefineService:
         """
         try:
             prompt = f"""
-            Based on the following user query about health and community services in Toronto:
-            "{user_query}"
+            Based on the following user query and recommendation about health and community services:
+            User Query: "{query}"
+            Recommendation: "{recommendation}"
 
             Generate a list of 2-3 additional questions that would help gather more specific information
             from the user to enhance the recommendation process. The questions should be aimed at
@@ -76,19 +79,21 @@ class RefineService:
             raise ValueError("Failed to generate additional questions") from e
 
     def improve_query(
-        self, original_query: str, questions: List[str], answers: List[str]
+        self, query: str, questions: List[str], answers: List[str], recommendation: str
     ) -> str:
         """
         Improve the user query for better recommendations.
 
         Parameters
         ----------
-        original_query : str
-            The user's original query.
+        query : str
+            The user's current query.
         questions : List[str]
             A list of additional questions.
         answers : List[str]
             A list of answers to the additional questions.
+        recommendation : str
+            The recommendation message currently generated.
 
         Returns
         -------
@@ -105,12 +110,13 @@ class RefineService:
                 [f"Q: {q}\nA: {a}" for q, a in zip(questions, answers) if a.strip()]
             )
             prompt = f"""
-            Original query: "{original_query}"
+            Query: "{query}"
+            Recommendation: "{recommendation}"
             Additional information from the user:
             {qa_pairs}
-            Based on the original query and the additional information provided,
+            Based on the query, recommendation, and additional information provided,
             create an improved and more detailed query to help in providing
-            better recommendations for health and community services in Toronto.
+            better recommendations for health and community services.
             Focus on the specific needs, preferences, and circumstances revealed
             in the user's answers. Ensure the improved query is comprehensive
             and tailored to the user's situation.

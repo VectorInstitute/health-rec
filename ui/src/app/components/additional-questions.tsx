@@ -35,15 +35,24 @@ const AdditionalQuestions: React.FC<AdditionalQuestionsProps> = ({
   };
 
   const handleSubmit = () => {
-    onSubmit(answers.filter(answer => answer.trim() !== ''));
+    const nonEmptyAnswers = answers.map((answer, index) => ({
+      question: questions[index],
+      answer: answer.trim()
+    })).filter(qa => qa.answer !== '');
+
+    onSubmit(nonEmptyAnswers.map(qa => qa.answer));
+    // Reset answers after submission
+    setAnswers(Array(questions.length).fill(''));
   };
+
+  const isSubmitDisabled = answers.every(answer => !answer || answer.trim() === '');
 
   return (
     <Box bg={bgColor} p={8} borderRadius="xl" boxShadow="lg" borderWidth={1} borderColor={borderColor}>
       <VStack spacing={6} align="stretch">
         <Heading size="lg" mb={2}>Help Us Refine Your Recommendations</Heading>
         <Text color={textColor} mb={4}>
-          All questions are optional but the more information you provide, the better we can tailor your recommendations.
+          Answer at least one question to refine your recommendations. The more information you provide, the better we can tailor your results.
         </Text>
         <Divider mb={4} />
         {questions.map((question, index) => (
@@ -67,6 +76,7 @@ const AdditionalQuestions: React.FC<AdditionalQuestionsProps> = ({
           mt={4}
           _hover={{ bg: 'brand.purple' }}
           _active={{ bg: 'brand.pink' }}
+          isDisabled={isSubmitDisabled}
         >
           {submitButtonText}
         </Button>

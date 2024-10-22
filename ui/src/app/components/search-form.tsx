@@ -1,11 +1,13 @@
 'use client';
 
+/// <reference types="@types/google.maps" />
+
 import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { Box, Container, Input, Button, Text, VStack, InputGroup, InputRightElement, Flex, useBreakpointValue, Skeleton, useToast } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { MdMyLocation } from 'react-icons/md'
 import { useRouter } from 'next/navigation';
-import { useRecommendationStore } from '../stores/recommendation-store';
+import { useRecommendationStore, RecommendationStore, Query } from '../stores/recommendation-store';
 import { Loader } from "@googlemaps/js-api-loader"
 import debounce from 'lodash/debounce';
 
@@ -45,7 +47,7 @@ const SearchForm: React.FC = () => {
   const buttonSize = useBreakpointValue({ base: "md", md: "lg" });
   const router = useRouter();
   const toast = useToast();
-  const { setRecommendation, setStoreQuery } = useRecommendationStore();
+  const { setRecommendation, setStoreQuery } = useRecommendationStore() as RecommendationStore;
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
   const [autocompleteService, setAutocompleteService] = useState<google.maps.places.AutocompleteService | null>(null);
   const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
@@ -64,11 +66,11 @@ const SearchForm: React.FC = () => {
       libraries: ["places", "geocoding"]
     });
 
-    loader.load().then(() => {
+    loader.importLibrary('places').then(() => {
       setGeocoder(new google.maps.Geocoder());
       setAutocompleteService(new google.maps.places.AutocompleteService());
       setPlacesService(new google.maps.places.PlacesService(document.createElement('div')));
-    }).catch(error => {
+    }).catch((error: Error) => {
       console.error('Error loading Google Maps API:', error);
       toast({
         title: "API Error",
@@ -105,17 +107,17 @@ const SearchForm: React.FC = () => {
 
     setIsSearching(true);
     setRecommendation(null);
-    setStoreQuery(query);
-    router.push('/recommendation');
+
+    const queryObject: Query = {
+      query,
+      latitude,
+      longitude,
+      radius: selectedDistance === 'Any' ? null : parseFloat(selectedDistance.replace('km', ''))
+    };
+
+    setStoreQuery(queryObject);
 
     try {
-      const queryObject = {
-        query,
-        latitude: selectedDistance === 'Any' ? null : latitude,
-        longitude: selectedDistance === 'Any' ? null : longitude,
-        radius: selectedDistance === 'Any' ? null : parseFloat(selectedDistance.replace('km', ''))
-      };
-
       const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: {
@@ -128,6 +130,7 @@ const SearchForm: React.FC = () => {
       const data = await response.json();
       if (data && Object.keys(data).length > 0) {
         setRecommendation(data);
+        router.push('/recommendation');
       } else {
         throw new Error('No recommendations found');
       }
@@ -140,11 +143,10 @@ const SearchForm: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      router.push('/');
     } finally {
       setIsSearching(false);
     }
-  }, [query, location, latitude, longitude, selectedDistance, toast, setRecommendation, setStoreQuery, router]);
+  }, [query, latitude, longitude, selectedDistance, location, toast, setRecommendation, setStoreQuery, router]);
 
   const handleClearSearch = useCallback(() => {
     setQuery('');
@@ -271,7 +273,7 @@ const SearchForm: React.FC = () => {
                     aria-label="Search box"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </InputGroup>
                 <Text fontSize="sm" color="gray.500" mt={2}>

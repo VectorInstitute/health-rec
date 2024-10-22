@@ -9,7 +9,7 @@ import ServiceCard from '../components/service-card';
 import Header from '../components/header';
 import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
 import { Service, Location } from '../types/service';
-import { useRecommendationStore, Recommendation } from '../stores/recommendation-store';
+import { useRecommendationStore, Recommendation, Query, RecommendationStore } from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
 import AdditionalQuestions from '../components/additional-questions';
 import EmergencyAlert from '../components/emergency-alert';
@@ -17,9 +17,9 @@ import OutOfScopeAlert from '../components/out-of-scope-alert';
 import NoServicesFoundAlert from '../components/no-services-found-alert';
 
 const RecommendationPage: React.FC = () => {
-  const recommendation = useRecommendationStore((state) => state.recommendation);
-  const setRecommendation = useRecommendationStore((state) => state.setRecommendation);
-  const originalQuery = useRecommendationStore((state) => state.query);
+  const recommendation = useRecommendationStore((state: RecommendationStore) => state.recommendation);
+  const setRecommendation = useRecommendationStore((state: RecommendationStore) => state.setRecommendation);
+  const originalQuery = useRecommendationStore((state: RecommendationStore) => state.query);
   const router = useRouter();
   const [mapViewState, setMapViewState] = useState(TORONTO_COORDINATES);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,21 +36,21 @@ const RecommendationPage: React.FC = () => {
   const mapWidth = '100%';
 
   useEffect(() => {
-    if (recommendation === undefined) {
+    if (!recommendation || !originalQuery) {
       router.replace('/');
     } else {
       fetchAdditionalQuestions();
     }
-  }, [recommendation, router]);
+  }, [recommendation, originalQuery, router]);
 
   const fetchAdditionalQuestions = async () => {
-    if (!recommendation?.message) {
-      console.error('No recommendation message available');
+    if (!recommendation?.message || !originalQuery) {
+      console.error('No recommendation message or original query available');
       return;
     }
 
     try {
-      const response = await fetch(`/api/questions?query=${encodeURIComponent(recommendation.message)}`);
+      const response = await fetch(`/api/questions?query=${encodeURIComponent(originalQuery.query)}&recommendation=${encodeURIComponent(recommendation.message)}`);
       const data = await response.json();
       setAdditionalQuestions(data.questions);
       setIsLoading(false);
@@ -68,14 +68,17 @@ const RecommendationPage: React.FC = () => {
 
     setIsLoading(true);
     try {
+      const refineRequest = {
+        query: originalQuery,
+        recommendation: recommendation.message,
+        questions: additionalQuestions,
+        answers: answers
+      };
+
       const response = await fetch('/api/refine_recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          original_query: originalQuery,
-          questions: additionalQuestions,
-          answers: answers
-        }),
+        body: JSON.stringify(refineRequest),
       });
 
       if (!response.ok) {
@@ -83,7 +86,7 @@ const RecommendationPage: React.FC = () => {
         throw new Error(errorData.detail || 'Failed to refine recommendations');
       }
 
-      const refinedRecommendation = await response.json();
+      const refinedRecommendation: Recommendation = await response.json();
       setRecommendation(refinedRecommendation);
 
       updateMapViewState(refinedRecommendation.services);

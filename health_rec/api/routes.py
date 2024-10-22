@@ -28,14 +28,18 @@ refine_service = RefineService()
 
 
 @router.get("/questions", response_model=dict)
-async def get_additional_questions(query: str) -> Dict[str, List[str]]:
+async def get_additional_questions(
+    query: str, recommendation: str
+) -> Dict[str, List[str]]:
     """
-    Generate additional questions based on the original query.
+    Generate additional questions based on the query and recommendation.
 
     Parameters
     ----------
     query : str
         The user's original query.
+    recommendation : str
+        The recommendation message previously generated.
 
     Returns
     -------
@@ -43,7 +47,7 @@ async def get_additional_questions(query: str) -> Dict[str, List[str]]:
         A dictionary with the generated questions.
     """
     try:
-        questions = refine_service.generate_questions(query)
+        questions = refine_service.generate_questions(query, recommendation)
         return {"questions": questions}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -59,12 +63,14 @@ async def refine_recommendations(
     Parameters
     ----------
     request : RefineRequest
-        The request object containing the original query, questions, and answers.
+        The request object containing the original query, questions,
+        answers, and previous recommendation.
 
     Returns
     -------
     RecommendationResponse
-        An object containing the refined recommendation and relevant services.
+        An object containing the refined recommendation, relevant services,
+        and new additional questions.
 
     Raises
     ------
@@ -73,10 +79,20 @@ async def refine_recommendations(
     """
     try:
         refined_query = refine_service.improve_query(
-            request.original_query, request.questions, request.answers
+            request.query.query,
+            request.questions,
+            request.answers,
+            request.recommendation,
         )
         logger.info(f"Refined query: {refined_query}")
-        return rag_service.generate(refined_query)
+        return rag_service.generate(
+            Query(
+                query=refined_query,
+                latitude=request.query.latitude,
+                longitude=request.query.longitude,
+                radius=request.query.radius,
+            )
+        )
     except Exception as e:
         logger.error(f"Error in refine_recommendations: {str(e)}")
         raise HTTPException(status_code=422, detail=str(e)) from e

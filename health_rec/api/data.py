@@ -240,25 +240,6 @@ class RecommendationResponse(BaseModel):
     no_services_found: bool = Field(default=False)
 
 
-class RefineRequest(BaseModel):
-    """
-    Represents the request for refining recommendations.
-
-    Attributes
-    ----------
-    original_query : str
-        The original query used to generate the initial recommendations.
-    questions : List[str]
-        A list of additional questions to refine the recommendations.
-    answers : List[str]
-        A list of answers to the additional questions.
-    """
-
-    original_query: str
-    questions: List[str]
-    answers: List[str]
-
-
 class Query(BaseModel):
     """
     Represents the user's query and the location of the user.
@@ -279,3 +260,25 @@ class Query(BaseModel):
     latitude: Optional[float] = Field(default=None)
     longitude: Optional[float] = Field(default=None)
     radius: Optional[float] = Field(default=None)
+
+
+class RefineRequest(BaseModel):
+    """
+    Represents the request for refining recommendations.
+
+    Attributes
+    ----------
+    query : Query
+        The query used to generate the current recommendations.
+    recommendation : str
+        The recommendation message currently generated.
+    questions : List[str]
+        A list of additional questions to refine the recommendations.
+    answers : List[str]
+        A list of answers to the additional questions.
+    """
+
+    query: Query
+    recommendation: str
+    questions: List[str]
+    answers: List[str]
