@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import AdditionalQuestions from '../components/additional-questions';
 import EmergencyAlert from '../components/emergency-alert';
 import OutOfScopeAlert from '../components/out-of-scope-alert';
+import NoServicesFoundAlert from '../components/no-services-found-alert';
 
 const RecommendationPage: React.FC = () => {
   const recommendation = useRecommendationStore((state) => state.recommendation);
@@ -209,6 +210,70 @@ const RecommendationPage: React.FC = () => {
     );
   };
 
+  const renderContent = () => {
+    if (recommendation?.is_emergency) {
+      return <EmergencyAlert message={recommendation.message} />;
+    }
+
+    if (recommendation?.is_out_of_scope) {
+      return <OutOfScopeAlert message={recommendation.message} />;
+    }
+
+    if (recommendation?.no_services_found) {
+      return <NoServicesFoundAlert message="No services found within the specified radius." />;
+    }
+
+    return (
+      <>
+        <Grid templateColumns={{ base: "1fr", lg: "3fr 2fr" }} gap={8}>
+          <GridItem>
+            {isLoading ? (
+              <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
+                <VStack spacing={6} align="stretch">
+                  <Skeleton height="20px" width="40%" />
+                  <SkeletonText mt="4" noOfLines={4} spacing="4" skeletonHeight="2" />
+                  <Divider />
+                  <Skeleton height="20px" width="30%" />
+                  <SkeletonText mt="4" noOfLines={6} spacing="4" skeletonHeight="2" />
+                </VStack>
+              </Box>
+            ) : (
+              renderRecommendationCard(recommendation)
+            )}
+          </GridItem>
+          <GridItem>
+            <Box height="100%">
+              <Heading as="h3" size="md" color={textColor} mb={4}>
+                Service Locations
+              </Heading>
+              <Box height="calc(100% - 2rem)">
+                <Map
+                  locations={mapLocations}
+                  height={mapHeight}
+                  width={mapWidth}
+                  initialViewState={mapViewState}
+                />
+              </Box>
+            </Box>
+          </GridItem>
+        </Grid>
+        <Divider my={1} borderColor={dividerColor} borderWidth={2} />
+        {renderRecommendedServices(recommendation?.services || null)}
+        <Divider my={1} borderColor={dividerColor} borderWidth={2} />
+        <Box mt={1}>
+          <Heading as="h3" size="lg" color={textColor} mb={8}>
+            Refine Your Request
+          </Heading>
+          <AdditionalQuestions
+            questions={additionalQuestions}
+            onSubmit={handleRefineRecommendations}
+            submitButtonText="Refine Recommendations"
+          />
+        </Box>
+      </>
+    );
+  };
+
   return (
     <Box minHeight="100vh" bg={bgColor}>
       <Header />
@@ -217,63 +282,7 @@ const RecommendationPage: React.FC = () => {
           <Heading as="h1" size="2xl" color={textColor}>
             Your Recommendation
           </Heading>
-          {recommendation?.is_emergency ? (
-            <Box width="100%">
-              <EmergencyAlert message={recommendation.message} />
-            </Box>
-          ) : recommendation?.is_out_of_scope ? (
-            <Box width="100%">
-              <OutOfScopeAlert message={recommendation.message} />
-            </Box>
-          ) : (
-            <>
-              <Grid templateColumns={{ base: "1fr", lg: "3fr 2fr" }} gap={8}>
-                <GridItem>
-                  {isLoading ? (
-                    <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
-                      <VStack spacing={6} align="stretch">
-                        <Skeleton height="20px" width="40%" />
-                        <SkeletonText mt="4" noOfLines={4} spacing="4" skeletonHeight="2" />
-                        <Divider />
-                        <Skeleton height="20px" width="30%" />
-                        <SkeletonText mt="4" noOfLines={6} spacing="4" skeletonHeight="2" />
-                      </VStack>
-                    </Box>
-                  ) : (
-                    renderRecommendationCard(recommendation)
-                  )}
-                </GridItem>
-                <GridItem>
-                  <Box height="100%">
-                    <Heading as="h3" size="md" color={textColor} mb={4}>
-                      Service Locations
-                    </Heading>
-                    <Box height="calc(100% - 2rem)">
-                      <Map
-                        locations={mapLocations}
-                        height={mapHeight}
-                        width={mapWidth}
-                        initialViewState={mapViewState}
-                      />
-                    </Box>
-                  </Box>
-                </GridItem>
-                </Grid>
-              <Divider my={1} borderColor={dividerColor} borderWidth={2} />
-              {renderRecommendedServices(recommendation?.services || null)}
-              <Divider my={1} borderColor={dividerColor} borderWidth={2} />
-              <Box mt={1}>
-                <Heading as="h3" size="lg" color={textColor} mb={8}>
-                  Refine Your Request
-                </Heading>
-                <AdditionalQuestions
-                  questions={additionalQuestions}
-                  onSubmit={handleRefineRecommendations}
-                  submitButtonText="Refine Recommendations"
-                />
-              </Box>
-            </>
-          )}
+          {renderContent()}
         </VStack>
       </Container>
     </Box>

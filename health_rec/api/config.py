@@ -50,6 +50,8 @@ class Config:
         Port number for Chroma database.
     COLLECTION_NAME : str
         Name of the Chroma collection to use.
+    RELEVANCY_WEIGHT : float
+        The weight of the relevancy score in the ranking strategy.
     """
 
     TEST_MODE: bool = getenv("TEST_MODE", "False").lower() == "true"
@@ -62,3 +64,4 @@ class Config:
     CHROMA_HOST: str = getenv("CHROMA_HOST", "chromadb-dev")
     CHROMA_PORT: int = 8000
     COLLECTION_NAME: str = getenv("COLLECTION_NAME", "test")
+    RELEVANCY_WEIGHT: float = float(getenv("RELEVANCY_WEIGHT", "0.5"))

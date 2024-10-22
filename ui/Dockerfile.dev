@@ -20,4 +20,4 @@ RUN echo "BACKEND_PORT: ${BACKEND_PORT}"
 EXPOSE ${FRONTEND_PORT}
 
 # Use shell form to ensure environment variable expansion
-CMD sh -c "npm run dev -- -p ${FRONTEND_PORT}"
+CMD sh -c "npm run dev -- -p ${FRONTEND_PORT} --experimental-https"

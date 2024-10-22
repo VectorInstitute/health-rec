@@ -8,7 +8,6 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from api.data import (
     Query,
     RecommendationResponse,
-    RecommendationServices,
     RefineRequest,
     Service,
 )
@@ -83,15 +82,15 @@ async def refine_recommendations(
         raise HTTPException(status_code=422, detail=str(e)) from e
 
 
-@router.get("/recommend", response_model=RecommendationResponse)
-async def recommend(query: str) -> RecommendationResponse:
+@router.post("/recommend", response_model=RecommendationResponse)
+async def recommend(query: Query) -> RecommendationResponse:  # noqa: F811
     """
     Generate a recommendation based on the input query.
 
     Parameters
     ----------
-    query : str
-        The user's input query for which a recommendation is requested.
+    query : Query
+        The user's input (query, location (optional), radius (optional)).
 
     Returns
     -------
@@ -103,29 +102,7 @@ async def recommend(query: str) -> RecommendationResponse:
     This function logs the incoming query and uses the RagService to generate
     a response based on the query.
     """
-    return rag_service.generate(query)
-
-
-@router.post("/recommend", response_model=RecommendationServices)  # type: ignore[no-redef]
-async def recommend(query: Query) -> RecommendationServices:  # noqa: F811
-    """
-    Generate a recommendation based on the input query.
-
-    Parameters
-    ----------
-    query : Query
-        The user's input (query, location, radius).
-
-    Returns
-    -------
-    RecommendationServices
-        An object containing the generated recommendation and relevant services.
-
-    Notes
-    -----
-    This function logs the incoming query and uses the RagService to generate
-    a response based on the query.
-    """
+    logger.info(f"Received query: {query}")
     return rag_service.generate(query)
 
 

@@ -1,11 +1,10 @@
 """Ranking service based on location and relevancy score."""
 
 import logging
-import math
+from math import atan2, cos, radians, sin, sqrt
 from typing import List, Optional, Tuple
 
-from api.data import Service, ServiceDocument
-from services.utils import _metadata_to_service
+from api.data import ServiceDocument
 
 
 logging.basicConfig(
@@ -17,16 +16,16 @@ logger = logging.getLogger(__name__)
 class RankingService:
     """Ranking service."""
 
-    def __init__(self, relevancy_weight: float = 0.5):
+    def __init__(self, relevancy_weight: float = 0.5) -> None:
         """Initialize the ranking service."""
-        self.relevancy_weight = relevancy_weight
-        self.distance_weight = 1.0 - relevancy_weight
+        self.relevancy_weight: float = relevancy_weight
+        self.distance_weight: float = 1.0 - relevancy_weight
 
     def rank_services(
         self,
         services: List[ServiceDocument],
         user_location: Optional[Tuple[float, float]],
-    ) -> List[Service]:
+    ) -> List[ServiceDocument]:
         """
         Rank services based on the specified strategy.
 
@@ -39,33 +38,43 @@ class RankingService:
 
         Returns
         -------
-        List[Service]
-            A list of ranked services based on the specified strategy.
-
+        List[ServiceDocument]
+            A list of ranked service documents based on the specified strategy.
         """
         if user_location is None:
-            services.sort(key=lambda service: service.relevancy_score, reverse=True)
-            return [_metadata_to_service(service.metadata) for service in services]
+            return self._rank_by_relevancy(services)
+
+        return self._rank_by_relevancy_and_distance(services, user_location)
+
+    def _rank_by_relevancy(
+        self, services: List[ServiceDocument]
+    ) -> List[ServiceDocument]:
+        """Rank services by relevancy score."""
+        services.sort(key=lambda service: service.relevancy_score, reverse=True)
+        return services
+
+    def _rank_by_relevancy_and_distance(
+        self, services: List[ServiceDocument], user_location: Tuple[float, float]
+    ) -> List[ServiceDocument]:
+        """Rank services by relevancy score and distance."""
         for service in services:
             service_location = (
                 float(service.metadata["Latitude"]),
                 float(service.metadata["Longitude"]),
             )
             service.distance = _calculate_distance(service_location, user_location)
-            logger.info(
-                f"Service: {service.metadata['PublicName']}, Distance: {service.distance}"
-            )
 
-        # TODO remove the following lines later
+        # TODO: Remove the following lines later
         scores = {
             service.metadata["PublicName"]: self._calculate_ranking_score(service)
             for service in services
         }
         logger.info(f"Services and their scores: \n {scores}")
+
         services.sort(
             key=lambda service: self._calculate_ranking_score(service), reverse=True
         )
-        return [_metadata_to_service(service.metadata) for service in services]
+        return services
 
     def _calculate_ranking_score(self, service: ServiceDocument) -> float:
         """
@@ -109,22 +118,16 @@ def _calculate_distance(
     lat2, lon2 = location2
 
     # Radius of the Earth in kilometers
-    radius = 6371.0
+    radius: float = 6371.0
 
     # Convert latitude and longitude from degrees to radians
-    lat1_rad = math.radians(lat1)
-    lon1_rad = math.radians(lon1)
-    lat2_rad = math.radians(lat2)
-    lon2_rad = math.radians(lon2)
+    lat1_rad, lon1_rad = radians(lat1), radians(lon1)
+    lat2_rad, lon2_rad = radians(lat2), radians(lon2)
 
     # Calculate the differences
-    dlat = lat2_rad - lat1_rad
-    dlon = lon2_rad - lon1_rad
+    dlat, dlon = lat2_rad - lat1_rad, lon2_rad - lon1_rad
 
     # Calculate the distance using the Haversine formula
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
-    )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    a = sin(dlat / 2) ** 2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return radius * c

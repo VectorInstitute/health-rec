@@ -204,6 +204,8 @@ class ServiceDocument(BaseModel):
     relevancy_score: float
         The distance score of the document.
         Larger distances mean the embeddings are less similar, hence less relevant.
+    distance : Optional[float]
+        The distance to the service to the user's location.
     """
 
     id: str
@@ -225,31 +227,17 @@ class RecommendationResponse(BaseModel):
         Whether the request signifies an emergency.
     is_out_of_scope : bool
         Whether the request is out of scope.
-    """
-
-    message: str
-    is_emergency: bool
-    is_out_of_scope: bool
-
-
-class RecommendationServices(BaseModel):
-    """
-    Represents the response to a recommendation request.
-
-    It encompassing both services and string response.
-
-    Attributes
-    ----------
-    response : RecommendationResponse
-        The response to the recommendation request.
-    services : List[Service]
+    services : Optional[List[Service]]
         A list of services ranked by location and relevancy.
+    no_services_found : bool
+        Whether no services were found.
     """
 
     message: str
     is_emergency: bool
     is_out_of_scope: bool
     services: Optional[List[Service]] = Field(default=None)
+    no_services_found: bool = Field(default=False)
 
 
 class RefineRequest(BaseModel):
@@ -273,7 +261,7 @@ class RefineRequest(BaseModel):
 
 class Query(BaseModel):
     """
-    Represents the string query and the location of the user.
+    Represents the user's query and the location of the user.
 
     Attributes
     ----------
@@ -287,7 +275,7 @@ class Query(BaseModel):
         The radius of the search.
     """
 
-    query_str: str
+    query: str
     latitude: Optional[float] = Field(default=None)
     longitude: Optional[float] = Field(default=None)
     radius: Optional[float] = Field(default=None)
