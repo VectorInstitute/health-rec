@@ -1,9 +1,45 @@
 """Utility functions for the services module."""
 
 import json
-from typing import Any, Dict
+import logging
+from typing import Any, Dict, List
 
-from api.data import PhoneNumber, Service
+from chromadb.api.types import QueryResult
+
+from api.data import PhoneNumber, Service, ServiceDocument
+
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+
+def _parse_chroma_result(chroma_results: QueryResult) -> List[ServiceDocument]:
+    """
+    Parse the results from ChromaDB into a list of Service objects.
+
+    Parameters
+    ----------
+    chroma_results : QueryResult
+        The results from a ChromaDB query.
+
+    Returns
+    -------
+    List[ServiceDocument]
+        A list of ServiceDocument objects created from the ChromaDB results.
+    """
+    parsed_results: List[ServiceDocument] = [
+        ServiceDocument(id=id_, document=doc, metadata=meta, relevancy_score=score)
+        for id_, doc, meta, score in zip(
+            chroma_results["ids"][0] if chroma_results["ids"] else [],
+            chroma_results["documents"][0] if chroma_results["documents"] else [],
+            chroma_results["metadatas"][0] if chroma_results["metadatas"] else [],
+            chroma_results["distances"][0] if chroma_results["distances"] else [],
+        )
+    ]
+
+    return parsed_results
 
 
 def _metadata_to_service(metadata: Dict[str, Any]) -> Service:

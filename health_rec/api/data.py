@@ -201,11 +201,18 @@ class ServiceDocument(BaseModel):
         The content of the document.
     metadata : Dict[str, Any]
         Additional metadata associated with the document.
+    relevancy_score: float
+        The distance score of the document.
+        Larger distances mean the embeddings are less similar, hence less relevant.
+    distance : Optional[float]
+        The distance to the service to the user's location.
     """
 
     id: str
     document: str
     metadata: Dict[str, Any]
+    relevancy_score: float
+    distance: Optional[float] = Field(default=None)
 
 
 class RecommendationResponse(BaseModel):
@@ -216,18 +223,21 @@ class RecommendationResponse(BaseModel):
     ----------
     message : str
         A message accompanying the recommendation.
-    services : List[Service]
-        A list of recommended services.
     is_emergency : bool
         Whether the request signifies an emergency.
     is_out_of_scope : bool
         Whether the request is out of scope.
+    services : Optional[List[Service]]
+        A list of services ranked by location and relevancy.
+    no_services_found : bool
+        Whether no services were found.
     """
 
     message: str
-    services: List[Service]
     is_emergency: bool
     is_out_of_scope: bool
+    services: Optional[List[Service]] = Field(default=None)
+    no_services_found: bool = Field(default=False)
 
 
 class RefineRequest(BaseModel):
@@ -247,3 +257,25 @@ class RefineRequest(BaseModel):
     original_query: str
     questions: List[str]
     answers: List[str]
+
+
+class Query(BaseModel):
+    """
+    Represents the user's query and the location of the user.
+
+    Attributes
+    ----------
+    query : str
+        The query that user has entered.
+    latitude : Optional[float]
+        The latitude coordinate of the user.
+    longitude : Optional[float]
+        The latitude coordinate of the user.
+    radius : Optional[float]
+        The radius of the search.
+    """
+
+    query: str
+    latitude: Optional[float] = Field(default=None)
+    longitude: Optional[float] = Field(default=None)
+    radius: Optional[float] = Field(default=None)

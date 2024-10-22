@@ -1,16 +1,17 @@
 """Module to provide a RAG (Retrieval-Augmented Generation) service."""
 
 import logging
-from typing import List
+from typing import List, Tuple
 
 import chromadb
 import openai
 from chromadb.api.models.Collection import Collection
 
 from api.config import Config
-from api.data import RecommendationResponse, Service, ServiceDocument
+from api.data import Query, RecommendationResponse, Service, ServiceDocument
 from services.emergency import get_emergency_services_message
-from services.utils import _metadata_to_service
+from services.ranking import RankingService
+from services.utils import _metadata_to_service, _parse_chroma_result
 
 
 logging.basicConfig(
@@ -32,14 +33,15 @@ class RAGService:
         self.services_collection: Collection = self.chroma_client.get_collection(
             name=Config.COLLECTION_NAME
         )
+        self.ranking_service = RankingService(relevancy_weight=Config.RELEVANCY_WEIGHT)
 
-    def generate(self, query: str) -> RecommendationResponse:
+    def generate(self, query: Query) -> RecommendationResponse:
         """
         Generate a response based on the input query using RAG methodology.
 
         Parameters
         ----------
-        query : str
+        query : Query
             The user's input query for which a recommendation is requested.
 
         Returns
@@ -52,9 +54,37 @@ class RAGService:
         ValueError
             If there's an error generating the embedding for the query.
         """
+        query_embedding = self._generate_query_embedding(query.query)
+        service_documents = self._retrieve_and_rank_services(query, query_embedding)
+        context, no_services_found = self._prepare_context(service_documents)
+        response = self._generate_response(query.query, context)
+
+        if response.is_out_of_scope or response.is_emergency:
+            return RecommendationResponse(
+                is_emergency=response.is_emergency,
+                message=response.message,
+                is_out_of_scope=response.is_out_of_scope,
+                services=[],
+            )
+
+        services = self._convert_documents_to_services(service_documents)
+        logger.info(f"Generated services: {services}")
+
+        return RecommendationResponse(
+            message=response.message,
+            is_emergency=response.is_emergency,
+            is_out_of_scope=response.is_out_of_scope,
+            services=services,
+            no_services_found=no_services_found,
+        )
+
+    def _generate_query_embedding(self, query_text: str) -> List[float]:
+        """Generate embedding for the query."""
         try:
-            query_embedding = (
-                self.client.embeddings.create(input=[query], model=self.embedding_model)
+            return (
+                self.client.embeddings.create(
+                    input=[query_text], model=self.embedding_model
+                )
                 .data[0]
                 .embedding
             )
@@ -62,23 +92,62 @@ class RAGService:
             logger.error(f"Error generating embedding: {e}")
             raise ValueError("Failed to generate embedding for the query") from e
 
+    def _retrieve_and_rank_services(
+        self, query: Query, query_embedding: List[float]
+    ) -> List[ServiceDocument]:
+        """Retrieve and rank services based on the query."""
         chroma_results = self.services_collection.query(
             query_embeddings=query_embedding, n_results=5
         )
-        parsed_results: List[ServiceDocument] = [
-            ServiceDocument(id=id_, document=doc, metadata=meta)
-            for id_, doc, meta in zip(
-                chroma_results["ids"][0] if chroma_results["ids"] else [],
-                chroma_results["documents"][0] if chroma_results["documents"] else [],
-                chroma_results["metadatas"][0] if chroma_results["metadatas"] else [],
-            )
-        ]
-        services: List[Service] = [
-            _metadata_to_service(service.metadata) for service in parsed_results
-        ]
-        context: str = "\n".join([service.document for service in parsed_results])
+        service_documents = _parse_chroma_result(chroma_results)
+        user_location = (
+            (query.latitude, query.longitude)
+            if query.latitude and query.longitude
+            else None
+        )
+        service_documents = self.ranking_service.rank_services(
+            service_documents, user_location
+        )
+        if query.radius:
+            service_documents = [
+                doc for doc in service_documents if doc.distance <= query.radius
+            ]
+        return list(service_documents)
 
-        generation_template: str = """
+    def _prepare_context(
+        self, service_documents: List[ServiceDocument]
+    ) -> Tuple[str, bool]:
+        """Prepare context from service documents."""
+        context = "\n".join([service.document for service in service_documents])
+        no_services_found = False
+        if not context:
+            context = "No services found within the specified radius."
+            no_services_found = True
+        return context, no_services_found
+
+    def _convert_documents_to_services(
+        self, service_documents: List[ServiceDocument]
+    ) -> List[Service]:
+        """Convert ServiceDocument objects to Service objects."""
+        return [_metadata_to_service(doc.metadata) for doc in service_documents]
+
+    def _generate_response(self, query: str, context: str) -> RecommendationResponse:
+        """
+        Generate a response based on the input query and context using RAG methodology.
+
+        Parameters
+        ----------
+        query : str
+            The user's input query for which a recommendation is requested.
+        context : str
+            The context of relevant services.
+
+        Returns
+        -------
+        RecommendationResponse
+            An object containing the generated recommendation and relevant services.
+        """
+        generation_template = """
         You are an expert with deep knowledge of health and community services in the Greater Toronto Area (GTA). You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
 
         <QUERY>
@@ -89,6 +158,7 @@ class RAGService:
         If you determine that the individual's query is not for a health or community service in the GTA, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
         Response: A brief explanation of why the query is out of scope.
         Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of GTA health and community services.
+        If no services are found within the context, respond with the word "NO_SERVICES_FOUND" (in all caps).
 
         If the individual does not need emergency help and the query is within scope, use only the following service context enclosed by the <CONTEXT> tag to provide a service recommendation.
 
@@ -125,19 +195,23 @@ class RAGService:
             return RecommendationResponse(
                 is_emergency=True,
                 message=get_emergency_services_message(),
-                services=[],
                 is_out_of_scope=False,
             )
         if response_content.startswith("Response:"):
             return RecommendationResponse(
                 is_emergency=False,
                 message=response_content,
-                services=[],
                 is_out_of_scope=True,
+            )
+        if response_content == "NO_SERVICES_FOUND":
+            return RecommendationResponse(
+                is_emergency=False,
+                message=response_content,
+                is_out_of_scope=False,
+                no_services_found=True,
             )
         return RecommendationResponse(
             is_emergency=False,
             message=response_content,
-            services=services,
             is_out_of_scope=False,
         )

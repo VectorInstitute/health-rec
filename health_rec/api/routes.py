@@ -5,7 +5,12 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
-from api.data import RecommendationResponse, RefineRequest, Service
+from api.data import (
+    Query,
+    RecommendationResponse,
+    RefineRequest,
+    Service,
+)
 from services.dev.data import ChromaService
 from services.rag import RAGService
 from services.refine import RefineService
@@ -77,15 +82,15 @@ async def refine_recommendations(
         raise HTTPException(status_code=422, detail=str(e)) from e
 
 
-@router.get("/recommend", response_model=RecommendationResponse)
-async def recommend(query: str) -> RecommendationResponse:
+@router.post("/recommend", response_model=RecommendationResponse)
+async def recommend(query: Query) -> RecommendationResponse:  # noqa: F811
     """
     Generate a recommendation based on the input query.
 
     Parameters
     ----------
-    query : str
-        The user's input query for which a recommendation is requested.
+    query : Query
+        The user's input (query, location (optional), radius (optional)).
 
     Returns
     -------
@@ -97,6 +102,7 @@ async def recommend(query: str) -> RecommendationResponse:
     This function logs the incoming query and uses the RagService to generate
     a response based on the query.
     """
+    logger.info(f"Received query: {query}")
     return rag_service.generate(query)
 
 
