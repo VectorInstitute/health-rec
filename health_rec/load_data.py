@@ -66,7 +66,7 @@ def load_json_data(file_path: str) -> List[Dict[str, Any]]:
     try:
         with open(file_path, "r") as file:
             data = json.load(file)
-        return list(data["Records"])
+        return list(data)
     except FileNotFoundError:
         logger.error(f"File not found: {file_path}")
         raise
@@ -137,7 +137,10 @@ def get_or_create_collection(host: str, port: int, name: str) -> chromadb.Collec
         logger.info(f"Retrieved existing collection: {name}")
     except ValueError:
         logger.info(f"Creating new collection: {name}")
-        collection = chroma_client.create_collection(name=name)
+        collection = chroma_client.create_collection(
+            name=name,
+            metadata={"hnsw:space": "cosine"},
+        )
 
     return collection
 

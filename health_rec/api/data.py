@@ -1,192 +1,189 @@
 """Data models."""
 
+from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+
+
+class ServiceType(str, Enum):
+    """Standardized service types across different APIs."""
+
+    EMERGENCY_ROOM = "emergency_room"
+    URGENT_CARE = "urgent_care"
+    WALK_IN_CLINIC = "walk_in_clinic"
+    PHARMACY = "pharmacy"
+    MEDICAL_LAB = "medical_lab"
+    FAMILY_DOCTOR = "family_doctor"
+    COMMUNITY_SERVICE = "community_service"
+    UNKNOWN = "unknown"
+
+
+class AccessibilityLevel(str, Enum):
+    """Wheelchair accessibility levels."""
+
+    FULL = "full"
+    PARTIAL = "partial"
+    NONE = "none"
+    UNKNOWN = "unknown"
+
+
+class DayOfWeek(str, Enum):
+    """Days of the week."""
+
+    SUNDAY = "sunday"
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+
+
+class OperatingHours(BaseModel):
+    """Operating hours for a specific day."""
+
+    day: DayOfWeek
+    is_open: bool
+    is_24hour: bool = False
+    open_time: Optional[str] = None
+    close_time: Optional[str] = None
+
+
+class HoursException(BaseModel):
+    """Special hours or holiday schedules."""
+
+    name: Optional[str] = None
+    start_date: datetime
+    end_date: datetime
+    is_open: bool
+    is_24hour: bool = False
+    open_time: Optional[str] = None
+    close_time: Optional[str] = None
+
+
+class Address(BaseModel):
+    """Physical address information."""
+
+    street1: Optional[str] = None
+    street2: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    attention_name: Optional[str] = None
 
 
 class PhoneNumber(BaseModel):
-    """
-    Represents a phone number with various attributes.
+    """Phone number with additional metadata."""
 
-    Attributes
-    ----------
-    phone : str
-        The phone number.
-    name : Optional[str]
-        The name of the phone number.
-    description : Optional[str]
-        The description of the phone number.
-    type : Optional[str]
-        The type of the phone number.
-    """
-
-    phone: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    type: Optional[str] = Field(default=None)
+    number: str
+    type: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    extension: Optional[str] = None
 
 
 class Service(BaseModel):
     """
-    Represents a service with various attributes.
+    Standardized service model that can accommodate data from multiple APIs.
 
-    Attributes
-    ----------
-    id : int
-        The unique identifier of the service.
-    parent_id : Optional[int]
-        The ID of the parent service.
-    public_name : str
-        The public name of the service.
-    score : Optional[int]
-        The score of the service.
-    service_area : Optional[List[str]]
-        The areas where the service is available.
-    distance : Optional[str]
-        The distance to the service.
-    description : Optional[str]
-        The description of the service.
-    latitude : Optional[float]
-        The latitude coordinate of the service location.
-    longitude : Optional[float]
-        The longitude coordinate of the service location.
-    physical_address_street1 : Optional[str]
-        The first line of the physical address.
-    physical_address_street2 : Optional[str]
-        The second line of the physical address.
-    physical_address_city : Optional[str]
-        The city of the physical address.
-    physical_address_province : Optional[str]
-        The province of the physical address.
-    physical_address_postal_code : Optional[str]
-        The postal code of the physical address.
-    physical_address_country : Optional[str]
-        The country of the physical address.
-    mailing_attention_name : Optional[str]
-        The attention name for mailing.
-    mailing_address_street1 : Optional[str]
-        The first line of the mailing address.
-    mailing_address_street2 : Optional[str]
-        The second line of the mailing address.
-    mailing_address_city : Optional[str]
-        The city of the mailing address.
-    mailing_address_province : Optional[str]
-        The province of the mailing address.
-    mailing_address_postal_code : Optional[str]
-        The postal code of the mailing address.
-    mailing_address_country : Optional[str]
-        The country of the mailing address.
-    phone_numbers : List[PhoneNumber]
-        The phone numbers associated with the service.
-    website : Optional[str]
-        The website of the service.
-    email : Optional[str]
-        The email address of the service.
-    hours : Optional[str]
-        The hours of operation.
-    hours2 : Optional[str]
-        Additional hours of operation.
-    min_age : Optional[str]
-        The minimum age for the service.
-    max_age : Optional[str]
-        The maximum age for the service.
-    updated_on : Optional[str]
-        The date and time the service was last updated.
-    taxonomy_term : Optional[str]
-        The taxonomy terms associated with the service.
-    taxonomy_terms : Optional[str]
-        Additional taxonomy terms.
-    taxonomy_codes : Optional[str]
-        The taxonomy codes associated with the service.
-    eligibility : Optional[str]
-        The eligibility criteria for the service.
-    fee_structure_source : Optional[str]
-        The source of the fee structure.
-    official_name : Optional[str]
-        The official name of the service.
-    physical_city : Optional[str]
-        The physical city of the service.
-    unique_id_prior_system : Optional[str]
-        The unique ID from a prior system.
-    record_owner : Optional[str]
-        The owner of the record.
+    This model includes fields that might be present in various healthcare and
+    community service APIs, with optional fields to handle varying data availability.
     """
 
+    # Core identification
     id: int
-    parent_id: Optional[int] = Field(default=None, alias="ParentId")
-    public_name: str = Field(alias="PublicName")
-    score: Optional[int] = Field(default=None, alias="Score")
-    service_area: Optional[List[str]] = Field(default=None, alias="ServiceArea")
-    distance: Optional[str] = Field(default=None, alias="Distance")
-    description: Optional[str] = Field(default=None, alias="Description")
-    latitude: Optional[float] = Field(default=None, alias="Latitude")
-    longitude: Optional[float] = Field(default=None, alias="Longitude")
-    physical_address_street1: Optional[str] = Field(
-        default=None, alias="PhysicalAddressStreet1"
-    )
-    physical_address_street2: Optional[str] = Field(
-        default=None, alias="PhysicalAddressStreet2"
-    )
-    physical_address_city: Optional[str] = Field(
-        default=None, alias="PhysicalAddressCity"
-    )
-    physical_address_province: Optional[str] = Field(
-        default=None, alias="PhysicalAddressProvince"
-    )
-    physical_address_postal_code: Optional[str] = Field(
-        default=None, alias="PhysicalAddressPostalCode"
-    )
-    physical_address_country: Optional[str] = Field(
-        default=None, alias="PhysicalAddressCountry"
-    )
-    mailing_attention_name: Optional[str] = Field(
-        default=None, alias="MailingAttentionName"
-    )
-    mailing_address_street1: Optional[str] = Field(
-        default=None, alias="MailingAddressStreet1"
-    )
-    mailing_address_street2: Optional[str] = Field(
-        default=None, alias="MailingAddressStreet2"
-    )
-    mailing_address_city: Optional[str] = Field(
-        default=None, alias="MailingAddressCity"
-    )
-    mailing_address_province: Optional[str] = Field(
-        default=None, alias="MailingAddressProvince"
-    )
-    mailing_address_postal_code: Optional[str] = Field(
-        default=None, alias="MailingAddressPostalCode"
-    )
-    mailing_address_country: Optional[str] = Field(
-        default=None, alias="MailingAddressCountry"
-    )
-    phone_numbers: List[PhoneNumber] = Field(default_factory=list, alias="PhoneNumbers")
-    website: Optional[str] = Field(default=None, alias="Website")
-    email: Optional[str] = Field(default=None, alias="Email")
-    hours: Optional[str] = Field(default=None, alias="Hours")
-    hours2: Optional[str] = Field(default=None, alias="Hours2")
-    min_age: Optional[str] = Field(default=None, alias="MinAge")
-    max_age: Optional[str] = Field(default=None, alias="MaxAge")
-    updated_on: Optional[str] = Field(default=None, alias="UpdatedOn")
-    taxonomy_term: Optional[str] = Field(default=None, alias="TaxonomyTerm")
-    taxonomy_terms: Optional[str] = Field(default=None, alias="TaxonomyTerms")
-    taxonomy_codes: Optional[str] = Field(default=None, alias="TaxonomyCodes")
-    eligibility: Optional[str] = Field(default=None, alias="Eligibility")
-    fee_structure_source: Optional[str] = Field(
-        default=None, alias="FeeStructureSource"
-    )
-    official_name: Optional[str] = Field(default=None, alias="OfficialName")
-    physical_city: Optional[str] = Field(default=None, alias="PhysicalCity")
-    unique_id_prior_system: Optional[str] = Field(
-        default=None, alias="UniqueIDPriorSystem"
-    )
-    record_owner: Optional[str] = Field(default=None, alias="RecordOwner")
+    name: str
+    service_type: ServiceType = ServiceType.UNKNOWN
+    source_id: Optional[str] = None  # Original ID from source system
+    official_name: Optional[str] = None
+
+    # Location
+    latitude: float
+    longitude: float
+    distance: Optional[float] = None  # Distance from search point in km
+    physical_address: Optional[Address] = None
+    mailing_address: Optional[Address] = None
+
+    # Contact information
+    phone_numbers: List[PhoneNumber] = Field(default_factory=list)
+    fax: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+    social_media: Dict[str, str] = Field(default_factory=dict)
+
+    # Service details
+    description: Optional[str] = None
+    services: List[str] = Field(default_factory=list)
+    languages: List[str] = Field(default_factory=list)
+    taxonomy_terms: List[str] = Field(default_factory=list)
+    taxonomy_codes: List[str] = Field(default_factory=list)
+
+    # Operating information
+    status: Optional[str] = None  # current operating status (open/closed)
+    regular_hours: List[OperatingHours] = Field(default_factory=list)
+    hours_exceptions: List[HoursException] = Field(default_factory=list)
+    timezone_offset: Optional[str] = None
+
+    # Accessibility and special features
+    wheelchair_accessible: AccessibilityLevel = AccessibilityLevel.UNKNOWN
+    parking_type: Optional[str] = None
+    accepts_new_patients: Optional[bool] = None
+    wait_time: Optional[int] = None  # in minutes
+
+    # Booking capabilities
+    has_online_booking: bool = False
+    has_queue_system: bool = False
+    accepts_walk_ins: bool = False
+    can_book: bool = False
+
+    # Eligibility and fees
+    eligibility_criteria: Optional[str] = None
+    fee_structure: Optional[str] = None
+    min_age: Optional[int] = None
+    max_age: Optional[int] = None
+
+    # Metadata
+    last_updated: Optional[datetime] = None
+    record_owner: Optional[str] = None
+    data_source: Optional[str] = None  # e.g., "211", "Empower"
 
     class Config:
-        """Override Pydantic configuration."""
+        """Pydantic configuration."""
 
-        populate_by_name = True
+        use_enum_values = True
+
+    @validator("wheelchair_accessible", pre=True)
+    def normalize_wheelchair_access(cls, v: str) -> AccessibilityLevel:  # noqa: N805
+        """Normalize wheelchair accessibility values from different sources."""
+        if isinstance(v, str):
+            mapping = {
+                "t": AccessibilityLevel.FULL,
+                "true": AccessibilityLevel.FULL,
+                "p": AccessibilityLevel.PARTIAL,
+                "partial": AccessibilityLevel.PARTIAL,
+                "f": AccessibilityLevel.NONE,
+                "false": AccessibilityLevel.NONE,
+            }
+            return mapping.get(v.lower(), AccessibilityLevel.UNKNOWN)
+        return AccessibilityLevel.UNKNOWN
+
+    @validator("service_type", pre=True)
+    def normalize_service_type(cls, v: str) -> ServiceType:  # noqa: N805
+        """Normalize service type values from different sources."""
+        if isinstance(v, str):
+            mapping = {
+                "Retail Pharmacy": ServiceType.PHARMACY,
+                "Emergency Rooms": ServiceType.EMERGENCY_ROOM,
+                "Urgent Care Centre": ServiceType.URGENT_CARE,
+                "Primary Care Walk-In Clinic": ServiceType.WALK_IN_CLINIC,
+                "Family Doctor's Office": ServiceType.FAMILY_DOCTOR,
+                "Medical Labs & Diagnostic Imaging Centres": ServiceType.MEDICAL_LAB,
+            }
+            return mapping.get(v, ServiceType.UNKNOWN)
+        return ServiceType.UNKNOWN
 
 
 class ServiceDocument(BaseModel):
@@ -227,7 +224,7 @@ class RecommendationResponse(BaseModel):
         Whether the request signifies an emergency.
     is_out_of_scope : bool
         Whether the request is out of scope.
-    services : Optional[List[Service]]
+    services : Optional[List[BaseService]]
         A list of services ranked by location and relevancy.
     no_services_found : bool
         Whether no services were found.

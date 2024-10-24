@@ -7,7 +7,88 @@ import json
 import math
 from pathlib import Path
 import argparse
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+from api.data import ServiceType
+
+
+def map_211_data_to_service(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Map 211 API data to standardized Service format."""
+    # Map phone numbers
+    phone_numbers = []
+    if data.get("PhoneNumbers"):
+        for phone in data["PhoneNumbers"]:
+            phone_numbers.append(
+                {
+                    "number": phone.get("Number", ""),
+                    "type": phone.get("Type"),
+                    "name": phone.get("Name"),
+                    "description": phone.get("Description"),
+                    "extension": phone.get("Extension"),
+                }
+            )
+
+    # Map addresses
+    physical_address = {
+        "street1": data.get("PhysicalAddressStreet1"),
+        "street2": data.get("PhysicalAddressStreet2"),
+        "city": data.get("PhysicalAddressCity"),
+        "province": data.get("PhysicalAddressProvince"),
+        "postal_code": data.get("PhysicalAddressPostalCode"),
+        "country": data.get("PhysicalAddressCountry"),
+    }
+
+    mailing_address = {
+        "street1": data.get("MailingAddressStreet1"),
+        "street2": data.get("MailingAddressStreet2"),
+        "city": data.get("MailingAddressCity"),
+        "province": data.get("MailingAddressProvince"),
+        "postal_code": data.get("MailingAddressPostalCode"),
+        "country": data.get("MailingAddressCountry"),
+        "attention_name": data.get("MailingAttentionName"),
+    }
+
+    # Handle age parsing
+    def parse_age(age_str: Optional[str]) -> Optional[int]:
+        if not age_str:
+            return None
+        try:
+            return int(float(age_str))
+        except (ValueError, TypeError):
+            return None
+
+    return {
+        "id": data["id"],
+        "name": data["PublicName"],
+        "service_type": ServiceType.UNKNOWN.value,
+        "source_id": data.get("UniqueIDPriorSystem"),
+        "official_name": data.get("OfficialName"),
+        "latitude": float(data["Latitude"]) if data.get("Latitude") else 0.0,
+        "longitude": float(data["Longitude"]) if data.get("Longitude") else 0.0,
+        "physical_address": physical_address,
+        "mailing_address": mailing_address,
+        "phone_numbers": phone_numbers,
+        "email": data.get("Email"),
+        "website": data.get("Website"),
+        "description": data.get("Description"),
+        "taxonomy_terms": [
+            term.strip()
+            for term in data.get("TaxonomyTerms", "").split(";")
+            if term.strip()
+        ],
+        "taxonomy_codes": [
+            code.strip()
+            for code in data.get("TaxonomyCodes", "").split(";")
+            if code.strip()
+        ],
+        "eligibility_criteria": data.get("Eligibility"),
+        "fee_structure": data.get("FeeStructureSource"),
+        "min_age": parse_age(data.get("MinAge", "")),
+        "max_age": parse_age(data.get("MaxAge", "")),
+        "last_updated": data.get("UpdatedOn"),
+        "record_owner": data.get("RecordOwner"),
+        "data_source": "211",
+    }
 
 
 def create_payload(
@@ -70,8 +151,9 @@ def fetch_data(
 
 def save_to_file(data: Dict[str, Any], file_name: str) -> None:
     """Save the data to a JSON file."""
+    mapped_services = [map_211_data_to_service(service) for service in data["Records"]]
     with open(file_name, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(mapped_services, f, indent=2)
 
 
 def main(
