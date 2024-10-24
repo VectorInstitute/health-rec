@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Container, Heading, Text, VStack, SimpleGrid, useColorModeValue,
   Divider, Badge, Flex, Grid, GridItem, Skeleton, SkeletonText, SkeletonCircle
 } from '@chakra-ui/react';
 import ServiceCard from '../components/service-card';
 import Header from '../components/header';
-import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
+import Map, { TORONTO_COORDINATES, computeViewState } from '../components/map';
 import { Service, Location } from '../types/service';
 import { useRecommendationStore, Recommendation, Query, RecommendationStore } from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
@@ -97,9 +97,9 @@ const RecommendationPage: React.FC = () => {
     }
   };
 
-  const updateMapViewState = (services: Service[]) => {
+  const updateMapViewState = useCallback((services: Service[]) => {
     if (services && services.length > 0) {
-      const newMapLocations = services
+      const locations = services
         .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
           typeof service.Latitude === 'number' &&
           typeof service.Longitude === 'number' &&
@@ -107,19 +107,16 @@ const RecommendationPage: React.FC = () => {
           !isNaN(service.Longitude)
         )
         .map(service => ({
-          id: service.id,
-          name: service.PublicName,
           latitude: service.Latitude,
           longitude: service.Longitude,
-          description: service.Description || '',
-          address: service.Address || '',
-          phone: service.Phone || '',
         }));
 
-      const newViewState = computeViewState(newMapLocations);
+      const newViewState = computeViewState(locations);
       setMapViewState(newViewState);
+    } else {
+      setMapViewState(TORONTO_COORDINATES);
     }
-  };
+  }, []);
 
   const mapLocations: Location[] = useMemo(() => {
     if (!recommendation?.services) return [];
@@ -143,11 +140,10 @@ const RecommendationPage: React.FC = () => {
   }, [recommendation]);
 
   useEffect(() => {
-    if (mapLocations.length > 0) {
-      const newViewState = computeViewState(mapLocations);
-      setMapViewState(newViewState);
+    if (recommendation?.services) {
+      updateMapViewState(recommendation.services);
     }
-  }, [mapLocations]);
+  }, [recommendation, updateMapViewState]);
 
   const renderRecommendationCard = (recommendation: Recommendation | null) => {
     if (!recommendation?.message) return null;
@@ -254,7 +250,8 @@ const RecommendationPage: React.FC = () => {
                   locations={mapLocations}
                   height={mapHeight}
                   width={mapWidth}
-                  initialViewState={mapViewState}
+                  radius={originalQuery?.radius}
+                  center={originalQuery?.latitude && originalQuery?.longitude ? [originalQuery.longitude, originalQuery.latitude] : undefined}
                 />
               </Box>
             </Box>

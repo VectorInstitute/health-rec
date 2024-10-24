@@ -47,6 +47,7 @@ async def get_additional_questions(
         A dictionary with the generated questions.
     """
     try:
+        logger.info(f"Received query for additional questions: {query}")
         questions = refine_service.generate_questions(query, recommendation)
         return {"questions": questions}
     except Exception as e:
