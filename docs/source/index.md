@@ -61,11 +61,11 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
    cd health-rec
 
    # Create virtual environment
-   python -m venv .venv
+   python3 -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
    # Install dependencies
-   poetry install --with test
+   poetry install --with test,docs
    ```
 
 2. **Run pre-commit checks**
@@ -95,13 +95,13 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 **GTA data**
 
 ```bash
-python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
+python3 scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
 ```
 
 **Ontario-wide data**
 
 ```bash
-python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
+python3 scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
 ```
 
 #### Upload data and embeddings
