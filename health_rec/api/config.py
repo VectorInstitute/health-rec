@@ -60,5 +60,5 @@ class Config:
     COHERE_API_KEY: str = getenv("COHERE_API_KEY", "")
     CHROMA_HOST: str = getenv("CHROMA_HOST", "chromadb-dev")
     CHROMA_PORT: int = 8000
-    COLLECTION_NAME: str = getenv("COLLECTION_NAME", "empower")
+    COLLECTION_NAME: str = getenv("COLLECTION_NAME", "211_gta")
     RELEVANCY_WEIGHT: float = float(getenv("RELEVANCY_WEIGHT", "0.5"))
