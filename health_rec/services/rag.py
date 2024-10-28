@@ -11,8 +11,8 @@ from api.config import Config
 from api.data import Query, RecommendationResponse, Service, ServiceDocument
 from services.emergency import get_emergency_services_message
 from services.ranking import RankingService
-from services.rerank import ReRankingService, RerankingConfig
-from services.utils import _metadata_to_service, _parse_chroma_result
+from services.rerank import RerankingConfig, ReRankingService
+from services.utils import _metadata_to_service
 
 
 logging.basicConfig(
@@ -97,11 +97,8 @@ class RAGService:
         self, query: Query, query_embedding: List[float]
     ) -> List[ServiceDocument]:
         """Retrieve and rank services based on the query."""
-        # chroma_results = self.services_collection.query(
-        #     query_embeddings=query_embedding, n_results=5
-        # )
         service_documents = self.reranking_service.rerank(query.query, query_embedding)
-        # service_documents = _parse_chroma_result(chroma_results_reranked)
+
         user_location = (
             (query.latitude, query.longitude)
             if query.latitude and query.longitude

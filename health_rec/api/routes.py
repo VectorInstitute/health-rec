@@ -1,7 +1,7 @@
 """Backend API routes."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Union
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
@@ -10,11 +10,12 @@ from api.data import (
     RecommendationResponse,
     RefineRequest,
     Service,
+    ServiceDocument,
 )
 from services.dev.data import ChromaService
 from services.rag import RAGService
 from services.refine import RefineService
-from services.rerank import ReRankingService, RerankingConfig
+from services.rerank import RerankingConfig, ReRankingService
 
 
 # Configure logging
@@ -153,12 +154,11 @@ async def get_services_count(
     """
     return await chroma_service.get_services_count()
 
+
 @router.get("/rerank", response_model=List[Service])
 async def rerank_recommendations(
-    query: str,
-    retrieval_k: Optional[int] = 20,
-    output_k: Optional[int] = 5
-) -> List[Service]:
+    query: str, retrieval_k: int = 10, output_k: int = 5
+) -> Union[ServiceDocument | List[ServiceDocument]]:
     """
     Generate re-ranked list of services based on the input query.
 
@@ -173,16 +173,18 @@ async def rerank_recommendations(
 
     Returns
     -------
-    List[Service]
+    services: List[ServiceDocument]
         A list of services ordered by relevance to the query.
     """
     try:
         config = RerankingConfig(
-            retrieval_k=min(max(1, retrieval_k), 20),  # Limit between 1 and 20
-            output_k=min(max(1, output_k), retrieval_k),  # Cannot be more than retrieval_k
+            retrieval_k=min(max(1, retrieval_k), 10),  # Limit between 1 and 20
+            output_k=min(
+                max(1, output_k), retrieval_k
+            ),  # Cannot be more than retrieval_k
         )
         rerank_service.config = config
         return rerank_service.rerank(query)
     except Exception as e:
         logger.error(f"Error in rerank_recommendations: {str(e)}")
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
