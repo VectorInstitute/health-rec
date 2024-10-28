@@ -223,8 +223,8 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
                     >
                       <Box p={2} maxWidth="200px">
                         <Text fontWeight="bold">{selectedLocation.name}</Text>
-                        <Text fontSize="sm">{selectedLocation.address}</Text>
-                        <Text fontSize="sm">{selectedLocation.phone}</Text>
+                        <Text fontSize="sm">{selectedLocation.physical_address}</Text>
+                        <Text fontSize="sm">{selectedLocation.phone_numbers}</Text>
                       </Box>
                     </Popup>
                   )}

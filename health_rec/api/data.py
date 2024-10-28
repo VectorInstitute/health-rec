@@ -17,7 +17,6 @@ class ServiceType(str, Enum):
     MEDICAL_LAB = "medical_lab"
     FAMILY_DOCTOR = "family_doctor"
     COMMUNITY_SERVICE = "community_service"
-    UNKNOWN = "unknown"
 
 
 class AccessibilityLevel(str, Enum):
@@ -86,24 +85,19 @@ class PhoneNumber(BaseModel):
 
 
 class Service(BaseModel):
-    """
-    Standardized service model that can accommodate data from multiple APIs.
-
-    This model includes fields that might be present in various healthcare and
-    community service APIs, with optional fields to handle varying data availability.
-    """
+    """Standardized service model that can accommodate data from multiple APIs."""
 
     # Core identification
     id: int
     name: str
-    service_type: ServiceType = ServiceType.UNKNOWN
-    source_id: Optional[str] = None  # Original ID from source system
+    service_type: ServiceType
+    source_id: Optional[str] = None
     official_name: Optional[str] = None
 
     # Location
     latitude: float
     longitude: float
-    distance: Optional[float] = None  # Distance from search point in km
+    distance: Optional[float] = None
     physical_address: Optional[Address] = None
     mailing_address: Optional[Address] = None
 
@@ -122,7 +116,7 @@ class Service(BaseModel):
     taxonomy_codes: List[str] = Field(default_factory=list)
 
     # Operating information
-    status: Optional[str] = None  # current operating status (open/closed)
+    status: Optional[str] = None
     regular_hours: List[OperatingHours] = Field(default_factory=list)
     hours_exceptions: List[HoursException] = Field(default_factory=list)
     timezone_offset: Optional[str] = None
@@ -131,7 +125,7 @@ class Service(BaseModel):
     wheelchair_accessible: AccessibilityLevel = AccessibilityLevel.UNKNOWN
     parking_type: Optional[str] = None
     accepts_new_patients: Optional[bool] = None
-    wait_time: Optional[int] = None  # in minutes
+    wait_time: Optional[int] = None
 
     # Booking capabilities
     has_online_booking: bool = False
@@ -182,8 +176,8 @@ class Service(BaseModel):
                 "Family Doctor's Office": ServiceType.FAMILY_DOCTOR,
                 "Medical Labs & Diagnostic Imaging Centres": ServiceType.MEDICAL_LAB,
             }
-            return mapping.get(v, ServiceType.UNKNOWN)
-        return ServiceType.UNKNOWN
+            return mapping.get(v, ServiceType.COMMUNITY_SERVICE)
+        return ServiceType.COMMUNITY_SERVICE
 
 
 class ServiceDocument(BaseModel):
@@ -224,7 +218,7 @@ class RecommendationResponse(BaseModel):
         Whether the request signifies an emergency.
     is_out_of_scope : bool
         Whether the request is out of scope.
-    services : Optional[List[BaseService]]
+    services : Optional[List[Service]]
         A list of services ranked by location and relevancy.
     no_services_found : bool
         Whether no services were found.

@@ -60,9 +60,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
       >
         <VStack align="start" spacing={3}>
           <Heading as="h3" size="md" color={textColor}>
-            {service.PublicName}
+            {service.name}
           </Heading>
-          {service.Description && (
+          {service.description && (
             <Box
               noOfLines={3}
               color={textColor}
@@ -74,16 +74,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
                 WebkitBoxOrient: 'vertical',
               }}
             >
-              {renderHtml(service.Description)}
+              {renderHtml(service.description)}
             </Box>
           )}
         </VStack>
         <Flex mt={4} align="center" justify="space-between">
-          {service.ServiceArea && (
+          {service.physical_address && (
             <Flex align="center">
               <Icon as={FaMapMarkerAlt} color="pink.500" mr={2} />
               <Text fontSize="sm" color={textColor}>
-                {Array.isArray(service.ServiceArea) ? service.ServiceArea[0] : service.ServiceArea}
+                {Array.isArray(service.physical_address) ? service.physical_address[0] : service.physical_address}
               </Text>
             </Flex>
           )}

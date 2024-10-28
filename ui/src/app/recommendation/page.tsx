@@ -25,6 +25,7 @@ const RecommendationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [additionalQuestions, setAdditionalQuestions] = useState<string[]>([]);
 
+  // Theme colors
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
   const cardBgColor = useColorModeValue('white', 'gray.800');
@@ -88,7 +89,6 @@ const RecommendationPage: React.FC = () => {
 
       const refinedRecommendation: Recommendation = await response.json();
       setRecommendation(refinedRecommendation);
-
       updateMapViewState(refinedRecommendation.services);
     } catch (error) {
       console.error('Error refining recommendations:', error);
@@ -100,15 +100,15 @@ const RecommendationPage: React.FC = () => {
   const updateMapViewState = useCallback((services: Service[]) => {
     if (services && services.length > 0) {
       const locations = services
-        .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
-          typeof service.Latitude === 'number' &&
-          typeof service.Longitude === 'number' &&
-          !isNaN(service.Latitude) &&
-          !isNaN(service.Longitude)
+        .filter(service =>
+          typeof service.latitude === 'number' &&
+          typeof service.longitude === 'number' &&
+          !isNaN(service.latitude) &&
+          !isNaN(service.longitude)
         )
         .map(service => ({
-          latitude: service.Latitude,
-          longitude: service.Longitude,
+          latitude: service.latitude,
+          longitude: service.longitude,
         }));
 
       const newViewState = computeViewState(locations);
@@ -122,20 +122,18 @@ const RecommendationPage: React.FC = () => {
     if (!recommendation?.services) return [];
 
     return recommendation.services
-      .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
-        typeof service.Latitude === 'number' &&
-        typeof service.Longitude === 'number' &&
-        !isNaN(service.Latitude) &&
-        !isNaN(service.Longitude)
+      .filter(service =>
+        typeof service.latitude === 'number' &&
+        typeof service.longitude === 'number' &&
+        !isNaN(service.latitude) &&
+        !isNaN(service.longitude)
       )
       .map(service => ({
         id: service.id,
-        name: service.PublicName,
-        latitude: service.Latitude,
-        longitude: service.Longitude,
-        description: service.Description || '',
-        address: service.Address || '',
-        phone: service.Phone || '',
+        name: service.name,
+        latitude: service.latitude,
+        longitude: service.longitude,
+        description: service.description || '',
       }));
   }, [recommendation]);
 
@@ -152,15 +150,13 @@ const RecommendationPage: React.FC = () => {
     const overview = overviewWithLabel.replace('Overview:', '').trim();
     const reasoning = reasoningParts.join('\n').replace('Reasoning:', '').trim();
 
-    const serviceName = recommendation.services[0]?.PublicName || 'Unknown Service';
+    const serviceName = recommendation.services[0]?.name || 'Unknown Service';
     const updatedOverview = `<b>${serviceName}</b><br><br>${overview}`;
 
     return (
       <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
         <VStack spacing={6} align="stretch">
-          <Box>
-            <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
-          </Box>
+          <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
           <Divider />
           <Box>
             <Badge colorScheme="purple" fontSize="sm" mb={2}>
@@ -251,7 +247,8 @@ const RecommendationPage: React.FC = () => {
                   height={mapHeight}
                   width={mapWidth}
                   radius={originalQuery?.radius}
-                  center={originalQuery?.latitude && originalQuery?.longitude ? [originalQuery.longitude, originalQuery.latitude] : undefined}
+                  center={originalQuery?.latitude && originalQuery?.longitude ?
+                    [originalQuery.longitude, originalQuery.latitude] : undefined}
                 />
               </Box>
             </Box>

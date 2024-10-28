@@ -59,8 +59,8 @@ class RankingService:
         """Rank services by relevancy score and distance."""
         for service in services:
             service_location = (
-                float(service.metadata["Latitude"]),
-                float(service.metadata["Longitude"]),
+                float(service.metadata["latitude"]),
+                float(service.metadata["longitude"]),
             )
             service.distance = _calculate_distance(service_location, user_location)
         services.sort(

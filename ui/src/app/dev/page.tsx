@@ -31,12 +31,12 @@ const DevPage: React.FC = () => {
         const countData: number = await countResponse.json();
 
         const validServices = servicesData.filter(
-          (service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
-            typeof service.Latitude === 'number' &&
-            typeof service.Longitude === 'number' &&
-            !isNaN(service.Latitude) &&
-            !isNaN(service.Longitude) &&
-            !(service.Latitude === 0 && service.Longitude === 0)
+          (service): service is Service & Required<Pick<Service, 'latitude' | 'longitude'>> =>
+            typeof service.latitude === 'number' &&
+            typeof service.longitude === 'number' &&
+            !isNaN(service.latitude) &&
+            !isNaN(service.longitude) &&
+            !(service.latitude === 0 && service.longitude === 0)
         );
 
         setServices(validServices);
@@ -44,8 +44,8 @@ const DevPage: React.FC = () => {
 
         if (validServices.length > 0) {
           const locations = validServices.map(service => ({
-            latitude: service.Latitude,
-            longitude: service.Longitude,
+            latitude: service.latitude,
+            longitude: service.longitude,
           }));
           const newViewState = computeViewState(locations);
           setMapViewState(newViewState);
@@ -70,10 +70,10 @@ const DevPage: React.FC = () => {
 
   const locations = services.map(service => ({
     id: service.id,
-    name: service.PublicName,
-    latitude: service.Latitude,
-    longitude: service.Longitude,
-    service_area: service.ServiceArea,
+    name: service.name,
+    latitude: service.latitude,
+    longitude: service.longitude,
+    service_area: service.physical_address,
   }));
 
   return (

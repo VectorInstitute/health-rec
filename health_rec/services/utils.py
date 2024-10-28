@@ -2,11 +2,18 @@
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from chromadb.api.types import QueryResult
 
-from api.data import PhoneNumber, Service, ServiceDocument
+from api.data import (
+    AccessibilityLevel,
+    Address,
+    PhoneNumber,
+    Service,
+    ServiceDocument,
+    ServiceType,
+)
 
 
 logging.basicConfig(
@@ -16,19 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_chroma_result(chroma_results: QueryResult) -> List[ServiceDocument]:
-    """
-    Parse the results from ChromaDB into a list of Service objects.
-
-    Parameters
-    ----------
-    chroma_results : QueryResult
-        The results from a ChromaDB query.
-
-    Returns
-    -------
-    List[ServiceDocument]
-        A list of ServiceDocument objects created from the ChromaDB results.
-    """
+    """Parse the results from ChromaDB into a list of ServiceDocument objects."""
     parsed_results: List[ServiceDocument] = [
         ServiceDocument(id=id_, document=doc, metadata=meta, relevancy_score=score)
         for id_, doc, meta, score in zip(
@@ -42,97 +37,128 @@ def _parse_chroma_result(chroma_results: QueryResult) -> List[ServiceDocument]:
     return parsed_results
 
 
+def _parse_json_field(field: Any, default: Any) -> Any:
+    """Parse a potentially JSON-encoded field."""
+    if isinstance(field, str):
+        try:
+            return json.loads(field)
+        except json.JSONDecodeError:
+            return default
+    return field
+
+
+def _parse_coordinates(metadata: Dict[str, Any]) -> tuple[float, float]:
+    """Parse latitude and longitude coordinates."""
+    try:
+        latitude = float(metadata.get("latitude", 0))
+        longitude = float(metadata.get("longitude", 0))
+    except (ValueError, TypeError):
+        latitude = longitude = 0.0
+    return latitude, longitude
+
+
+def _parse_phone_numbers(phones: List[Dict[str, Any]]) -> List[PhoneNumber]:
+    """Parse phone numbers from raw data."""
+    phone_numbers = []
+    for phone in phones:
+        number = phone.get("number", "")
+        extension = None
+
+        if isinstance(number, str) and "ext" in number.lower():
+            parts = number.lower().split("ext")
+            number = parts[0].strip()
+            extension = parts[1].strip()
+
+        phone_numbers.append(
+            PhoneNumber(
+                number=number,
+                type=phone.get("type"),
+                name=phone.get("name"),
+                description=phone.get("description"),
+                extension=extension,
+            )
+        )
+    return phone_numbers
+
+
+def _parse_service_type(service_type: Optional[str]) -> ServiceType:
+    """Parse and validate service type."""
+    if not service_type:
+        return ServiceType.COMMUNITY_SERVICE
+
+    try:
+        return ServiceType(service_type)
+    except ValueError:
+        return ServiceType.COMMUNITY_SERVICE
+
+
+def _parse_wheelchair_access(access: Optional[str]) -> str:
+    """Parse and validate wheelchair accessibility."""
+    if not access:
+        return AccessibilityLevel.UNKNOWN.value
+
+    try:
+        return AccessibilityLevel(access).value
+    except ValueError:
+        return AccessibilityLevel.UNKNOWN.value
+
+
 def _metadata_to_service(metadata: Dict[str, Any]) -> Service:
-    """
-    Convert metadata to a Service object.
+    """Convert metadata to a Service object."""
+    try:
+        # Parse coordinates
+        latitude, longitude = _parse_coordinates(metadata)
 
-    Parameters
-    ----------
-    metadata : Dict[str, Any]
-        The metadata dictionary containing service information.
+        # Ensure service_type is always set to a valid ServiceType enum value
+        service_type = _parse_service_type(metadata.get("service_type"))
 
-    Returns
-    -------
-    Service
-        A Service object created from the metadata.
-    """
-    # Handle ServiceArea
-    if "ServiceArea" in metadata:
-        if isinstance(metadata["ServiceArea"], str):
-            metadata["ServiceArea"] = [
-                s.strip() for s in metadata["ServiceArea"].split(",")
-            ]
-        elif metadata["ServiceArea"] is None:
-            metadata["ServiceArea"] = []
-    else:
-        metadata["ServiceArea"] = []
+        # Parse complex fields that might be JSON strings
+        physical_address = _parse_json_field(metadata.get("physical_address"), None)
+        if physical_address:
+            physical_address = Address(**physical_address)
 
-    # Convert numeric fields
-    metadata["Latitude"] = (
-        float(metadata["Latitude"]) if metadata.get("Latitude") else None
-    )
-    metadata["Longitude"] = (
-        float(metadata["Longitude"]) if metadata.get("Longitude") else None
-    )
-    metadata["Score"] = int(metadata["Score"]) if metadata.get("Score") else None
-    metadata["ParentId"] = (
-        int(metadata["ParentId"]) if metadata.get("ParentId") else None
-    )
+        phone_numbers = _parse_json_field(metadata.get("phone_numbers"), [])
+        if isinstance(phone_numbers, list):
+            phone_numbers = _parse_phone_numbers(phone_numbers)
 
-    # Handle PhoneNumbers
-    if "PhoneNumbers" in metadata:
-        if isinstance(metadata["PhoneNumbers"], str):
-            try:
-                phone_numbers = json.loads(metadata["PhoneNumbers"])
-            except json.JSONDecodeError:
-                phone_numbers = []
-        elif isinstance(metadata["PhoneNumbers"], list):
-            phone_numbers = metadata["PhoneNumbers"]
-        else:
-            phone_numbers = []
-
-        metadata["PhoneNumbers"] = [PhoneNumber(**phone) for phone in phone_numbers]
-    else:
-        metadata["PhoneNumbers"] = []
-
-    return Service(
-        id=int(metadata["id"]),
-        parent_id=metadata["ParentId"],
-        public_name=metadata["PublicName"],
-        score=metadata["Score"],
-        service_area=metadata["ServiceArea"],
-        distance=metadata.get("Distance"),
-        description=metadata.get("Description"),
-        latitude=metadata["Latitude"],
-        longitude=metadata["Longitude"],
-        physical_address_street1=metadata.get("PhysicalAddressStreet1"),
-        physical_address_street2=metadata.get("PhysicalAddressStreet2"),
-        physical_address_city=metadata.get("PhysicalAddressCity"),
-        physical_address_province=metadata.get("PhysicalAddressProvince"),
-        physical_address_postal_code=metadata.get("PhysicalAddressPostalCode"),
-        physical_address_country=metadata.get("PhysicalAddressCountry"),
-        mailing_attention_name=metadata.get("MailingAttentionName"),
-        mailing_address_street1=metadata.get("MailingAddressStreet1"),
-        mailing_address_street2=metadata.get("MailingAddressStreet2"),
-        mailing_address_city=metadata.get("MailingAddressCity"),
-        mailing_address_province=metadata.get("MailingAddressProvince"),
-        mailing_address_postal_code=metadata.get("MailingAddressPostalCode"),
-        mailing_address_country=metadata.get("MailingAddressCountry"),
-        phone_numbers=metadata["PhoneNumbers"],
-        website=metadata.get("Website"),
-        email=metadata.get("Email"),
-        hours=metadata.get("Hours"),
-        hours2=metadata.get("Hours2"),
-        min_age=metadata.get("MinAge"),
-        max_age=metadata.get("MaxAge"),
-        updated_on=metadata.get("UpdatedOn"),
-        taxonomy_term=metadata.get("TaxonomyTerm"),
-        taxonomy_terms=metadata.get("TaxonomyTerms"),
-        taxonomy_codes=metadata.get("TaxonomyCodes"),
-        eligibility=metadata.get("Eligibility"),
-        fee_structure_source=metadata.get("FeeStructureSource"),
-        official_name=metadata.get("OfficialName"),
-        physical_city=metadata.get("PhysicalCity"),
-        unique_id_prior_system=metadata.get("UniqueIDPriorSystem"),
-        record_owner=metadata.get("RecordOwner"),
-    )
+        # Create the Service object with parsed fields
+        service = Service(
+            id=metadata["id"],
+            name=metadata["name"],
+            service_type=service_type,  # This will now always be a valid ServiceType
+            latitude=latitude,
+            longitude=longitude,
+            physical_address=physical_address,
+            phone_numbers=phone_numbers,
+            fax=metadata.get("fax"),
+            email=metadata.get("email"),
+            website=metadata.get("website"),
+            description=metadata.get("description"),
+            services=metadata.get("services", []),
+            languages=metadata.get("languages", []),
+            status=metadata.get("status"),
+            regular_hours=metadata.get("regular_hours", []),
+            hours_exceptions=metadata.get("hours_exceptions", []),
+            timezone_offset=metadata.get("timezone_offset"),
+            wheelchair_accessible=metadata.get("wheelchair_accessible"),
+            parking_type=metadata.get("parking_type"),
+            accepts_new_patients=metadata.get("accepts_new_patients"),
+            wait_time=metadata.get("wait_time"),
+            has_online_booking=metadata.get("has_online_booking", False),
+            can_book=metadata.get("can_book", False),
+            data_source=metadata.get("data_source"),
+        )
+        logger.debug(f"Successfully parsed service: {service.id}")
+        return service
+    except Exception as e:
+        logger.error(f"Error converting metadata to Service: {e}")
+        logger.debug(f"Problematic metadata: {metadata}")
+        # Return a minimal valid Service object with required fields
+        return Service(
+            id=metadata.get("id", 0),
+            name=metadata.get("name", "Unknown"),
+            service_type=ServiceType.UNKNOWN,  # Always provide a valid ServiceType
+            latitude=float(metadata.get("latitude", 0)),
+            longitude=float(metadata.get("longitude", 0)),
+            data_source=metadata.get("data_source", "unknown"),
+        )
