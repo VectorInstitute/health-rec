@@ -8,7 +8,7 @@ from chromadb.api.models.Collection import Collection
 
 from api.config import Config
 from api.data import Service
-from services.utils import _metadata_to_service
+from services.utils import _metadata_to_service, _parse_chroma_result
 
 
 logging.basicConfig(
@@ -20,13 +20,17 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RerankingConfig:
     """Configuration for re-ranking parameters."""
-    retrieval_k: int = 20  # Number of services to retrieve initially
+    retrieval_k: int = 10  # Number of services to retrieve initially
     output_k: int = 5  # Number of services to return after re-ranking
     max_content_length: int = 300  # Maximum length of service content to consider
 
 
 class ReRankingService:
-    """Service for re-ranking retrieved health services using LLM."""
+    """Service for re-ranking retrieved health services using LLM.
+
+    Based on RankGPT: https://arxiv.org/abs/2304.09542
+    
+    """
 
     def __init__(self, config: Optional[RerankingConfig] = None) -> None:
         """Initialize the re-ranking service."""
@@ -59,7 +63,7 @@ class ReRankingService:
 
         # Add each service as a separate message
         for i, service in enumerate(services, 1):
-            content = f"{service.description or ''}\n{service.eligibility or ''}"
+            content = f"{service.public_name or ''}\n{service.description or ''}\n{service.eligibility or ''}"
             content = " ".join(content.split()[:self.config.max_content_length])
             messages.append({
                 "role": "user",
@@ -80,10 +84,11 @@ class ReRankingService:
         return messages
 
     def _process_ranking_response(
-        self, response: str, services: List[Service]
-    ) -> List[Service]:
+        self, response: str, services: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Process the LLM's ranking response and return reordered services."""
         try:
+            services = _parse_chroma_result(services)
             # Extract numbers from the response
             rankings = [
                 int(x) - 1 
@@ -106,7 +111,7 @@ class ReRankingService:
             # Fall back to original order if parsing fails
             return services[:self.config.output_k]
 
-    def rerank(self, query: str) -> List[Service]:
+    def rerank(self, query: str, query_embedding: List[float]) -> List[Service]:
         """
         Generate re-ranked list of services for the query.
 
@@ -120,18 +125,6 @@ class ReRankingService:
         List[Service]
             The re-ranked list of services.
         """
-        try:
-            # Generate embedding for the query
-            query_embedding = (
-                self.client.embeddings.create(
-                    input=[query], model=self.embedding_model
-                )
-                .data[0]
-                .embedding
-            )
-        except Exception as e:
-            logger.error(f"Error generating embedding: {e}")
-            raise ValueError("Failed to generate embedding for the query") from e
 
         # Retrieve initial services
         results = self.services_collection.query(
@@ -163,4 +156,4 @@ class ReRankingService:
             raise ValueError("Received empty response from OpenAI API")
 
         # Process and return results
-        return self._process_ranking_response(response_content, services)
+        return self._process_ranking_response(response_content, results)
