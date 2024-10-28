@@ -93,14 +93,42 @@ class Service(BaseModel):
         The maximum age for the service.
     updated_on : Optional[str]
         The date and time the service was last updated.
+    alternate_name : Optional[str]
+        The alternate name of the service.
+    parent_agency : Optional[str]
+        The parent agency of the service.
+    agency_status : Optional[str]
+        The status of the agency.
+    agency_description : Optional[str]
+        The description of the agency.
+    agency_description_site : Optional[str]
+        The site description of the agency.
+    coverage_area : Optional[str]
+        The coverage area of the service.
+    coverage_area_text : Optional[str]
+        Additional coverage area text.
+    eligibility : Optional[str]
+        The eligibility criteria for the service.
+    disabilities_access : Optional[str]
+        Accessibility information.
+    hours_of_operation : Optional[str]
+        Detailed hours of operation.
+    languages_offered : Optional[str]
+        Languages in which service is offered.
+    last_verified_on : Optional[str]
+        When the service was last verified.
+    last_verified_by_name : Optional[str]
+        Name of person who last verified.
+    last_verified_by_email : Optional[str]
+        Email of person who last verified.
+    application_process : Optional[str]
+        The application process description.
     taxonomy_term : Optional[str]
         The taxonomy terms associated with the service.
     taxonomy_terms : Optional[str]
         Additional taxonomy terms.
     taxonomy_codes : Optional[str]
         The taxonomy codes associated with the service.
-    eligibility : Optional[str]
-        The eligibility criteria for the service.
     fee_structure_source : Optional[str]
         The source of the fee structure.
     official_name : Optional[str]
@@ -114,14 +142,15 @@ class Service(BaseModel):
     """
 
     id: int
-    parent_id: Optional[int] = Field(default=None, alias="ParentId")
     public_name: str = Field(alias="PublicName")
-    score: Optional[int] = Field(default=None, alias="Score")
-    service_area: Optional[List[str]] = Field(default=None, alias="ServiceArea")
-    distance: Optional[str] = Field(default=None, alias="Distance")
     description: Optional[str] = Field(default=None, alias="Description")
     latitude: Optional[float] = Field(default=None, alias="Latitude")
     longitude: Optional[float] = Field(default=None, alias="Longitude")
+    parent_id: Optional[int] = Field(default=None, alias="ParentId")
+
+    score: Optional[int] = Field(default=None, alias="Score")
+    service_area: Optional[List[str]] = Field(default=None, alias="ServiceArea")
+    distance: Optional[str] = Field(default=None, alias="Distance")
     physical_address_street1: Optional[str] = Field(
         default=None, alias="PhysicalAddressStreet1"
     )
@@ -169,10 +198,24 @@ class Service(BaseModel):
     min_age: Optional[str] = Field(default=None, alias="MinAge")
     max_age: Optional[str] = Field(default=None, alias="MaxAge")
     updated_on: Optional[str] = Field(default=None, alias="UpdatedOn")
+    alternate_name: Optional[str] = Field(default=None, alias="AlternateName")
+    parent_agency: Optional[str] = Field(default=None, alias="ParentAgency")
+    agency_status: Optional[str] = Field(default=None, alias="AgencyStatus")
+    agency_description: Optional[str] = Field(default=None, alias="AgencyDescription")
+    agency_description_site: Optional[str] = Field(default=None, alias="AgencyDescription_Site")
+    coverage_area: Optional[str] = Field(default=None, alias="CoverageArea")
+    coverage_area_text: Optional[str] = Field(default=None, alias="CoverageAreaText")
+    eligibility: Optional[str] = Field(default=None, alias="Eligibility")
+    disabilities_access: Optional[str] = Field(default=None, alias="DisabilitiesAccess")
+    hours_of_operation: Optional[str] = Field(default=None, alias="HoursOfOperation")
+    languages_offered: Optional[str] = Field(default=None, alias="LanguagesOffered")
+    last_verified_on: Optional[str] = Field(default=None, alias="LastVerifiedOn")
+    last_verified_by_name: Optional[str] = Field(default=None, alias="LastVerifiedByName")
+    last_verified_by_email: Optional[str] = Field(default=None, alias="LastVerifiedByEmailAddress")
+    application_process: Optional[str] = Field(default=None, alias="ApplicationProcess")
     taxonomy_term: Optional[str] = Field(default=None, alias="TaxonomyTerm")
     taxonomy_terms: Optional[str] = Field(default=None, alias="TaxonomyTerms")
     taxonomy_codes: Optional[str] = Field(default=None, alias="TaxonomyCodes")
-    eligibility: Optional[str] = Field(default=None, alias="Eligibility")
     fee_structure_source: Optional[str] = Field(
         default=None, alias="FeeStructureSource"
     )

@@ -9,6 +9,8 @@ from pathlib import Path
 import argparse
 from typing import Dict, Any
 
+from fields import FIELDS
+
 
 def create_payload(
     page_index: int, dataset: str, is_gta: bool, page_size: int
@@ -24,7 +26,7 @@ def create_payload(
         "SortOrder": "distance",
         "PageIndex": page_index,
         "PageSize": page_size,
-        "Fields": "TaxonomyTerm,TaxonomyTerms,TaxonomyCodes,Eligibility,FeeStructureSource,OfficialName,PhysicalCity,UniqueIDPriorSystem",
+        "Fields": FIELDS,
     }
 
     if is_gta:
@@ -71,7 +73,7 @@ def fetch_data(
 def save_to_file(data: Dict[str, Any], file_name: str) -> None:
     """Save the data to a JSON file."""
     with open(file_name, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data["Records"], f, indent=2)
 
 
 def main(
