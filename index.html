@@ -334,11 +334,11 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Vecto
 <span class="nb">cd</span><span class="w"> </span>health-rec
 
 <span class="c1"># Create virtual environment</span>
-python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">  </span><span class="c1"># On Windows: .venv\Scripts\activate</span>
 
 <span class="c1"># Install dependencies</span>
-poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="w"> </span><span class="nb">test</span>
+poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="w"> </span>test,docs
 </pre></div>
 </div>
 </li>
@@ -364,11 +364,11 @@ poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="
 <section id="download-service-data-211-api">
 <h4>Download service data (211 API)<a class="headerlink" href="#download-service-data-211-api" title="Link to this heading">¶</a></h4>
 <p><strong>GTA data</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--is-gta<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--is-gta<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
 </pre></div>
 </div>
 <p><strong>Ontario-wide data</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
 </pre></div>
 </div>
 </section>
