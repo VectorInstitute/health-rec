@@ -18,7 +18,7 @@ def validate_service(data: Dict[str, Any]) -> Optional[Service]:
     try:
         return Service(**data)
     except Exception as e:
-        print(f"Validation error for service {data.get('id')}: {e}")
+        print(f"Validation error for a service: {e}")
         return None
 
 
