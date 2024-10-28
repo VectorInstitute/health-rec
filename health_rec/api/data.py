@@ -202,7 +202,9 @@ class Service(BaseModel):
     parent_agency: Optional[str] = Field(default=None, alias="ParentAgency")
     agency_status: Optional[str] = Field(default=None, alias="AgencyStatus")
     agency_description: Optional[str] = Field(default=None, alias="AgencyDescription")
-    agency_description_site: Optional[str] = Field(default=None, alias="AgencyDescription_Site")
+    agency_description_site: Optional[str] = Field(
+        default=None, alias="AgencyDescription_Site"
+    )
     coverage_area: Optional[str] = Field(default=None, alias="CoverageArea")
     coverage_area_text: Optional[str] = Field(default=None, alias="CoverageAreaText")
     eligibility: Optional[str] = Field(default=None, alias="Eligibility")
@@ -210,8 +212,12 @@ class Service(BaseModel):
     hours_of_operation: Optional[str] = Field(default=None, alias="HoursOfOperation")
     languages_offered: Optional[str] = Field(default=None, alias="LanguagesOffered")
     last_verified_on: Optional[str] = Field(default=None, alias="LastVerifiedOn")
-    last_verified_by_name: Optional[str] = Field(default=None, alias="LastVerifiedByName")
-    last_verified_by_email: Optional[str] = Field(default=None, alias="LastVerifiedByEmailAddress")
+    last_verified_by_name: Optional[str] = Field(
+        default=None, alias="LastVerifiedByName"
+    )
+    last_verified_by_email: Optional[str] = Field(
+        default=None, alias="LastVerifiedByEmailAddress"
+    )
     application_process: Optional[str] = Field(default=None, alias="ApplicationProcess")
     taxonomy_term: Optional[str] = Field(default=None, alias="TaxonomyTerm")
     taxonomy_terms: Optional[str] = Field(default=None, alias="TaxonomyTerms")
