@@ -108,9 +108,14 @@ class RAGService:
             service_documents, user_location
         )
         if query.radius:
+            logger.info(f"Filtering services by radius: {query.radius}")
             service_documents = [
                 doc for doc in service_documents if doc.distance <= query.radius
             ]
+            for service in service_documents:
+                logger.info(
+                    f"Service name: {service.metadata['PublicName']}, distance: {service.distance}"
+                )
         return list(service_documents)
 
     def _prepare_context(
@@ -147,16 +152,16 @@ class RAGService:
             An object containing the generated recommendation and relevant services.
         """
         generation_template = """
-        You are an expert with deep knowledge of health and community services in the Greater Toronto Area (GTA). You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
+        You are an expert with deep knowledge of health and community services. You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
 
         <QUERY>
         {discover}
         </QUERY>
 
         If you determine that the individual has an emergency need, respond with only the word "EMERGENCY" (in all caps).
-        If you determine that the individual's query is not for a health or community service in the GTA, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
+        If you determine that the individual's query is not for a health or community service, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
         Response: A brief explanation of why the query is out of scope.
-        Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of GTA health and community services.
+        Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of health and community services.
         If no services are found within the context, respond with the word "NO_SERVICES_FOUND" (in all caps).
 
         If the individual does not need emergency help and the query is within scope, use only the following service context enclosed by the <CONTEXT> tag to provide a service recommendation.
