@@ -1,90 +1,96 @@
-# health-rec
-
-## Overview
-
-Welcome to the health-rec project! This project is designed to develop a recommendation system for health and community services.
-
-The project is built using a microservices architecture. It has the following components:
-
-- Next.js frontend
-- FastAPI backend
-- Chroma vector database
-- OpenAI for embedding and recommendation
 
 
-## Development
+# Health Recommendation System
+
+Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
+
+## 🌟 Overview
+
+The Health Recommendation System is built with a modern microservices architecture:
+
+| Component | Technology | Purpose |
+|-----------|------------|----------|
+| Frontend | Next.js | User interface |
+| Backend | FastAPI | API services |
+| Vector Database | ChromaDB | Service data storage |
+| AI Engine | OpenAI | Embeddings & recommendations |
+
+For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api.html).
+
+## 🚀 Getting started
 
 ### Prerequisites
 
-- Docker
-- Docker Compose
-- Node.js
-- Python
-- pip
-- npm
+Make sure you have these tools installed:
 
-### Setup
+- Docker & Docker Compose (v20.10.0+)
+- Python (3.11+)
+- Node.js (18.0.0+)
+- Poetry (1.4.0+)
 
-#### Clone the repository
+### 🔑 API keys setup
 
-#### Add API keys
-
-In the `.env.development` file in the root of the project, set the following environment variables.
-
-The following are required for the backend and to fetch data from the 211 API:
-  - `OPENAI_API_KEY`
-  - `211_API_KEY`
-  - `DATA_DIR`
-  - `COLLECTION_NAME`
-
-
-The following are optional and only required if you want to use the frontend UI:
-  - `MAPBOX_API_KEY`
-  - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
-
-Make sure to set appropriate values for these variables. The `CHROMA_HOST`, `CHROMA_PORT`, and `COLLECTION_NAME`
-are already defined in the file, but you may need to adjust their values if necessary.
-
-#### Install dependencies in a virtual environment for the backend
+Create a `.env.development` file in the project root:
 
 ```bash
-cd health_rec
-python3 -m venv .venv
-source .venv/bin/activate
-poetry install --with test
+# Required Keys
+OPENAI_API_KEY=your_openai_key
+211_API_KEY=your_211_key
+DATA_DIR=/path/to/data
+COLLECTION_NAME=your_collection_name
+
+# Optional Frontend Keys
+MAPBOX_API_KEY=your_mapbox_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
-Now you can run pre-commit checks and tests:
+### 🛠️ Installation
+
+1. **Clone and setup backend**
+   ```bash
+   # Clone repository
+   git clone https://github.com/VectorInstitute/health-rec.git
+   cd health-rec
+
+   # Create virtual environment
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+   # Install dependencies
+   poetry install --with test
+   ```
+
+2. **Run pre-commit checks**
 
 ```bash
 pre-commit run --all-files
 ```
 
-#### Run the services
+### 🏃‍♂️ Running the services
 
-For development, we use docker compose to run the services.
-
-To run only the backend and chroma db services, run the following command:
+**Backend only**
 
 ```bash
 docker compose --env-file .env.development -f docker-compose.dev.yml up
 ```
 
-To run the frontend and backend, run the following command:
+**UI and Backend**
 
 ```bash
 docker compose --env-file .env.development --profile frontend -f docker-compose.dev.yml up
 ```
 
-#### Download data
+### 📥 Data setup
 
-For example, to download GTA data, run the following command:
+#### Download service data (211 API)
+
+**GTA data**
 
 ```bash
 python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
 ```
 
-To download Ontario-wide data, run the following command:
+**Ontario-wide data**
 
 ```bash
 python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
