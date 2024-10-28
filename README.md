@@ -29,12 +29,18 @@ The project is built using a microservices architecture. It has the following co
 
 #### Add API keys
 
-In the `.env.development` file in the root of the project, set the following environment variables:
+In the `.env.development` file in the root of the project, set the following environment variables.
+
+The following are required for the backend and to fetch data from the 211 API:
   - `OPENAI_API_KEY`
   - `211_API_KEY`
-  - `MAPBOX_API_KEY`
   - `DATA_DIR`
   - `COLLECTION_NAME`
+
+
+The following are optional and only required if you want to use the frontend UI:
+  - `MAPBOX_API_KEY`
+  - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
 
 Make sure to set appropriate values for these variables. The `CHROMA_HOST`, `CHROMA_PORT`, and `COLLECTION_NAME`
 are already defined in the file, but you may need to adjust their values if necessary.
@@ -75,13 +81,13 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 For example, to download GTA data, run the following command:
 
 ```bash
-python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir /mnt/data/211
+python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
 ```
 
 To download Ontario-wide data, run the following command:
 
 ```bash
-python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir /mnt/data/211
+python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
 ```
 
 #### Upload data and embeddings
@@ -89,7 +95,7 @@ python scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-
 First we use an interactive container:
 
 ```bash
-docker run -it --network health-rec_app-network -v <data_dir_with_json_files>:/data -v `pwd`:/workspace -w /workspace vectorinstitute/health-rec:backend-dev-latest bash
+docker run -it --network health-rec_app-network -v <path_to_data_dir_with_json_files>:/data -v `pwd`:/workspace -w /workspace vectorinstitute/health-rec:backend-dev-latest bash
 ```
 
 Then we can run the following commands to upload the data to the vector database:
