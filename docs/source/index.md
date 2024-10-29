@@ -2,6 +2,14 @@
 
 # Health Recommendation System
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+self
+api
+```
+
 Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
 
 ## 🌟 Overview
@@ -15,7 +23,7 @@ The Health Recommendation System is built with a modern microservices architectu
 | Vector Database | ChromaDB | Service data storage |
 | AI Engine | OpenAI | Embeddings & recommendations |
 
-For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api.html).
+For API documentation, see the [API Reference](api.rst).
 
 ## 🚀 Getting started
 

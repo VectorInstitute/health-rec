@@ -63,14 +63,6 @@ class RankingService:
                 float(service.metadata["Longitude"]),
             )
             service.distance = _calculate_distance(service_location, user_location)
-
-        # TODO: Remove the following lines later
-        scores = {
-            service.metadata["PublicName"]: self._calculate_ranking_score(service)
-            for service in services
-        }
-        logger.info(f"Services and their scores: \n {scores}")
-
         services.sort(
             key=lambda service: self._calculate_ranking_score(service), reverse=True
         )
@@ -90,9 +82,16 @@ class RankingService:
         float
             The ranking score for the service based on the specified strategy.
         """
+        # Convert cosine distance to cosine similarity
+        cosine_similarity = 1 - service.relevancy_score
+
+        # Normalize distance to a 0-1 range (assuming max distance of 100 km)
+        normalized_distance = min(service.distance / 100, 1)
+
+        # Calculate the ranking score
         return float(
-            self.relevancy_weight * service.relevancy_score
-            + self.distance_weight * (1 / service.distance)
+            self.relevancy_weight * cosine_similarity
+            + self.distance_weight * (1 - normalized_distance)
         )
 
 
@@ -117,8 +116,8 @@ def _calculate_distance(
     lat1, lon1 = location1
     lat2, lon2 = location2
 
-    # Radius of the Earth in kilometers
-    radius: float = 6371.0
+    # Radius of the Earth in kilometers (using double precision)
+    radius: float = 6371.0088
 
     # Convert latitude and longitude from degrees to radians
     lat1_rad, lon1_rad = radians(lat1), radians(lon1)
