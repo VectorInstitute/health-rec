@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 class RerankingConfig:
     """Configuration for re-ranking parameters."""
 
-    retrieval_k: int = 10  # Number of services to retrieve initially
+    retrieval_k: int = 20  # Number of services to retrieve initially
     output_k: int = 5  # Number of services to return after re-ranking
-    max_content_length: int = 300  # Maximum length of service content to consider
+    max_content_length: int = 150  # Maximum length of service content to consider
 
 
 class ReRankingService:

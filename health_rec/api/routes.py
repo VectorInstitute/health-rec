@@ -157,7 +157,7 @@ async def get_services_count(
 
 @router.get("/rerank", response_model=List[Service])
 async def rerank_recommendations(
-    query: str, retrieval_k: int = 10, output_k: int = 5
+    query: str, retrieval_k: int = 20, output_k: int = 5
 ) -> Union[ServiceDocument | List[ServiceDocument]]:
     """
     Generate re-ranked list of services based on the input query.
