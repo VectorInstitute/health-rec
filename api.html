@@ -262,7 +262,7 @@
         <article role="main">
           <section id="api-reference">
 <h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
-<p>This section provides detailed information about the API endpoints.</p>
+<p>This section provides detailed information about the API endpoints for the Health Recommendation System.</p>
 <section id="health-recommendations">
 <h2>Health Recommendations<a class="headerlink" href="#health-recommendations" title="Link to this heading">¶</a></h2>
 <dl class="http post">
@@ -281,21 +281,49 @@
 <dl class="field-list simple">
 <dt class="field-odd">Request JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> (<em>string</em>) – The user’s health-related query</p></li>
+<li><p><strong>query</strong> (<em>string</em>) – The user’s health-related query (required)</p></li>
 <li><p><strong>latitude</strong> (<em>number</em>) – Optional latitude for location-based search</p></li>
 <li><p><strong>longitude</strong> (<em>number</em>) – Optional longitude for location-based search</p></li>
-<li><p><strong>radius</strong> (<em>number</em>) – Optional search radius in meters (default: 5000)</p></li>
+<li><p><strong>radius</strong> (<em>number</em>) – Optional search radius in meters</p></li>
 </ul>
 </dd>
-<dt class="field-even">Response JSON Object<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>recommendation</strong> (<em>string</em>) – Generated recommendation text</p></li>
-<li><p><strong>services</strong> (<em>array</em>) – List of relevant health services</p></li>
-<li><p><strong>is_emergency</strong> (<em>boolean</em>) – Indicates if the query suggests an emergency</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Status Codes<span class="colon">:</span></dt>
+</dl>
+<p><strong>Response Body</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Based on your query...&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;service_id&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service Name&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service description&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;categories&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;category1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;category2&quot;</span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123 Health St&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;phone_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">            </span><span class="nt">&quot;number&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;+1-123-456-7890&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main&quot;</span>
+<span class="w">         </span><span class="p">}],</span>
+<span class="w">         </span><span class="nt">&quot;website&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;hours&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Monday-Friday 9AM-5PM&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">],</span>
+<span class="w">   </span><span class="nt">&quot;no_services_found&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>string</em>) – Generated recommendation text</p></li>
+<li><p><strong>is_emergency</strong> (<em>boolean</em>) – Indicates if the query suggests an emergency</p></li>
+<li><p><strong>is_out_of_scope</strong> (<em>boolean</em>) – Indicates if the query is outside service scope</p></li>
+<li><p><strong>services</strong> (<em>array</em>) – List of relevant health services (optional)</p></li>
+<li><p><strong>no_services_found</strong> (<em>boolean</em>) – Indicates if no matching services were found</p></li>
+</ul>
+</dd>
+<dt class="field-even">Status Codes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a></span> – Recommendation generated successfully</p></li>
 <li><p><span><a class="reference external" href="https://www.rfc-editor.org/rfc/rfc4918#section-11.2">422 Unprocessable Entity</a></span> – Invalid request parameters</p></li>
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1">500 Internal Server Error</a></span> – Server error</p></li>
@@ -318,17 +346,28 @@
 <dl class="field-list simple">
 <dt class="field-odd">Query Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> (<em>string</em>) – The user’s original health query</p></li>
-<li><p><strong>recommendation</strong> (<em>string</em>) – The previously generated recommendation</p></li>
+<li><p><strong>query</strong> (<em>string</em>) – The user’s original health query (required)</p></li>
+<li><p><strong>recommendation</strong> (<em>string</em>) – The previously generated recommendation (required)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Response JSON Object<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
+</dl>
+<p><strong>Response Body</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;questions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;Do you prefer in-person or virtual care?&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;What type of mental health support are you looking for?&quot;</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><strong>questions</strong> (<em>array</em>) – List of generated follow-up questions</p></li>
 </ul>
 </dd>
-<dt class="field-odd">Status Codes<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
+<dt class="field-even">Status Codes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a></span> – Questions generated successfully</p></li>
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 Bad Request</a></span> – Invalid query parameters</p></li>
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1">500 Internal Server Error</a></span> – Server error</p></li>
@@ -361,21 +400,45 @@
 <dl class="field-list simple">
 <dt class="field-odd">Request JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> (<em>object</em>) – The original query object with search parameters</p></li>
-<li><p><strong>questions</strong> (<em>array</em>) – List of follow-up questions</p></li>
-<li><p><strong>answers</strong> (<em>array</em>) – User’s answers to the follow-up questions</p></li>
-<li><p><strong>recommendation</strong> (<em>string</em>) – The previous recommendation</p></li>
+<li><p><strong>query</strong> (<em>object</em>) – Query object containing:</p></li>
+<li><p><strong>query.query</strong> (<em>string</em>) – The user’s health-related query (required)</p></li>
+<li><p><strong>query.latitude</strong> (<em>number</em>) – Optional latitude for location-based search</p></li>
+<li><p><strong>query.longitude</strong> (<em>number</em>) – Optional longitude for location-based search</p></li>
+<li><p><strong>query.radius</strong> (<em>number</em>) – Optional search radius in meters</p></li>
+<li><p><strong>questions</strong> (<em>array</em>) – List of follow-up questions (required)</p></li>
+<li><p><strong>answers</strong> (<em>array</em>) – User’s answers to the follow-up questions (required)</p></li>
+<li><p><strong>recommendation</strong> (<em>string</em>) – The previous recommendation (required)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Response JSON Object<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>recommendation</strong> (<em>string</em>) – Refined recommendation text</p></li>
-<li><p><strong>services</strong> (<em>array</em>) – Updated list of relevant services</p></li>
-<li><p><strong>is_emergency</strong> (<em>boolean</em>) – Updated emergency status</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Status Codes<span class="colon">:</span></dt>
+</dl>
+<p><strong>Response Body</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Based on your preferences...&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;services&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;service_id&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service Name&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service description&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">],</span>
+<span class="w">   </span><span class="nt">&quot;no_services_found&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<em>string</em>) – Refined recommendation text</p></li>
+<li><p><strong>is_emergency</strong> (<em>boolean</em>) – Updated emergency status</p></li>
+<li><p><strong>is_out_of_scope</strong> (<em>boolean</em>) – Updated scope status</p></li>
+<li><p><strong>services</strong> (<em>array</em>) – Updated list of relevant services (optional)</p></li>
+<li><p><strong>no_services_found</strong> (<em>boolean</em>) – Indicates if no matching services were found</p></li>
+</ul>
+</dd>
+<dt class="field-even">Status Codes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a></span> – Recommendation refined successfully</p></li>
 <li><p><span><a class="reference external" href="https://www.rfc-editor.org/rfc/rfc4918#section-11.2">422 Unprocessable Entity</a></span> – Invalid request data</p></li>
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1">500 Internal Server Error</a></span> – Server error</p></li>
@@ -391,31 +454,32 @@
 <dt class="sig sig-object http" id="get--services-all">
 <span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/services/all</span></span><a class="headerlink" href="#get--services-all" title="Link to this definition">¶</a></dt>
 <dd><p>Retrieve all available health services from the database.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>services</strong> (<em>array</em>) – List of all health services with details:</p></li>
-</ul>
-</dd>
-</dl>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span>
-<span class="w">   </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;service_id&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service Name&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service description&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;categories&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;category1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;category2&quot;</span><span class="p">],</span>
-<span class="w">   </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123 Health St&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;phone_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
-<span class="w">      </span><span class="nt">&quot;number&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;+1-123-456-7890&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main&quot;</span>
-<span class="w">   </span><span class="p">}],</span>
-<span class="w">   </span><span class="nt">&quot;website&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;hours&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Monday-Friday 9AM-5PM&quot;</span>
-<span class="p">}]</span>
+<p><strong>Response Body</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;service_id&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service Name&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service description&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;categories&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;category1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;category2&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123 Health St&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;phone_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">         </span><span class="nt">&quot;number&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;+1-123-456-7890&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Main&quot;</span>
+<span class="w">      </span><span class="p">}],</span>
+<span class="w">      </span><span class="nt">&quot;website&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;hours&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Monday-Friday 9AM-5PM&quot;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Status Codes<span class="colon">:</span></dt>
+<dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>services</strong> (<em>array</em>) – List of all health services</p></li>
+</ul>
+</dd>
+<dt class="field-even">Status Codes<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a></span> – Services retrieved successfully</p></li>
 <li><p><span><a class="reference external" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.1">500 Internal Server Error</a></span> – Server error</p></li>
 </ul>
@@ -427,6 +491,12 @@
 <dt class="sig sig-object http" id="get--services-count">
 <span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/services/count</span></span><a class="headerlink" href="#get--services-count" title="Link to this definition">¶</a></dt>
 <dd><p>Get the total number of available health services.</p>
+<p><strong>Response Body</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Response JSON Object<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -451,6 +521,15 @@
 <span class="p">}</span>
 </pre></div>
 </div>
+</section>
+<section id="common-http-status-codes">
+<h2>Common HTTP Status Codes<a class="headerlink" href="#common-http-status-codes" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code>: Request successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code>: Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">422</span> <span class="pre">Unprocessable</span> <span class="pre">Entity</span></code>: Invalid request body</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code>: Server-side error</p></li>
+</ul>
 </section>
 </section>
 
@@ -524,6 +603,7 @@
 <li><a class="reference internal" href="#recommendation-refinement">Recommendation Refinement</a></li>
 <li><a class="reference internal" href="#service-information">Service Information</a></li>
 <li><a class="reference internal" href="#error-responses">Error Responses</a></li>
+<li><a class="reference internal" href="#common-http-status-codes">Common HTTP Status Codes</a></li>
 </ul>
 </li>
 </ul>
