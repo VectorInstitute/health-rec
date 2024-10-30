@@ -63,7 +63,21 @@ class ReRankingService:
     def rerank(
         self, query: str, services: List[ServiceDocument]
     ) -> List[ServiceDocument]:
-        """Rerank the provided services based on the query."""
+        """Rerank the provided services based on the query.
+
+        Parameters
+        ----------
+        query : str
+            The query for which the services are being reranked.
+        services : List[ServiceDocument]
+            The list of services to be reranked.
+
+        Returns
+        -------
+        List[ServiceDocument]
+            The reranked services.
+
+        """
         if not services:
             return []
 

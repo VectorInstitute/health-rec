@@ -19,16 +19,44 @@ Health Recommendations
          "latitude": 43.6532,
          "longitude": -79.3832,
          "radius": 5000,
-         "use_reranking": false
+         "rerank": false
       }
 
    :<json string query: The user's health-related query (required)
    :<json number latitude: Optional latitude for location-based search
    :<json number longitude: Optional longitude for location-based search
    :<json number radius: Optional search radius in meters (default: 5000)
-   :<json boolean use_reranking: Optional flag to enable/disable reranking of the services (default: false)
+   :<json boolean rerank: Optional flag to enable/disable reranking of the services (default: false)
    :>json string recommendation: Generated recommendation text
    :>json array services: List of relevant health services
+
+   **Response Body**
+
+   .. code-block:: json
+
+      {
+         "message": "Based on your query...",
+         "is_emergency": false,
+         "is_out_of_scope": false,
+         "services": [
+            {
+               "id": "service_id",
+               "name": "Service Name",
+               "description": "Service description",
+               "categories": ["category1", "category2"],
+               "address": "123 Health St",
+               "phone_numbers": [{
+                  "number": "+1-123-456-7890",
+                  "type": "Main"
+               }],
+               "website": "https://example.com",
+               "hours": "Monday-Friday 9AM-5PM"
+            }
+         ],
+         "no_services_found": false
+      }
+
+   :>json string message: Generated recommendation text
    :>json boolean is_emergency: Indicates if the query suggests an emergency
    :>json boolean is_out_of_scope: Indicates if the query is outside service scope
    :>json array services: List of relevant health services (optional)

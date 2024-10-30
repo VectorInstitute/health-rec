@@ -52,16 +52,16 @@ class RAGService:
     def _generate_response(self, query: str, context: str) -> RecommendationResponse:
         """Generate a response using the RAG prompt."""
         generation_template = """
-        You are an expert with deep knowledge of health and community services in the Greater Toronto Area (GTA). You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
+        You are an expert with deep knowledge of health and community services. You will be providing a recommendation to an individual who is seeking help. The individual is seeking help with the following query:
 
         <QUERY>
         {query}
         </QUERY>
 
         If you determine that the individual has an emergency need, respond with only the word "EMERGENCY" (in all caps).
-        If you determine that the individual's query is not for a health or community service in the GTA, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
+        If you determine that the individual's query is not for a health or community service, respond with an appropriate out of scope message in relation to the query. Structure your response as follows:
         Response: A brief explanation of why the query is out of scope.
-        Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of GTA health and community services.
+        Reasoning: Provide more detailed reasoning for why this query cannot be answered within the context of health and community services.
         If no services are found within the context, respond with the word "NO_SERVICES_FOUND" (in all caps).
 
         If the individual does not need emergency help and the query is within scope, use only the following service context enclosed by the <CONTEXT> tag to provide a service recommendation.
@@ -149,9 +149,7 @@ class RAGService:
         """
         try:
             # Retrieve services with appropriate n_results
-            n_results = (
-                Config.RERANKER_MAX_SERVICES if query.use_reranking else Config.TOP_K
-            )
+            n_results = Config.RERANKER_MAX_SERVICES if query.rerank else Config.TOP_K
             services = self.retriever.retrieve(query.query, n_results=n_results)
 
             # Apply location filtering if location data is provided
@@ -169,7 +167,7 @@ class RAGService:
                 )
 
             # Apply reranking if requested and take top 5
-            if query.use_reranking:
+            if query.rerank:
                 services = self.reranker.rerank(query.query, services)
                 services = services[: Config.TOP_K]
 
