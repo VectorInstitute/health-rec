@@ -1,7 +1,7 @@
 """Backend API routes."""
 
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
@@ -10,12 +10,10 @@ from api.data import (
     RecommendationResponse,
     RefineRequest,
     Service,
-    ServiceDocument,
 )
 from services.dev.data import ChromaService
 from services.rag import RAGService
 from services.refine import RefineService
-from services.rerank import RerankingConfig, ReRankingService
 
 
 # Configure logging
@@ -27,7 +25,6 @@ router = APIRouter()
 
 rag_service = RAGService()
 refine_service = RefineService()
-rerank_service = ReRankingService(RerankingConfig())
 
 
 @router.get("/questions", response_model=dict)
@@ -154,38 +151,3 @@ async def get_services_count(
         The number of services.
     """
     return await chroma_service.get_services_count()
-
-
-@router.get("/rerank", response_model=List[Service])
-async def rerank_recommendations(
-    query: str, retrieval_k: int = 20, output_k: int = 5
-) -> Union[ServiceDocument | List[ServiceDocument]]:
-    """
-    Generate re-ranked list of services based on the input query.
-
-    Parameters
-    ----------
-    query : str
-        The user's input query.
-    retrieval_k : Optional[int]
-        Number of services to retrieve initially. Default is 10.
-    output_k : Optional[int]
-        Number of services to return after re-ranking. Default is 5.
-
-    Returns
-    -------
-    services: List[ServiceDocument]
-        A list of services ordered by relevance to the query.
-    """
-    try:
-        config = RerankingConfig(
-            retrieval_k=min(max(1, retrieval_k), 10),  # Limit between 1 and 20
-            output_k=min(
-                max(1, output_k), retrieval_k
-            ),  # Cannot be more than retrieval_k
-        )
-        rerank_service.config = config
-        return rerank_service.rerank(query)
-    except Exception as e:
-        logger.error(f"Error in rerank_recommendations: {str(e)}")
-        raise HTTPException(status_code=422, detail=str(e)) from e
