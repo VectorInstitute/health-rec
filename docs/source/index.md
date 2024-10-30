@@ -8,6 +8,7 @@
 
 self
 api
+safety_and_evaluation
 ```
 
 Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
