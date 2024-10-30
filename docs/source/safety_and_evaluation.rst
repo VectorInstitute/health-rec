@@ -12,6 +12,21 @@ The Health Recommendation System employs a rigorous evaluation framework to ensu
 - Validating the system's ability to handle queries with varying levels of detail
 - Measuring retrieval accuracy of relevant services
 
+Installation for Evaluation
+----------------------------
+
+To run the evaluation pipeline, you'll need to install additional dependencies from the `eval` subgroup. From the project root:
+
+.. code-block:: bash
+
+    # Create virtual environment
+    python3 -m venv .venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+    # Install dependencies including evaluation packages
+    poetry install --with test,docs,eval
+
+
 Evaluation Framework
 --------------------
 
