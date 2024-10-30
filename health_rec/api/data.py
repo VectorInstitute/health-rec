@@ -303,12 +303,15 @@ class Query(BaseModel):
         The latitude coordinate of the user.
     radius : Optional[float]
         The radius of the search.
+    rerank : Optional[bool]
+        Whether to use reranking for the recommendations.
     """
 
     query: str
     latitude: Optional[float] = Field(default=None)
     longitude: Optional[float] = Field(default=None)
     radius: Optional[float] = Field(default=None)
+    rerank: Optional[bool] = Field(default=False)
 
 
 class RefineRequest(BaseModel):

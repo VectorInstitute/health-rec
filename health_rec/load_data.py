@@ -45,7 +45,7 @@ class OpenAIEmbedding(EmbeddingFunction[Documents]):
         """
         try:
             response = self.client.embeddings.create(input=texts, model=self.model)
-            return [data.embedding for data in response.data]
+            return [data.embedding for data in response.data]  # type: ignore
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
             raise
