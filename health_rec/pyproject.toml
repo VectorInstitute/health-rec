@@ -48,6 +48,14 @@ ipykernel = "^6.23.0"
 furo = "^2024.01.29"
 sphinxcontrib-httpdomain = "^1.8.1"
 
+
+[tool.poetry.group.eval.dependencies]
+langchain-core = "^0.3.13"
+langchain-openai = "^0.2.4"
+langchain-community = "^0.3.3"
+ragas = "^0.2.3"
+datasets = "^3.0.2"
+
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true

@@ -1,6 +1,8 @@
+import argparse
 import json
-import glob
+import logging
 from typing import List, Dict, Any
+
 from ragas import evaluate
 from ragas.metrics import (
     answer_relevancy,
@@ -11,27 +13,31 @@ from ragas.metrics import (
 from datasets import Dataset
 
 
-def load_samples(file_pattern: str) -> List[Dict[str, Any]]:
-    samples = []
-    for file_path in glob.glob(file_pattern):
-        with open(file_path, "r") as f:
-            samples.extend(json.load(f))
-    return samples
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def load_samples(file_path: str) -> Any:
+    """Load evaluation samples from a JSON file."""
+    with open(file_path, "r") as f:
+        return json.load(f)
 
 
 def prepare_dataset(samples: List[Dict[str, Any]]) -> Dataset:
+    """Prepare the dataset for RAGAS evaluation."""
     return Dataset.from_dict(
         {
             "question": [sample["query"] for sample in samples],
             "answer": [sample["answer"] for sample in samples],
             "contexts": [sample["context"] for sample in samples],
-            "ground_truth": [sample["answer"] for sample in samples],
+            "ground_truth": [sample.get("ground_truth", []) for sample in samples],
         }
     )
 
 
 def run_evaluation(dataset: Dataset) -> Any:
-    result = evaluate(
+    """Run the RAGAS evaluation."""
+    return evaluate(
         dataset=dataset,
         metrics=[
             answer_relevancy,
@@ -40,25 +46,32 @@ def run_evaluation(dataset: Dataset) -> Any:
             context_precision,
         ],
     )
-    return result
 
 
 def main() -> None:
-    # Load samples from JSON files
-    samples = load_samples("./rag_eval_nb_v4_2.json")
+    """Main function for RAGAS evaluation."""
+    parser = argparse.ArgumentParser(
+        description="Evaluate RAG system outputs using RAGAS metrics."
+    )
+    parser.add_argument(
+        "--input", required=True, help="Path to the processed results JSON file"
+    )
+    parser.add_argument(
+        "--output-dir", default="./evaluation_results", help="Directory to save results"
+    )
 
-    # Prepare the dataset
+    args = parser.parse_args()
+
+    # Load and prepare samples
+    samples = load_samples(args.input)
     dataset = prepare_dataset(samples)
 
-    # Run the evaluation
+    # Run evaluation
     results = run_evaluation(dataset)
 
-    # Print the results
-    # print("Evaluation Results:")
-    # for metric, score in results.items():
-    #     print(f"{metric}: {score:.4f}")
-
-    results.save_to_disk("evaluation_results")
+    # Save results
+    results.save_to_disk(args.output_dir)
+    logger.info(f"Evaluation results saved to {args.output_dir}")
 
 
 if __name__ == "__main__":
