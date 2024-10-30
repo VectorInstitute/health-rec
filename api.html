@@ -274,7 +274,8 @@
 <span class="w">   </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I need mental health support&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;latitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">43.6532</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;longitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-79.3832</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;radius&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
+<span class="w">   </span><span class="nt">&quot;radius&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;rerank&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -284,7 +285,14 @@
 <li><p><strong>query</strong> (<em>string</em>) – The user’s health-related query (required)</p></li>
 <li><p><strong>latitude</strong> (<em>number</em>) – Optional latitude for location-based search</p></li>
 <li><p><strong>longitude</strong> (<em>number</em>) – Optional longitude for location-based search</p></li>
-<li><p><strong>radius</strong> (<em>number</em>) – Optional search radius in meters</p></li>
+<li><p><strong>radius</strong> (<em>number</em>) – Optional search radius in meters (default: 5000)</p></li>
+<li><p><strong>rerank</strong> (<em>boolean</em>) – Optional flag to enable/disable reranking of the services (default: false)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Response JSON Object<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>recommendation</strong> (<em>string</em>) – Generated recommendation text</p></li>
+<li><p><strong>services</strong> (<em>array</em>) – List of relevant health services</p></li>
 </ul>
 </dd>
 </dl>
