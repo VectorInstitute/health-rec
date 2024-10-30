@@ -18,13 +18,15 @@ Health Recommendations
          "query": "I need mental health support",
          "latitude": 43.6532,
          "longitude": -79.3832,
-         "radius": 5000
+         "radius": 5000,
+         "use_reranking": false
       }
 
    :<json string query: The user's health-related query
    :<json number latitude: Optional latitude for location-based search
    :<json number longitude: Optional longitude for location-based search
    :<json number radius: Optional search radius in meters (default: 5000)
+   :<json boolean use_reranking: Optional flag to enable/disable reranking of the services (default: false)
    :>json string recommendation: Generated recommendation text
    :>json array services: List of relevant health services
    :>json boolean is_emergency: Indicates if the query suggests an emergency
