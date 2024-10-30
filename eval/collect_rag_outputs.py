@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import json
 import logging
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 import aiohttp
 from tqdm.asyncio import tqdm_asyncio
@@ -27,7 +27,8 @@ async def fetch_recommendation(
                     "query": query["query"],
                     "answer": result["message"],
                     "context": [
-                        str(service["id"]) for service in (result.get("services", []) or [])
+                        str(service["id"])
+                        for service in (result.get("services", []) or [])
                     ],
                     "ground_truth": query["context"],
                 }
@@ -39,7 +40,9 @@ async def fetch_recommendation(
         return None
 
 
-async def process_samples(samples_file: str, output_file: str, batch_size: int = 5) -> None:
+async def process_samples(
+    samples_file: str, output_file: str, batch_size: int = 5
+) -> None:
     """Process samples in batches and save results."""
     # Load samples
     with open(samples_file, "r") as f:

@@ -21,7 +21,7 @@ Synthetic Dataset Generation
 The evaluation utilizes a synthetic dataset of 1000 queries, carefully structured to test different aspects of the system:
 
 - **Regular Situations (80%)**: Divided equally among three levels of detail:
-  
+
   - Low: 1-2 sentences, brief queries with minimal context
   - Medium: 2-3 sentences with moderate background information
   - High: Detailed paragraph with extensive context
@@ -150,7 +150,7 @@ Performance Metrics
 RAGAS Metrics By Category
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note: These metrics were obtained using a synthetic dataset specifically generated from services in the Greater Toronto Area (GTA). 
+Note: These metrics were obtained using a synthetic dataset specifically generated from services in the Greater Toronto Area (GTA).
 The RAG system evaluated used specialized prompts that differ marginally from the current system.
 
 .. list-table::
