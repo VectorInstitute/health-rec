@@ -117,8 +117,10 @@ Careful while loading embeddings, it uses the OpenAI API, and hence make sure th
 #### Navigate to the UI on the browser
 
 ```bash
-http://localhost:<frontend_port>
+https://localhost:<frontend_port>
 ```
+
+Note that the URL uses `https`, and hence in the browser you will get a warning about the insecure connection. You can ignore it and proceed.
 
 #### In case, you wish to update frontend dependencies, run the following commands in the `ui` directory:
 
