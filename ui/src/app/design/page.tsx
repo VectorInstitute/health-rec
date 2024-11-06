@@ -32,6 +32,12 @@ const ArchitectureDiagram: React.FC = () => {
         position: { x: -120, y: 200 },
         style: { background: '#ffffff', width: 200, border: '2px dashed #666' },
       },
+      {
+        id: 'google maps',
+        data: { label: 'Google Maps API' },
+        position: { x: -120, y: 0 },
+        style: { background: '#ffffff', width: 200, border: '2px dashed #666' },
+      },
     {
       id: 'backend',
       data: { label: 'Backend\n(FastAPI + RAG)' },
@@ -58,6 +64,8 @@ const ArchitectureDiagram: React.FC = () => {
     { id: 'f-b', source: 'frontend', target: 'backend', label: '', animated: true, style: { stroke: '#007bff' }, markerEnd: { type: MarkerType.ArrowClosed } },
     { id: 'f-m', source: 'frontend', target: 'mapbox', label: '', animated: true, style: { stroke: '#800080' }, markerEnd: { type: MarkerType.ArrowClosed } },
     { id: 'm-f', source: 'mapbox', target: 'frontend', label: '', animated: true, style: { stroke: '#800080' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'g-f', source: 'google maps', target: 'frontend', label: '', animated: true, style: { stroke: '#5e45d9' }, markerEnd: { type: MarkerType.ArrowClosed } },
+    { id: 'f-g', source: 'frontend', target: 'google maps', label: '', animated: true, style: { stroke: '#5e45d9' }, markerEnd: { type: MarkerType.ArrowClosed } },
     { id: 'b-f', source: 'backend', target: 'frontend', label: 'Recommendation\n+ Service List', animated: true, style: { stroke: '#28a745' }, markerEnd: { type: MarkerType.ArrowClosed } },
     { id: 'b-c', source: 'backend', target: 'chromadb', label: 'RAG Retrieval', animated: true, style: { stroke: '#ffc107' }, markerEnd: { type: MarkerType.ArrowClosed } },
     { id: 'c-b', source: 'chromadb', target: 'backend', label: '', animated: true, style: { stroke: '#ffc107' }, markerEnd: { type: MarkerType.ArrowClosed } },
@@ -84,6 +92,7 @@ const ArchitectureDiagram: React.FC = () => {
               <li style={{color: '#dc3545'}}>● OpenAI API interaction</li>
               <li style={{color: '#28a745'}}>● Results and recommendations</li>
               <li style={{color: '#800080'}}>● Mapbox API interaction</li>
+              <li style={{color: '#5e45d9'}}>● Google Maps API interaction</li>
             </ul>
             <h3 style={{ marginBottom: '15px' }}></h3>
             <p>The Frontend integrates Mapbox for displaying service locations.</p>
