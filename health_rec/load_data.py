@@ -45,7 +45,7 @@ class OpenAIEmbedding(EmbeddingFunction[Documents]):
         """
         try:
             response = self.client.embeddings.create(input=texts, model=self.model)
-            return [data.embedding for data in response.data]
+            return [data.embedding for data in response.data]  # type: ignore
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
             raise
@@ -66,15 +66,14 @@ def load_json_data(file_path: str) -> List[Dict[str, Any]]:
     try:
         with open(file_path, "r") as file:
             data = json.load(file)
-        return list(data)
+            if not isinstance(data, list):
+                raise ValueError("JSON file must contain a list of services")
+            return data
     except FileNotFoundError:
         logger.error(f"File not found: {file_path}")
         raise
     except json.JSONDecodeError:
         logger.error(f"Invalid JSON in file: {file_path}")
-        raise
-    except KeyError:
-        logger.error("JSON structure is incorrect, missing 'Records' key")
         raise
 
 
@@ -137,10 +136,7 @@ def get_or_create_collection(host: str, port: int, name: str) -> chromadb.Collec
         logger.info(f"Retrieved existing collection: {name}")
     except ValueError:
         logger.info(f"Creating new collection: {name}")
-        collection = chroma_client.create_collection(
-            name=name,
-            metadata={"hnsw:space": "cosine"},
-        )
+        collection = chroma_client.create_collection(name=name)
 
     return collection
 
