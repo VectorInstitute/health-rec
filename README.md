@@ -87,7 +87,7 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 If you want to test the system without real data, you can generate some dummy testing data:
 
 ```bash
-python3 scripts/generate_test_data.py
+python3 scripts/generate_test_data.py --output-dir <path_to_output_dir>
 ```
 
 This would create a file `<path_to_output_dir>/test_data/data-00.json` with about 300 dummy services.
