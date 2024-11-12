@@ -1,241 +1,136 @@
 """Data models."""
 
+import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 class PhoneNumber(BaseModel):
-    """
-    Represents a phone number with various attributes.
+    """Phone number with metadata.
 
     Attributes
     ----------
-    phone : str
+    number : str
         The phone number.
+    type : Optional[str]
+        The type of the phone number, e.g., fax, toll-free, primary, secondary, etc.
     name : Optional[str]
-        The name of the phone number.
+        Any name associated with the phone number.
     description : Optional[str]
         The description of the phone number.
-    type : Optional[str]
-        The type of the phone number.
+    extension : Optional[str]
+        The extension of the phone number.
     """
 
-    phone: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
-    description: Optional[str] = Field(default=None)
-    type: Optional[str] = Field(default=None)
+    number: str
+    type: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    extension: Optional[str] = None
+
+
+class Address(BaseModel):
+    """Physical address information.
+
+    Attributes
+    ----------
+    street1 : Optional[str]
+        The first line of the street address.
+    street2 : Optional[str]
+        The second line of the street address.
+    city : Optional[str]
+        The city of the address.
+    province : Optional[str]
+        The province of the address.
+    postal_code : Optional[str]
+        The postal code of the address.
+    country : Optional[str]
+        The country of the address.
+    """
+
+    street1: Optional[str] = None
+    street2: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+
+    def __str__(self) -> str:
+        """Return formatted address string."""
+        parts = []
+        if self.street1:
+            parts.append(self.street1)
+        if self.street2:
+            parts.append(self.street2)
+        if self.city:
+            parts.append(self.city)
+        if self.province:
+            parts.append(self.province)
+        if self.postal_code:
+            parts.append(self.postal_code)
+        if self.country:
+            parts.append(self.country)
+        return ", ".join(filter(None, parts))
 
 
 class Service(BaseModel):
-    """
-    Represents a service with various attributes.
+    """Unified service model with required and optional fields.
 
     Attributes
     ----------
-    id : int
+    id : str
         The unique identifier of the service.
-    parent_id : Optional[int]
-        The ID of the parent service.
-    public_name : str
-        The public name of the service.
-    score : Optional[int]
-        The score of the service.
-    service_area : Optional[List[str]]
-        The areas where the service is available.
-    distance : Optional[str]
-        The distance to the service.
-    description : Optional[str]
+    name : str
+        The name of the service.
+    description : str
         The description of the service.
-    latitude : Optional[float]
+    latitude : float
         The latitude coordinate of the service location.
-    longitude : Optional[float]
+    longitude : float
         The longitude coordinate of the service location.
-    physical_address_street1 : Optional[str]
-        The first line of the physical address.
-    physical_address_street2 : Optional[str]
-        The second line of the physical address.
-    physical_address_city : Optional[str]
-        The city of the physical address.
-    physical_address_province : Optional[str]
-        The province of the physical address.
-    physical_address_postal_code : Optional[str]
-        The postal code of the physical address.
-    physical_address_country : Optional[str]
-        The country of the physical address.
-    mailing_attention_name : Optional[str]
-        The attention name for mailing.
-    mailing_address_street1 : Optional[str]
-        The first line of the mailing address.
-    mailing_address_street2 : Optional[str]
-        The second line of the mailing address.
-    mailing_address_city : Optional[str]
-        The city of the mailing address.
-    mailing_address_province : Optional[str]
-        The province of the mailing address.
-    mailing_address_postal_code : Optional[str]
-        The postal code of the mailing address.
-    mailing_address_country : Optional[str]
-        The country of the mailing address.
     phone_numbers : List[PhoneNumber]
-        The phone numbers associated with the service.
-    website : Optional[str]
-        The website of the service.
-    email : Optional[str]
+        A list of phone numbers associated with the service.
+    address : Address
+        The physical address of the service.
+    email : str
         The email address of the service.
-    hours : Optional[str]
-        The hours of operation.
-    hours2 : Optional[str]
-        Additional hours of operation.
-    min_age : Optional[str]
-        The minimum age for the service.
-    max_age : Optional[str]
-        The maximum age for the service.
-    updated_on : Optional[str]
-        The date and time the service was last updated.
-    alternate_name : Optional[str]
-        The alternate name of the service.
-    parent_agency : Optional[str]
-        The parent agency of the service.
-    agency_status : Optional[str]
-        The status of the agency.
-    agency_description : Optional[str]
-        The description of the agency.
-    agency_description_site : Optional[str]
-        The site description of the agency.
-    coverage_area : Optional[str]
-        The coverage area of the service.
-    coverage_area_text : Optional[str]
-        Additional coverage area text.
-    eligibility : Optional[str]
-        The eligibility criteria for the service.
-    disabilities_access : Optional[str]
-        Accessibility information.
-    hours_of_operation : Optional[str]
-        Detailed hours of operation.
-    languages_offered : Optional[str]
-        Languages in which service is offered.
-    last_verified_on : Optional[str]
-        When the service was last verified.
-    last_verified_by_name : Optional[str]
-        Name of person who last verified.
-    last_verified_by_email : Optional[str]
-        Email of person who last verified.
-    application_process : Optional[str]
-        The application process description.
-    taxonomy_term : Optional[str]
-        The taxonomy terms associated with the service.
-    taxonomy_terms : Optional[str]
-        Additional taxonomy terms.
-    taxonomy_codes : Optional[str]
-        The taxonomy codes associated with the service.
-    fee_structure_source : Optional[str]
-        The source of the fee structure.
-    official_name : Optional[str]
-        The official name of the service.
-    physical_city : Optional[str]
-        The physical city of the service.
-    unique_id_prior_system : Optional[str]
-        The unique ID from a prior system.
-    record_owner : Optional[str]
-        The owner of the record.
+    metadata : Dict[str, Any]
+        Additional metadata associated with the service.
+    last_updated : Optional[datetime]
+        The last updated timestamp of the service.
     """
 
-    id: int
-    public_name: str = Field(alias="PublicName")
-    description: Optional[str] = Field(default=None, alias="Description")
-    latitude: Optional[float] = Field(default=None, alias="Latitude")
-    longitude: Optional[float] = Field(default=None, alias="Longitude")
-    parent_id: Optional[int] = Field(default=None, alias="ParentId")
+    # Required fields
+    id: str
+    name: str
+    description: str
+    latitude: float
+    longitude: float
+    phone_numbers: List[PhoneNumber]
+    address: Address
+    email: str
 
-    score: Optional[int] = Field(default=None, alias="Score")
-    service_area: Optional[List[str]] = Field(default=None, alias="ServiceArea")
-    distance: Optional[str] = Field(default=None, alias="Distance")
-    physical_address_street1: Optional[str] = Field(
-        default=None, alias="PhysicalAddressStreet1"
-    )
-    physical_address_street2: Optional[str] = Field(
-        default=None, alias="PhysicalAddressStreet2"
-    )
-    physical_address_city: Optional[str] = Field(
-        default=None, alias="PhysicalAddressCity"
-    )
-    physical_address_province: Optional[str] = Field(
-        default=None, alias="PhysicalAddressProvince"
-    )
-    physical_address_postal_code: Optional[str] = Field(
-        default=None, alias="PhysicalAddressPostalCode"
-    )
-    physical_address_country: Optional[str] = Field(
-        default=None, alias="PhysicalAddressCountry"
-    )
-    mailing_attention_name: Optional[str] = Field(
-        default=None, alias="MailingAttentionName"
-    )
-    mailing_address_street1: Optional[str] = Field(
-        default=None, alias="MailingAddressStreet1"
-    )
-    mailing_address_street2: Optional[str] = Field(
-        default=None, alias="MailingAddressStreet2"
-    )
-    mailing_address_city: Optional[str] = Field(
-        default=None, alias="MailingAddressCity"
-    )
-    mailing_address_province: Optional[str] = Field(
-        default=None, alias="MailingAddressProvince"
-    )
-    mailing_address_postal_code: Optional[str] = Field(
-        default=None, alias="MailingAddressPostalCode"
-    )
-    mailing_address_country: Optional[str] = Field(
-        default=None, alias="MailingAddressCountry"
-    )
-    phone_numbers: List[PhoneNumber] = Field(default_factory=list, alias="PhoneNumbers")
-    website: Optional[str] = Field(default=None, alias="Website")
-    email: Optional[str] = Field(default=None, alias="Email")
-    hours: Optional[str] = Field(default=None, alias="Hours")
-    hours2: Optional[str] = Field(default=None, alias="Hours2")
-    min_age: Optional[str] = Field(default=None, alias="MinAge")
-    max_age: Optional[str] = Field(default=None, alias="MaxAge")
-    updated_on: Optional[str] = Field(default=None, alias="UpdatedOn")
-    alternate_name: Optional[str] = Field(default=None, alias="AlternateName")
-    parent_agency: Optional[str] = Field(default=None, alias="ParentAgency")
-    agency_status: Optional[str] = Field(default=None, alias="AgencyStatus")
-    agency_description: Optional[str] = Field(default=None, alias="AgencyDescription")
-    agency_description_site: Optional[str] = Field(
-        default=None, alias="AgencyDescription_Site"
-    )
-    coverage_area: Optional[str] = Field(default=None, alias="CoverageArea")
-    coverage_area_text: Optional[str] = Field(default=None, alias="CoverageAreaText")
-    eligibility: Optional[str] = Field(default=None, alias="Eligibility")
-    disabilities_access: Optional[str] = Field(default=None, alias="DisabilitiesAccess")
-    hours_of_operation: Optional[str] = Field(default=None, alias="HoursOfOperation")
-    languages_offered: Optional[str] = Field(default=None, alias="LanguagesOffered")
-    last_verified_on: Optional[str] = Field(default=None, alias="LastVerifiedOn")
-    last_verified_by_name: Optional[str] = Field(
-        default=None, alias="LastVerifiedByName"
-    )
-    last_verified_by_email: Optional[str] = Field(
-        default=None, alias="LastVerifiedByEmailAddress"
-    )
-    application_process: Optional[str] = Field(default=None, alias="ApplicationProcess")
-    taxonomy_term: Optional[str] = Field(default=None, alias="TaxonomyTerm")
-    taxonomy_terms: Optional[str] = Field(default=None, alias="TaxonomyTerms")
-    taxonomy_codes: Optional[str] = Field(default=None, alias="TaxonomyCodes")
-    fee_structure_source: Optional[str] = Field(
-        default=None, alias="FeeStructureSource"
-    )
-    official_name: Optional[str] = Field(default=None, alias="OfficialName")
-    physical_city: Optional[str] = Field(default=None, alias="PhysicalCity")
-    unique_id_prior_system: Optional[str] = Field(
-        default=None, alias="UniqueIDPriorSystem"
-    )
-    record_owner: Optional[str] = Field(default=None, alias="RecordOwner")
+    # Optional metadata fields stored as key-value pairs
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
-    class Config:
-        """Override Pydantic configuration."""
+    # Source tracking
+    last_updated: Optional[datetime] = None
 
-        populate_by_name = True
+    @validator("phone_numbers")
+    def validate_phone_numbers(cls, v: List[PhoneNumber]) -> List[PhoneNumber]:  # noqa: N805
+        """Ensure at least one phone number exists."""
+        if not v:
+            raise ValueError("At least one phone number is required")
+        return v
 
 
 class ServiceDocument(BaseModel):
@@ -304,7 +199,7 @@ class Query(BaseModel):
     radius : Optional[float]
         The radius of the search.
     rerank : Optional[bool]
-        Whether to use reranking for the recommendations.
+        Whether to rerank the recommendations.
     """
 
     query: str

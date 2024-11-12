@@ -2,11 +2,10 @@ import argparse
 import asyncio
 import json
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 import aiohttp
 from tqdm.asyncio import tqdm_asyncio
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def fetch_recommendation(
     session: aiohttp.ClientSession, query: Dict[str, Any], endpoint: str
-) -> Dict[str, Any]:
+) -> Optional[Dict[str, Any]]:
     """Fetch recommendation from the RAG system API."""
     try:
         async with session.post(
@@ -41,19 +40,19 @@ async def fetch_recommendation(
 
 
 async def process_samples(
-    samples_file: str, output_file: str, batch_size: int = 5
+    samples_file: str, output_file: str, endpoint: str, batch_size: int = 5
 ) -> None:
     """Process samples in batches and save results."""
     # Load samples
     with open(samples_file, "r") as f:
         samples = json.load(f)
 
-    results = []
+    results: List[Dict[str, Any]] = []
     async with aiohttp.ClientSession() as session:
         # Process in batches
         for i in range(0, len(samples), batch_size):
             batch = samples[i : i + batch_size]
-            tasks = [fetch_recommendation(session, query) for query in batch]
+            tasks = [fetch_recommendation(session, query, endpoint) for query in batch]
             batch_results = await tqdm_asyncio.gather(*tasks)
             results.extend([r for r in batch_results if r is not None])
 
@@ -89,7 +88,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    asyncio.run(process_samples(args.input, args.output, args.batch_size))
+    asyncio.run(
+        process_samples(args.input, args.output, args.endpoint, args.batch_size)
+    )
 
 
 if __name__ == "__main__":

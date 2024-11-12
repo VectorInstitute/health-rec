@@ -82,18 +82,35 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 
 ### 📥 Data setup
 
-#### Download service data (211 API)
+#### Test data
 
-**GTA data**
+If you want to test the system without real data, you can generate some dummy testing data:
 
 ```bash
-python3 scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
+python3 scripts/generate_test_data.py
 ```
 
-**Ontario-wide data**
+#### Download service data
+
+If you are using the 211 API or Empower's API, make sure you check with them to see if the API keys are
+configured correctly for the geography of interest.
+
+**GTA data (211 API)**
 
 ```bash
-python3 scripts/download_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
+python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --is-gta --data-dir <path_to_data_dir>
+```
+
+**Ontario-wide data (211 API)**
+
+```bash
+python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
+```
+
+**Empower API data**
+
+```bash
+python3 scripts/download_empower_data.py --api-key $YOUR_EMPOWER_API_KEY --data-dir <path_to_data_dir>
 ```
 
 #### Upload data and embeddings

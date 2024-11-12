@@ -2,14 +2,32 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box, Container, Heading, Text, VStack, SimpleGrid, useColorModeValue,
-  Divider, Badge, Flex, Grid, GridItem, Skeleton, SkeletonText, SkeletonCircle
+  Box,
+  Container,
+  Heading,
+  Text,
+  VStack,
+  SimpleGrid,
+  useColorModeValue,
+  Divider,
+  Badge,
+  Flex,
+  Grid,
+  GridItem,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
 } from '@chakra-ui/react';
 import ServiceCard from '../components/service-card';
 import Header from '../components/header';
 import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
-import { Service, Location } from '../types/service';
-import { useRecommendationStore, Recommendation, Query, RecommendationStore } from '../stores/recommendation-store';
+import { Service, Location, Address } from '../types/service';
+import {
+  useRecommendationStore,
+  Recommendation,
+  Query,
+  RecommendationStore,
+} from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
 import AdditionalQuestions from '../components/additional-questions';
 import EmergencyAlert from '../components/emergency-alert';
@@ -17,9 +35,15 @@ import OutOfScopeAlert from '../components/out-of-scope-alert';
 import NoServicesFoundAlert from '../components/no-services-found-alert';
 
 const RecommendationPage: React.FC = () => {
-  const recommendation = useRecommendationStore((state: RecommendationStore) => state.recommendation);
-  const setRecommendation = useRecommendationStore((state: RecommendationStore) => state.setRecommendation);
-  const originalQuery = useRecommendationStore((state: RecommendationStore) => state.query);
+  const recommendation = useRecommendationStore(
+    (state: RecommendationStore) => state.recommendation
+  );
+  const setRecommendation = useRecommendationStore(
+    (state: RecommendationStore) => state.setRecommendation
+  );
+  const originalQuery = useRecommendationStore(
+    (state: RecommendationStore) => state.query
+  );
   const router = useRouter();
   const [mapViewState, setMapViewState] = useState(TORONTO_COORDINATES);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +58,18 @@ const RecommendationPage: React.FC = () => {
 
   const mapHeight = '400px';
   const mapWidth = '100%';
+
+  const formatAddress = (address: Address): string => {
+    const parts = [
+      address.street1,
+      address.street2,
+      address.city,
+      address.province,
+      address.postal_code,
+      address.country,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
 
   useEffect(() => {
     if (!recommendation || !originalQuery) {
@@ -50,7 +86,11 @@ const RecommendationPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/questions?query=${encodeURIComponent(originalQuery.query)}&recommendation=${encodeURIComponent(recommendation.message)}`);
+      const response = await fetch(
+        `/api/questions?query=${encodeURIComponent(
+          originalQuery.query
+        )}&recommendation=${encodeURIComponent(recommendation.message)}`
+      );
       const data = await response.json();
       setAdditionalQuestions(data.questions);
       setIsLoading(false);
@@ -72,7 +112,7 @@ const RecommendationPage: React.FC = () => {
         query: originalQuery,
         recommendation: recommendation.message,
         questions: additionalQuestions,
-        answers: answers
+        answers: answers,
       };
 
       const response = await fetch('/api/refine_recommendations', {
@@ -89,7 +129,9 @@ const RecommendationPage: React.FC = () => {
       const refinedRecommendation: Recommendation = await response.json();
       setRecommendation(refinedRecommendation);
 
-      updateMapViewState(refinedRecommendation.services);
+      if (refinedRecommendation.services) {
+        updateMapViewState(refinedRecommendation.services);
+      }
     } catch (error) {
       console.error('Error refining recommendations:', error);
     } finally {
@@ -99,22 +141,15 @@ const RecommendationPage: React.FC = () => {
 
   const updateMapViewState = (services: Service[]) => {
     if (services && services.length > 0) {
-      const newMapLocations = services
-        .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
-          typeof service.Latitude === 'number' &&
-          typeof service.Longitude === 'number' &&
-          !isNaN(service.Latitude) &&
-          !isNaN(service.Longitude)
-        )
-        .map(service => ({
-          id: service.id,
-          name: service.PublicName,
-          latitude: service.Latitude,
-          longitude: service.Longitude,
-          description: service.Description || '',
-          address: service.Address || '',
-          phone: service.Phone || '',
-        }));
+      const newMapLocations = services.map((service) => ({
+        id: service.id,
+        name: service.name,
+        latitude: service.latitude,
+        longitude: service.longitude,
+        description: service.description,
+        address: formatAddress(service.address),
+        phone: service.phone_numbers[0]?.number || '',
+      }));
 
       const newViewState = computeViewState(newMapLocations);
       setMapViewState(newViewState);
@@ -124,22 +159,15 @@ const RecommendationPage: React.FC = () => {
   const mapLocations: Location[] = useMemo(() => {
     if (!recommendation?.services) return [];
 
-    return recommendation.services
-      .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
-        typeof service.Latitude === 'number' &&
-        typeof service.Longitude === 'number' &&
-        !isNaN(service.Latitude) &&
-        !isNaN(service.Longitude)
-      )
-      .map(service => ({
-        id: service.id,
-        name: service.PublicName,
-        latitude: service.Latitude,
-        longitude: service.Longitude,
-        description: service.Description || '',
-        address: service.Address || '',
-        phone: service.Phone || '',
-      }));
+    return recommendation.services.map((service) => ({
+      id: service.id,
+      name: service.name,
+      latitude: service.latitude,
+      longitude: service.longitude,
+      description: service.description,
+      address: formatAddress(service.address),
+      phone: service.phone_numbers[0]?.number || '',
+    }));
   }, [recommendation]);
 
   useEffect(() => {
@@ -152,15 +180,25 @@ const RecommendationPage: React.FC = () => {
   const renderRecommendationCard = (recommendation: Recommendation | null) => {
     if (!recommendation?.message) return null;
 
-    const [overviewWithLabel, ...reasoningParts] = recommendation.message.split('\n').filter(part => part.trim() !== '');
+    const [overviewWithLabel, ...reasoningParts] = recommendation.message
+      .split('\n')
+      .filter((part) => part.trim() !== '');
     const overview = overviewWithLabel.replace('Overview:', '').trim();
     const reasoning = reasoningParts.join('\n').replace('Reasoning:', '').trim();
 
-    const serviceName = recommendation.services[0]?.PublicName || 'Unknown Service';
+    const serviceName = recommendation.services?.[0]?.name || 'Unknown Service';
     const updatedOverview = `<b>${serviceName}</b><br><br>${overview}`;
 
     return (
-      <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
+      <Box
+        bg={cardBgColor}
+        p={8}
+        borderRadius="lg"
+        boxShadow="xl"
+        borderWidth={1}
+        borderColor={borderColor}
+        height="100%"
+      >
         <VStack spacing={6} align="stretch">
           <Box>
             <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
@@ -178,9 +216,11 @@ const RecommendationPage: React.FC = () => {
   };
 
   const renderRecommendedServices = (services: Service[] | null) => {
-    const coloredServices = services?.map((service, index) => ({
+    if (!services) return null;
+
+    const coloredServices = services.map((service, index) => ({
       ...service,
-      bgColor: index === 0 ? highlightColor : cardBgColor
+      bgColor: index === 0 ? highlightColor : cardBgColor,
     }));
 
     return (
@@ -191,10 +231,23 @@ const RecommendationPage: React.FC = () => {
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
           {isLoading ? (
             Array.from({ length: 6 }).map((_, index) => (
-              <Box key={index} bg={cardBgColor} p={6} borderRadius="lg" boxShadow="md" borderWidth={1} borderColor={borderColor}>
+              <Box
+                key={index}
+                bg={cardBgColor}
+                p={6}
+                borderRadius="lg"
+                boxShadow="md"
+                borderWidth={1}
+                borderColor={borderColor}
+              >
                 <VStack align="stretch" spacing={4}>
                   <Skeleton height="20px" width="60%" />
-                  <SkeletonText mt="2" noOfLines={3} spacing="2" skeletonHeight="2" />
+                  <SkeletonText
+                    mt="2"
+                    noOfLines={3}
+                    spacing="2"
+                    skeletonHeight="2"
+                  />
                   <Skeleton height="20px" width="40%" />
                   <Flex>
                     <SkeletonCircle size="8" mr={2} />
@@ -204,8 +257,12 @@ const RecommendationPage: React.FC = () => {
               </Box>
             ))
           ) : (
-            coloredServices?.map((service) => (
-              <ServiceCard key={service.id} service={service} bgColor={service.bgColor} />
+            coloredServices.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                bgColor={service.bgColor}
+              />
             ))
           )}
         </SimpleGrid>
@@ -223,21 +280,41 @@ const RecommendationPage: React.FC = () => {
     }
 
     if (recommendation?.no_services_found) {
-      return <NoServicesFoundAlert message="No services found within the specified radius." />;
+      return (
+        <NoServicesFoundAlert message="No services found within the specified radius." />
+      );
     }
 
     return (
       <>
-        <Grid templateColumns={{ base: "1fr", lg: "3fr 2fr" }} gap={8}>
+        <Grid templateColumns={{ base: '1fr', lg: '3fr 2fr' }} gap={8}>
           <GridItem>
             {isLoading ? (
-              <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
+              <Box
+                bg={cardBgColor}
+                p={8}
+                borderRadius="lg"
+                boxShadow="xl"
+                borderWidth={1}
+                borderColor={borderColor}
+                height="100%"
+              >
                 <VStack spacing={6} align="stretch">
                   <Skeleton height="20px" width="40%" />
-                  <SkeletonText mt="4" noOfLines={4} spacing="4" skeletonHeight="2" />
+                  <SkeletonText
+                    mt="4"
+                    noOfLines={4}
+                    spacing="4"
+                    skeletonHeight="2"
+                  />
                   <Divider />
                   <Skeleton height="20px" width="30%" />
-                  <SkeletonText mt="4" noOfLines={6} spacing="4" skeletonHeight="2" />
+                  <SkeletonText
+                    mt="4"
+                    noOfLines={6}
+                    spacing="4"
+                    skeletonHeight="2"
+                  />
                 </VStack>
               </Box>
             ) : (
