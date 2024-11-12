@@ -1,81 +1,21 @@
 """Data models."""
 
+import logging
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
 
-class ServiceType(str, Enum):
-    """Standardized service types across different APIs."""
-
-    EMERGENCY_ROOM = "emergency_room"
-    URGENT_CARE = "urgent_care"
-    WALK_IN_CLINIC = "walk_in_clinic"
-    PHARMACY = "pharmacy"
-    MEDICAL_LAB = "medical_lab"
-    FAMILY_DOCTOR = "family_doctor"
-    COMMUNITY_SERVICE = "community_service"
-
-
-class AccessibilityLevel(str, Enum):
-    """Wheelchair accessibility levels."""
-
-    FULL = "full"
-    PARTIAL = "partial"
-    NONE = "none"
-    UNKNOWN = "unknown"
-
-
-class DayOfWeek(str, Enum):
-    """Days of the week."""
-
-    SUNDAY = "sunday"
-    MONDAY = "monday"
-    TUESDAY = "tuesday"
-    WEDNESDAY = "wednesday"
-    THURSDAY = "thursday"
-    FRIDAY = "friday"
-    SATURDAY = "saturday"
-
-
-class OperatingHours(BaseModel):
-    """Operating hours for a specific day."""
-
-    day: DayOfWeek
-    is_open: bool
-    is_24hour: bool = False
-    open_time: Optional[str] = None
-    close_time: Optional[str] = None
-
-
-class HoursException(BaseModel):
-    """Special hours or holiday schedules."""
-
-    name: Optional[str] = None
-    start_date: datetime
-    end_date: datetime
-    is_open: bool
-    is_24hour: bool = False
-    open_time: Optional[str] = None
-    close_time: Optional[str] = None
-
-
-class Address(BaseModel):
-    """Physical address information."""
-
-    street1: Optional[str] = None
-    street2: Optional[str] = None
-    city: Optional[str] = None
-    province: Optional[str] = None
-    postal_code: Optional[str] = None
-    country: Optional[str] = None
-    attention_name: Optional[str] = None
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 class PhoneNumber(BaseModel):
-    """Phone number with additional metadata."""
+    """Phone number with metadata."""
 
     number: str
     type: Optional[str] = None
@@ -84,100 +24,99 @@ class PhoneNumber(BaseModel):
     extension: Optional[str] = None
 
 
+class Address(BaseModel):
+    """Physical address information.
+
+    Attributes
+    ----------
+    street1 : Optional[str]
+        The first line of the street address.
+    street2 : Optional[str]
+        The second line of the street address.
+    city : Optional[str]
+        The city of the address.
+    province : Optional[str]
+        The province of the address.
+    postal_code : Optional[str]
+        The postal code of the address.
+    country : Optional[str]
+        The country of the address.
+    """
+
+    street1: Optional[str] = None
+    street2: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+
+    def __str__(self) -> str:
+        """Return formatted address string."""
+        parts = []
+        if self.street1:
+            parts.append(self.street1)
+        if self.street2:
+            parts.append(self.street2)
+        if self.city:
+            parts.append(self.city)
+        if self.province:
+            parts.append(self.province)
+        if self.postal_code:
+            parts.append(self.postal_code)
+        if self.country:
+            parts.append(self.country)
+        return ", ".join(filter(None, parts))
+
+
 class Service(BaseModel):
-    """Standardized service model that can accommodate data from multiple APIs."""
+    """Unified service model with required and optional fields.
 
-    # Core identification
-    id: int
+    Attributes
+    ----------
+    id : str
+        The unique identifier of the service.
+    name : str
+        The name of the service.
+    description : str
+        The description of the service.
+    latitude : float
+        The latitude coordinate of the service location.
+    longitude : float
+        The longitude coordinate of the service location.
+    phone_numbers : List[PhoneNumber]
+        A list of phone numbers associated with the service.
+    address : Address
+        The physical address of the service.
+    email : str
+        The email address of the service.
+    metadata : Dict[str, Any]
+        Additional metadata associated with the service.
+    last_updated : Optional[datetime]
+        The last updated timestamp of the service.
+    """
+
+    # Required fields
+    id: str
     name: str
-    service_type: ServiceType
-    source_id: Optional[str] = None
-    official_name: Optional[str] = None
-
-    # Location
+    description: str
     latitude: float
     longitude: float
-    distance: Optional[float] = None
-    physical_address: Optional[Address] = None
-    mailing_address: Optional[Address] = None
+    phone_numbers: List[PhoneNumber]
+    address: Address
+    email: str
 
-    # Contact information
-    phone_numbers: List[PhoneNumber] = Field(default_factory=list)
-    fax: Optional[str] = None
-    email: Optional[str] = None
-    website: Optional[str] = None
-    social_media: Dict[str, str] = Field(default_factory=dict)
+    # Optional metadata fields stored as key-value pairs
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
-    # Service details
-    description: Optional[str] = None
-    services: List[str] = Field(default_factory=list)
-    languages: List[str] = Field(default_factory=list)
-    taxonomy_terms: List[str] = Field(default_factory=list)
-    taxonomy_codes: List[str] = Field(default_factory=list)
-
-    # Operating information
-    status: Optional[str] = None
-    regular_hours: List[OperatingHours] = Field(default_factory=list)
-    hours_exceptions: List[HoursException] = Field(default_factory=list)
-    timezone_offset: Optional[str] = None
-
-    # Accessibility and special features
-    wheelchair_accessible: AccessibilityLevel = AccessibilityLevel.UNKNOWN
-    parking_type: Optional[str] = None
-    accepts_new_patients: Optional[bool] = None
-    wait_time: Optional[int] = None
-
-    # Booking capabilities
-    has_online_booking: bool = False
-    has_queue_system: bool = False
-    accepts_walk_ins: bool = False
-    can_book: bool = False
-
-    # Eligibility and fees
-    eligibility_criteria: Optional[str] = None
-    fee_structure: Optional[str] = None
-    min_age: Optional[int] = None
-    max_age: Optional[int] = None
-
-    # Metadata
+    # Source tracking
     last_updated: Optional[datetime] = None
-    record_owner: Optional[str] = None
-    data_source: Optional[str] = None  # e.g., "211", "Empower"
 
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-
-    @validator("wheelchair_accessible", pre=True)
-    def normalize_wheelchair_access(cls, v: str) -> AccessibilityLevel:  # noqa: N805
-        """Normalize wheelchair accessibility values from different sources."""
-        if isinstance(v, str):
-            mapping = {
-                "t": AccessibilityLevel.FULL,
-                "true": AccessibilityLevel.FULL,
-                "p": AccessibilityLevel.PARTIAL,
-                "partial": AccessibilityLevel.PARTIAL,
-                "f": AccessibilityLevel.NONE,
-                "false": AccessibilityLevel.NONE,
-            }
-            return mapping.get(v.lower(), AccessibilityLevel.UNKNOWN)
-        return AccessibilityLevel.UNKNOWN
-
-    @validator("service_type", pre=True)
-    def normalize_service_type(cls, v: str) -> ServiceType:  # noqa: N805
-        """Normalize service type values from different sources."""
-        if isinstance(v, str):
-            mapping = {
-                "Retail Pharmacy": ServiceType.PHARMACY,
-                "Emergency Rooms": ServiceType.EMERGENCY_ROOM,
-                "Urgent Care Centre": ServiceType.URGENT_CARE,
-                "Primary Care Walk-In Clinic": ServiceType.WALK_IN_CLINIC,
-                "Family Doctor's Office": ServiceType.FAMILY_DOCTOR,
-                "Medical Labs & Diagnostic Imaging Centres": ServiceType.MEDICAL_LAB,
-            }
-            return mapping.get(v, ServiceType.COMMUNITY_SERVICE)
-        return ServiceType.COMMUNITY_SERVICE
+    @validator("phone_numbers")
+    def validate_phone_numbers(cls, v: List[PhoneNumber]) -> List[PhoneNumber]:  # noqa: N805
+        """Ensure at least one phone number exists."""
+        if not v:
+            raise ValueError("At least one phone number is required")
+        return v
 
 
 class ServiceDocument(BaseModel):

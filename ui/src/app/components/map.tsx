@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Map, {
   Marker,
@@ -8,6 +10,7 @@ import Map, {
   Source,
   Layer
 } from 'react-map-gl';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Box, Text, VStack, Flex, Badge, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Icon } from '@chakra-ui/react';
 import { FaBuilding } from 'react-icons/fa';
@@ -21,8 +24,6 @@ interface MapProps {
   height: string;
   width: string;
   initialViewState?: ViewState;
-  radius?: number;
-  center?: [number, number];
 }
 
 interface ViewState {
@@ -39,41 +40,25 @@ export const TORONTO_COORDINATES: ViewState = {
 };
 
 export const computeViewState = (locations: Location[]): ViewState => {
-  if (!locations.length) {
-    return TORONTO_COORDINATES;
-  }
-
-  const min_longitude = Math.min(...locations.map(loc => loc.longitude));
-  const max_longitude = Math.max(...locations.map(loc => loc.longitude));
-  const min_latitude = Math.min(...locations.map(loc => loc.latitude));
-  const max_latitude = Math.max(...locations.map(loc => loc.latitude));
-
-  const center_longitude = (min_longitude + max_longitude) / 2;
-  const center_latitude = (min_latitude + max_latitude) / 2;
-
-  const padding = { top: 40, bottom: 40, left: 40, right: 40 };
-
+  if (locations.length === 0) return TORONTO_COORDINATES;
+  const bounds = new mapboxgl.LngLatBounds();
+  locations.forEach(location => bounds.extend([location.longitude, location.latitude]));
   return {
-    longitude: center_longitude,
-    latitude: center_latitude,
+    ...bounds.getCenter(),
     zoom: 11,
-    padding
+    padding: { top: 40, bottom: 40, left: 40, right: 40 }
   };
 };
 
-const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width, initialViewState, radius, center }) => {
-  const [viewState, setViewState] = useState<ViewState>(computeViewState(locations));
+const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width, initialViewState }) => {
+  const [viewState, setViewState] = useState<ViewState>(initialViewState || TORONTO_COORDINATES);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isFullScreenMapOpen, setIsFullScreenMapOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
 
-  useEffect(() => {
-    setViewState(computeViewState(locations));
-  }, [locations]);
-
   const handleMarkerClick = useCallback((location: Location) => {
     setSelectedLocation(location);
-    if (mapRef.current && isFullScreenMapOpen) {
+    if (mapRef.current) {
       mapRef.current.flyTo({
         center: [location.longitude, location.latitude],
         zoom: 15,
@@ -81,13 +66,27 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
       });
     }
     onMarkerClick && onMarkerClick(location);
-  }, [onMarkerClick, isFullScreenMapOpen]);
+  }, [onMarkerClick]);
+
+  const fitMapToLocations = useCallback(() => {
+    if (locations.length > 0 && mapRef.current) {
+      const bounds = new mapboxgl.LngLatBounds();
+      locations.forEach(location => bounds.extend([location.longitude, location.latitude]));
+      mapRef.current.fitBounds(bounds, {
+        padding: { top: 50, bottom: 50, left: 50, right: 50 },
+        maxZoom: 15,
+        duration: 0 // Set to 0 for initial load to prevent movement
+      });
+    }
+  }, [locations]);
+
+  useEffect(() => {
+    fitMapToLocations();
+  }, [fitMapToLocations]);
 
   const handleViewStateChange = useCallback((evt: ViewStateChangeEvent) => {
-    if (isFullScreenMapOpen) {
-      setViewState(evt.viewState);
-    }
-  }, [isFullScreenMapOpen]);
+    setViewState(evt.viewState);
+  }, []);
 
   const markers = useMemo(() => locations.map((location) => (
     <Marker
@@ -118,38 +117,6 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     </Marker>
   )), [locations, handleMarkerClick]);
 
-  const radiusLayer = useMemo(() => {
-    if (!radius || !center) return null;
-
-    return (
-      <Source
-        id="radius-source"
-        type="geojson"
-        data={{
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: center
-          },
-          properties: {
-            radius: radius
-          }
-        }}
-      >
-        <Layer
-          id="radius-layer"
-          type="circle"
-          paint={{
-            'circle-radius': ['*', ['get', 'radius'], radius],
-            'circle-color': 'rgba(255, 192, 203, 0.2)',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': 'rgba(255, 192, 203, 0.8)'
-          }}
-        />
-      </Source>
-    );
-  }, [radius, center]);
-
   const renderLocationsList = useCallback(() => (
     <VStack align="stretch" spacing={4} overflowY="auto" height="100%">
       {locations.map(location => (
@@ -173,7 +140,11 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
 
   const handleFullScreenMapOpen = useCallback(() => {
     setIsFullScreenMapOpen(true);
-  }, []);
+    // Delay the fitMapToLocations call to ensure the map is fully rendered
+    setTimeout(() => {
+      fitMapToLocations();
+    }, 100);
+  }, [fitMapToLocations]);
 
   if (!MAPBOX_TOKEN) return <Box>Error: Mapbox token is not set</Box>;
 
@@ -189,8 +160,31 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
           interactive={false}
           reuseMaps
         >
-          {markers}
-          {radiusLayer}
+          <Source id="locations" type="geojson" data={{
+            type: 'FeatureCollection',
+            features: locations.map(location => ({
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [location.longitude, location.latitude]
+              },
+              properties: {
+                id: location.id,
+                name: location.name
+              }
+            }))
+          }}>
+            <Layer
+              id="locations-layer"
+              type="circle"
+              paint={{
+                'circle-radius': 8,
+                'circle-color': '#eb088a',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#ffffff'
+              }}
+            />
+          </Source>
         </Map>
       </Box>
 
@@ -223,8 +217,8 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
                     >
                       <Box p={2} maxWidth="200px">
                         <Text fontWeight="bold">{selectedLocation.name}</Text>
-                        <Text fontSize="sm">{selectedLocation.physical_address}</Text>
-                        <Text fontSize="sm">{selectedLocation.phone_numbers}</Text>
+                        <Text fontSize="sm">{selectedLocation.address}</Text>
+                        <Text fontSize="sm">{selectedLocation.phone}</Text>
                       </Box>
                     </Popup>
                   )}

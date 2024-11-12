@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box, Container, Heading, Text, VStack, SimpleGrid, useColorModeValue,
   Divider, Badge, Flex, Grid, GridItem, Skeleton, SkeletonText, SkeletonCircle
 } from '@chakra-ui/react';
 import ServiceCard from '../components/service-card';
 import Header from '../components/header';
-import Map, { TORONTO_COORDINATES, computeViewState } from '../components/map';
+import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
 import { Service, Location } from '../types/service';
 import { useRecommendationStore, Recommendation, Query, RecommendationStore } from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,6 @@ const RecommendationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [additionalQuestions, setAdditionalQuestions] = useState<string[]>([]);
 
-  // Theme colors
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
   const cardBgColor = useColorModeValue('white', 'gray.800');
@@ -89,6 +88,7 @@ const RecommendationPage: React.FC = () => {
 
       const refinedRecommendation: Recommendation = await response.json();
       setRecommendation(refinedRecommendation);
+
       updateMapViewState(refinedRecommendation.services);
     } catch (error) {
       console.error('Error refining recommendations:', error);
@@ -97,51 +97,57 @@ const RecommendationPage: React.FC = () => {
     }
   };
 
-  const updateMapViewState = useCallback((services: Service[]) => {
+  const updateMapViewState = (services: Service[]) => {
     if (services && services.length > 0) {
-      const locations = services
-        .filter(service =>
-          typeof service.latitude === 'number' &&
-          typeof service.longitude === 'number' &&
-          !isNaN(service.latitude) &&
-          !isNaN(service.longitude)
+      const newMapLocations = services
+        .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
+          typeof service.Latitude === 'number' &&
+          typeof service.Longitude === 'number' &&
+          !isNaN(service.Latitude) &&
+          !isNaN(service.Longitude)
         )
         .map(service => ({
-          latitude: service.latitude,
-          longitude: service.longitude,
+          id: service.id,
+          name: service.PublicName,
+          latitude: service.Latitude,
+          longitude: service.Longitude,
+          description: service.Description || '',
+          address: service.Address || '',
+          phone: service.Phone || '',
         }));
 
-      const newViewState = computeViewState(locations);
+      const newViewState = computeViewState(newMapLocations);
       setMapViewState(newViewState);
-    } else {
-      setMapViewState(TORONTO_COORDINATES);
     }
-  }, []);
+  };
 
   const mapLocations: Location[] = useMemo(() => {
     if (!recommendation?.services) return [];
 
     return recommendation.services
-      .filter(service =>
-        typeof service.latitude === 'number' &&
-        typeof service.longitude === 'number' &&
-        !isNaN(service.latitude) &&
-        !isNaN(service.longitude)
+      .filter((service): service is Service & Required<Pick<Service, 'Latitude' | 'Longitude'>> =>
+        typeof service.Latitude === 'number' &&
+        typeof service.Longitude === 'number' &&
+        !isNaN(service.Latitude) &&
+        !isNaN(service.Longitude)
       )
       .map(service => ({
         id: service.id,
-        name: service.name,
-        latitude: service.latitude,
-        longitude: service.longitude,
-        description: service.description || '',
+        name: service.PublicName,
+        latitude: service.Latitude,
+        longitude: service.Longitude,
+        description: service.Description || '',
+        address: service.Address || '',
+        phone: service.Phone || '',
       }));
   }, [recommendation]);
 
   useEffect(() => {
-    if (recommendation?.services) {
-      updateMapViewState(recommendation.services);
+    if (mapLocations.length > 0) {
+      const newViewState = computeViewState(mapLocations);
+      setMapViewState(newViewState);
     }
-  }, [recommendation, updateMapViewState]);
+  }, [mapLocations]);
 
   const renderRecommendationCard = (recommendation: Recommendation | null) => {
     if (!recommendation?.message) return null;
@@ -150,13 +156,15 @@ const RecommendationPage: React.FC = () => {
     const overview = overviewWithLabel.replace('Overview:', '').trim();
     const reasoning = reasoningParts.join('\n').replace('Reasoning:', '').trim();
 
-    const serviceName = recommendation.services[0]?.name || 'Unknown Service';
+    const serviceName = recommendation.services[0]?.PublicName || 'Unknown Service';
     const updatedOverview = `<b>${serviceName}</b><br><br>${overview}`;
 
     return (
       <Box bg={cardBgColor} p={8} borderRadius="lg" boxShadow="xl" borderWidth={1} borderColor={borderColor} height="100%">
         <VStack spacing={6} align="stretch">
-          <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
+          <Box>
+            <Box dangerouslySetInnerHTML={{ __html: updatedOverview }} />
+          </Box>
           <Divider />
           <Box>
             <Badge colorScheme="purple" fontSize="sm" mb={2}>
@@ -246,9 +254,7 @@ const RecommendationPage: React.FC = () => {
                   locations={mapLocations}
                   height={mapHeight}
                   width={mapWidth}
-                  radius={originalQuery?.radius}
-                  center={originalQuery?.latitude && originalQuery?.longitude ?
-                    [originalQuery.longitude, originalQuery.latitude] : undefined}
+                  initialViewState={mapViewState}
                 />
               </Box>
             </Box>

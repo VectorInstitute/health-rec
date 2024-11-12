@@ -1,94 +1,58 @@
-interface Address {
-  street1: string | null;
-  street2: string | null;
-  city: string | null;
-  province: string | null;
-  postal_code: string | null;
-  country: string | null;
-  attention_name: string | null;
-}
-
 interface PhoneNumber {
   number: string;
-  type: string | null;
-  name: string | null;
-  description: string | null;
-  extension: string | null;
+  type?: string | null;
+  name?: string | null;
+  description?: string | null;
+  extension?: string | null;
 }
 
-interface OperatingHours {
-  day: string;
-  is_open: boolean;
-  is_24hour: boolean;
-  open_time: string | null;
-  close_time: string | null;
+interface Address {
+  street1?: string | null;
+  street2?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
 }
 
 interface Service {
-  id: number;
+  // Required fields
+  id: string;
   name: string;
-  service_type: string;
-  source_id: string | null;
-  official_name: string | null;
-
-  // Location
+  description: string;
   latitude: number;
   longitude: number;
-  distance: number | null;
-  physical_address: Address | null;
-  mailing_address: Address | null;
-
-  // Contact information
   phone_numbers: PhoneNumber[];
-  fax: string | null;
-  email: string | null;
-  website: string | null;
-  social_media: Record<string, string>;
+  address: Address;
+  email: string;
 
-  // Service details
-  description: string | null;
-  services: string[];
-  languages: string[];
-  taxonomy_terms: string[];
-  taxonomy_codes: string[];
-
-  // Operating information
-  status: string | null;
-  regular_hours: OperatingHours[];
-  hours_exceptions: OperatingHours[];
-  timezone_offset: string | null;
-
-  // Accessibility and special features
-  wheelchair_accessible: string;
-  parking_type: string | null;
-  accepts_new_patients: boolean | null;
-  wait_time: number | null;
-
-  // Booking capabilities
-  has_online_booking: boolean;
-  has_queue_system: boolean;
-  accepts_walk_ins: boolean;
-  can_book: boolean;
-
-  // Eligibility and fees
-  eligibility_criteria: string | null;
-  fee_structure: string | null;
-  min_age: number | null;
-  max_age: number | null;
-
-  // Metadata
-  last_updated: Date | null;
-  record_owner: string | null;
-  data_source: string | null;
+  // Optional fields
+  metadata: Record<string, any>;
+  last_updated?: string | null;
 }
 
-// Location interface for map functionality
 interface Location {
-  id: number;
+  id: string;
   name: string;
   latitude: number;
   longitude: number;
   description: string;
+  address: string;
 }
 
-export type { Service, PhoneNumber, Location, Address, OperatingHours };
+interface Recommendation {
+  message: string;
+  is_emergency: boolean;
+  is_out_of_scope: boolean;
+  services?: Service[] | null;
+  no_services_found: boolean;
+}
+
+interface Query {
+  query: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  radius?: number | null;
+}
+
+export type { Service, PhoneNumber, Address, Location, Recommendation, Query };

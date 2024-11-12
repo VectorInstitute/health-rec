@@ -1,25 +1,27 @@
 """Download and process data from the 211 API."""
 
+import json
+import logging
+import math
 import os
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
+
 import requests
 from dotenv import load_dotenv
-import json
-import math
-from pathlib import Path
-import argparse
-from typing import Dict, Any, Optional, List
-from datetime import datetime
+from pydantic import ValidationError
 
-from api.data import Service, ServiceType, Address, PhoneNumber, AccessibilityLevel
+from api.data import Address, PhoneNumber, Service
+from common import RetryableSession
+from fields import FIELDS
 
 
-def validate_service(data: Dict[str, Any]) -> Optional[Service]:
-    """Validate and create Service object from mapped data."""
-    try:
-        return Service(**data)
-    except Exception as e:
-        print(f"Validation error for a service: {e}")
-        return None
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def parse_phone_numbers(phones: List[Dict[str, str]]) -> List[PhoneNumber]:
@@ -27,8 +29,10 @@ def parse_phone_numbers(phones: List[Dict[str, str]]) -> List[PhoneNumber]:
     phone_numbers = []
     for phone in phones:
         number = phone.get("Phone", "")
-        extension = None
+        if not number:
+            continue
 
+        extension = None
         if "ext" in number.lower():
             parts = number.lower().split("ext")
             number = parts[0].strip()
@@ -37,125 +41,98 @@ def parse_phone_numbers(phones: List[Dict[str, str]]) -> List[PhoneNumber]:
         phone_numbers.append(
             PhoneNumber(
                 number=number,
-                type=phone.get("Type", ""),
-                name=phone.get("Name", ""),
-                description=phone.get("Description", ""),
+                type=phone.get("Type"),
+                name=phone.get("Name"),
+                description=phone.get("Description"),
                 extension=extension,
             )
         )
+
+    # Ensure at least one phone number exists
+    if not phone_numbers:
+        phone_numbers.append(PhoneNumber(number="Unknown"))
+
     return phone_numbers
 
 
-def parse_taxonomy(taxonomy_str: str) -> List[str]:
-    """Parse taxonomy strings into clean list."""
-    if not taxonomy_str:
-        return []
-
-    terms = []
-    for term in taxonomy_str.split(";"):
-        clean_term = term.split("*")[0].strip()
-        if clean_term:
-            terms.append(clean_term)
-    return terms
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    """Custom JSON encoder for datetime objects."""
-
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super().default(obj)
-
-
-def parse_datetime(date_str: Optional[str]) -> Optional[str]:
-    """Parse datetime string to ISO format."""
-    if not date_str:
-        return None
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-        return dt.isoformat()
-    except ValueError:
-        return None
-
-
-def parse_age(age_str: Optional[str]) -> Optional[int]:
-    """Parse age string to integer."""
-    if not age_str:
-        return None
-    try:
-        return int(float(age_str))
-    except (ValueError, TypeError):
-        return None
-
-
-def map_211_data_to_service(data: Dict[str, Any]) -> Dict[str, Any]:
+def map_211_data_to_service(data: Dict[str, Any]) -> Service:
     """Map 211 API data to standardized Service format."""
     try:
-        latitude = float(data.get("Latitude", 0))
-        longitude = float(data.get("Longitude", 0))
-    except (ValueError, TypeError):
-        latitude = longitude = 0.0
+        # Parse required fields
+        address = Address(
+            street1=data.get("PhysicalAddressStreet1", "Unknown"),
+            street2=data.get("PhysicalAddressStreet2"),
+            city=data.get("PhysicalAddressCity", "Unknown"),
+            province=data.get("PhysicalAddressProvince", "Unknown"),
+            postal_code=data.get("PhysicalAddressPostalCode"),
+            country=data.get("PhysicalAddressCountry", "Canada"),
+        )
 
-    physical_address = Address(
-        street1=data.get("PhysicalAddressStreet1"),
-        street2=data.get("PhysicalAddressStreet2"),
-        city=data.get("PhysicalAddressCity"),
-        province=data.get("PhysicalAddressProvince"),
-        postal_code=data.get("PhysicalAddressPostalCode"),
-        country=data.get("PhysicalAddressCountry"),
-    )
+        # Store additional fields in metadata
+        metadata = {
+            "website": data.get("Website"),
+            "taxonomy_terms": [
+                term.strip()
+                for term in data.get("TaxonomyTerms", "").split(";")
+                if term.strip()
+            ],
+            "eligibility": data.get("Eligibility"),
+            "fee_structure": data.get("FeeStructureSource"),
+            "mailing_address": {
+                "street1": data.get("MailingAddress1"),
+                "street2": data.get("MailingAddress2"),
+                "city": data.get("MailingCity"),
+                "province": data.get("MailingStateProvince"),
+                "postal_code": data.get("MailingPostalCode"),
+                "country": data.get("MailingCountry"),
+            },
+            "hours_of_operation": data.get("HoursOfOperation"),
+            "email": data.get("EmailAddressMain"),
+            "agency_description": data.get("AgencyDescription"),
+            "agency_description_site": data.get("AgencyDescription_Site"),
+            "search_hints": data.get("SearchHints"),
+            "coverage_area": data.get("CoverageArea"),
+            "disabilities_access": data.get("DisabilitiesAccess"),
+            "physical_location_description": data.get("PhysicalLocationDescription"),
+            "application_process": data.get("ApplicationProcess"),
+            "documents_required": data.get("DocumentsRequired"),
+            "languages_offered": data.get("LanguagesOffered"),
+            "languages_offered_list": data.get("LanguagesOfferedList"),
+            "language_of_record": data.get("LanguageOfRecord"),
+            "coverage": data.get("Coverage"),
+            "hours": data.get("Hours"),
+        }
 
-    mailing_address = Address(
-        street1=data.get("MailingAddressStreet1"),
-        street2=data.get("MailingAddressStreet2"),
-        city=data.get("MailingAddressCity"),
-        province=data.get("MailingAddressProvince"),
-        postal_code=data.get("MailingAddressPostalCode"),
-        country=data.get("MailingAddressCountry"),
-        attention_name=data.get("MailingAttentionName"),
-    )
-
-    return {
-        "id": int(data["id"]),
-        "name": data["PublicName"],
-        "service_type": ServiceType.COMMUNITY_SERVICE,
-        "source_id": data.get("UniqueIDPriorSystem"),
-        "official_name": data.get("OfficialName"),
-        "latitude": latitude,
-        "longitude": longitude,
-        "physical_address": physical_address.dict(exclude_none=True),
-        "mailing_address": mailing_address.dict(exclude_none=True),
-        "phone_numbers": [
-            p.dict() for p in parse_phone_numbers(data.get("PhoneNumbers", []))
-        ],
-        "email": data.get("Email"),
-        "website": data.get("Website"),
-        "description": data.get("Description"),
-        "taxonomy_terms": parse_taxonomy(data.get("TaxonomyTerms", "")),
-        "taxonomy_codes": parse_taxonomy(data.get("TaxonomyCodes", "")),
-        "eligibility_criteria": data.get("Eligibility"),
-        "fee_structure": data.get("FeeStructureSource"),
-        "min_age": parse_age(data.get("MinAge")),
-        "max_age": parse_age(data.get("MaxAge")),
-        "last_updated": parse_datetime(data.get("UpdatedOn")),
-        "record_owner": data.get("RecordOwner"),
-        "data_source": "211",
-        "wheelchair_accessible": AccessibilityLevel.UNKNOWN,
-    }
+        return Service(
+            id=str(data["id"]),
+            name=data["PublicName"],
+            description=data.get("Description", "No description available"),
+            latitude=float(data.get("Latitude", 0)),
+            longitude=float(data.get("Longitude", 0)),
+            phone_numbers=parse_phone_numbers(data.get("PhoneNumbers", [])),
+            address=address,
+            email=data.get("Email", ""),
+            metadata=metadata,
+            last_updated=datetime.now(),
+        )
+    except (ValueError, ValidationError) as e:
+        logger.error(f"Error mapping service {data.get('id')}: {str(e)}")
+        raise
 
 
-def save_to_file(data: Dict[str, Any], file_name: str) -> None:
+def save_to_file(data: Dict[str, Any], file_path: Path) -> None:
     """Save the data to a JSON file."""
     mapped_services = []
     for service_data in data["Records"]:
-        mapped_data = map_211_data_to_service(service_data)
-        validated_service = validate_service(mapped_data)
-        if validated_service:
-            mapped_services.append(validated_service.dict(exclude_none=True))
+        try:
+            service = map_211_data_to_service(service_data)
+            mapped_services.append(service.dict(exclude_none=True))
+        except Exception as e:
+            logger.error(f"Failed to process service: {e}")
+            continue
 
-    with open(file_name, "w") as f:
-        json.dump(mapped_services, f, indent=2, cls=DateTimeEncoder)
+    with open(file_path, "w") as f:
+        json.dump(mapped_services, f, indent=2, default=str)
 
 
 def create_payload(
@@ -172,11 +149,7 @@ def create_payload(
         "SortOrder": "distance",
         "PageIndex": page_index,
         "PageSize": page_size,
-        "Fields": (
-            "TaxonomyTerm,TaxonomyTerms,TaxonomyCodes,Eligibility,"
-            "FeeStructureSource,OfficialName,PhysicalCity,DocumentsRequired,"
-            "ApplicationProcess,UniqueIDPriorSystem,DisabilitiesAccess"
-        ),
+        "Fields": FIELDS,
     }
 
     if is_gta:
@@ -198,55 +171,11 @@ def create_payload(
     return payload
 
 
-def fetch_data(
-    page_index: int,
-    api_key: str,
-    base_url: str,
-    dataset: str,
-    is_gta: bool,
-    page_size: int,
-) -> Any:
-    """Fetch data from the API for a given page index."""
-    headers = {"Content-Type": "application/json"}
-    params = {"key": api_key}
-
-    response = requests.post(
-        base_url,
-        headers=headers,
-        params=params,
-        json=create_payload(page_index, dataset, is_gta, page_size),
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-def main(
-    api_key: str,
-    base_url: str,
-    dataset: str,
-    is_gta: bool,
-    data_dir: str,
-    page_size: int,
-) -> None:
-    os.makedirs(data_dir, exist_ok=True)
-
-    first_page = fetch_data(0, api_key, base_url, dataset, is_gta, page_size)
-    total_records = first_page["RecordCount"]
-    total_pages = math.ceil(total_records / page_size)
-
-    print(f"Total records: {total_records}")
-    print(f"Total pages: {total_pages}")
-
-    for page in range(total_pages):
-        print(f"Fetching page {page + 1} of {total_pages}")
-        data = fetch_data(page, api_key, base_url, dataset, is_gta, page_size)
-        file_name = Path(f"data-{page:02d}.json")
-        save_to_file(data, os.path.join(data_dir, file_name))
-        print(f"Saved data to {file_name}")
-
-
-if __name__ == "__main__":
+def main() -> None:
+    """Main function to run the script."""
     load_dotenv("./.env.development")
+
+    import argparse
 
     parser = argparse.ArgumentParser(description="Download data from the 211 API.")
     parser.add_argument(
@@ -262,7 +191,7 @@ if __name__ == "__main__":
         "--is-gta", action="store_true", help="Whether to download GTA data"
     )
     parser.add_argument(
-        "--data-dir", default="/mnt/data/211", help="Directory to save data"
+        "--data-dir", default="/mnt/data/211", help="Directory to save data", type=Path
     )
     parser.add_argument(
         "--page-size", type=int, default=1000, help="Number of records per page"
@@ -271,14 +200,55 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.api_key:
-        raise ValueError("211_API_KEY is not set")
+        raise ValueError("211_API_KEY environment variable is not set")
 
-    data_dir = args.data_dir
-    if args.is_gta:
-        data_dir = os.path.join(data_dir, "gta")
-    else:
-        data_dir = os.path.join(data_dir, args.dataset)
+    # Setup HTTP session with retries
+    session = RetryableSession()
 
-    main(
-        args.api_key, args.base_url, args.dataset, args.is_gta, data_dir, args.page_size
-    )
+    # Create data directory
+    data_dir = args.data_dir / ("gta" if args.is_gta else args.dataset)
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # Fetch first page to get total count
+        response = session.post(
+            args.base_url,
+            headers={"Content-Type": "application/json"},
+            params={"key": args.api_key},
+            json=create_payload(0, args.dataset, args.is_gta, args.page_size),
+        )
+        response.raise_for_status()
+        first_page = response.json()
+
+        total_records = first_page["RecordCount"]
+        total_pages = math.ceil(total_records / args.page_size)
+
+        logger.info(f"Total records: {total_records}")
+        logger.info(f"Total pages: {total_pages}")
+
+        # Process all pages
+        for page in range(total_pages):
+            logger.info(f"Fetching page {page + 1} of {total_pages}")
+
+            response = session.post(
+                args.base_url,
+                headers={"Content-Type": "application/json"},
+                params={"key": args.api_key},
+                json=create_payload(page, args.dataset, args.is_gta, args.page_size),
+            )
+            response.raise_for_status()
+
+            file_path = data_dir / f"data-{page:02d}.json"
+            save_to_file(response.json(), file_path)
+            logger.info(f"Saved data to {file_path}")
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error fetching data: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    main()
