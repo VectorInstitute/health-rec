@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import List, Dict, Any, DefaultDict
 
 
-def load_embeddings(path: str) -> torch.Tensor:
+def load_embeddings(path: str) -> Any:
     return torch.load(path)
 
 

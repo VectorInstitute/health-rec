@@ -44,6 +44,7 @@ next-env.d.ts
 .venv*
 **endpoint_data**
 *.ipynb_checkpoints
+*build*
 
 # sqlite db
 *.db
