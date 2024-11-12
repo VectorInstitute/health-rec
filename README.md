@@ -90,6 +90,9 @@ If you want to test the system without real data, you can generate some dummy te
 python3 scripts/generate_test_data.py
 ```
 
+This would create a folder `<path_to_output_dir>/test_data/data-00.json` with about 300 dummy services.
+You can follow the next step to load this data and embeddings to ChromaDB.
+
 #### Download service data
 
 If you are using the 211 API or Empower's API, make sure you check with them to see if the API keys are
