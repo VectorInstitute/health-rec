@@ -90,7 +90,7 @@ If you want to test the system without real data, you can generate some dummy te
 python3 scripts/generate_test_data.py
 ```
 
-This would create a folder `<path_to_output_dir>/test_data/data-00.json` with about 300 dummy services.
+This would create a file `<path_to_output_dir>/test_data/data-00.json` with about 300 dummy services.
 You can follow the next step to load this data and embeddings to ChromaDB.
 
 #### Download service data
