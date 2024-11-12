@@ -15,7 +15,21 @@ logger = logging.getLogger(__name__)
 
 
 class PhoneNumber(BaseModel):
-    """Phone number with metadata."""
+    """Phone number with metadata.
+
+    Attributes
+    ----------
+    number : str
+        The phone number.
+    type : Optional[str]
+        The type of the phone number, e.g., fax, toll-free, primary, secondary, etc.
+    name : Optional[str]
+        Any name associated with the phone number.
+    description : Optional[str]
+        The description of the phone number.
+    extension : Optional[str]
+        The extension of the phone number.
+    """
 
     number: str
     type: Optional[str] = None
