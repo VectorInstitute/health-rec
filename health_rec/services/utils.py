@@ -98,9 +98,8 @@ def _parse_coordinates(metadata: Dict[str, Any]) -> Tuple[float, float]:
         latitude = float(metadata.get("latitude", 0))
         longitude = float(metadata.get("longitude", 0))
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-            logger.warning(
-                f"Invalid coordinate values: lat={latitude}, lon={longitude}"
-            )
+            logger.warning("Invalid coordinate values detected")
+            # Sensitive data (latitude, longitude) is not logged
             return 0.0, 0.0
         return latitude, longitude
     except (ValueError, TypeError) as e:
