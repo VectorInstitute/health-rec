@@ -172,7 +172,7 @@ def _parse_single_phone(phone_data: Any) -> Optional[PhoneNumber]:
             extension=extension,
         )
     except Exception as e:
-        logger.debug(f"Error parsing phone number {phone_data}: {e}")
+        logger.debug(f"Error parsing phone number: {e}")
         return None
 
 
