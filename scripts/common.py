@@ -1,12 +1,12 @@
 """Common utilities for the project."""
 
 import requests
-from typing import Any, List, Optional
+from typing import List, Optional
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 
-class RetryableSession:
+class RetryableSession(requests.Session):
     """Session with retry capabilities."""
 
     def __init__(
@@ -16,7 +16,8 @@ class RetryableSession:
         status_forcelist: Optional[List[int]] = None,
     ):
         """Initialize session with retry strategy."""
-        self.session = requests.Session()
+        super().__init__()
+
         if status_forcelist is None:
             status_forcelist = [403, 500, 502, 503, 504]
 
@@ -28,9 +29,5 @@ class RetryableSession:
         )
 
         adapter = HTTPAdapter(max_retries=retry_strategy)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
-
-    def post(self, *args: Any, **kwargs: Any) -> requests.Response:
-        """Perform POST request with retry capability."""
-        return self.session.post(*args, **kwargs)
+        self.mount("http://", adapter)
+        self.mount("https://", adapter)

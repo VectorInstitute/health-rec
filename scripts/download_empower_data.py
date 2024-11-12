@@ -1,45 +1,86 @@
 """Download data from the Empower API."""
 
-import requests
-from dotenv import load_dotenv
 import argparse
 import json
+import logging
 import os
-from typing import List, Dict, Any, Optional
 import time
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
+
+import requests
+from dotenv import load_dotenv
+
+from api.data import Address, PhoneNumber, Service
 
 
-class RetryableSession:
-    """Session with retry capabilities."""
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
-    def __init__(
-        self,
-        retries: int = 3,
-        backoff_factor: float = 0.5,
-        status_forcelist: Optional[List[int]] = None,
-    ):
-        """Initialize session with retry strategy."""
-        self.session = requests.Session()
-        if status_forcelist is None:
-            status_forcelist = [403, 500, 502, 503, 504]
 
-        retry_strategy = Retry(
-            total=retries,
-            backoff_factor=backoff_factor,
-            status_forcelist=status_forcelist,
-            allowed_methods=["GET", "POST"],
+def map_empower_data_to_service(data: Dict[str, Any]) -> Service:
+    """Map Empower API data to unified Service model."""
+    try:
+        # Parse required fields
+        phones = []
+        if data.get("phone"):
+            phones.append(PhoneNumber(number=data["phone"], type="primary"))
+        if not phones:
+            phones = [PhoneNumber(number="Unknown")]
+
+        address = Address(
+            street1=data.get("address", "Unknown"),
+            city=data.get("city", "Unknown"),
+            province=data.get("province", "Unknown"),
+            postal_code=data.get("postal_code"),
+            country="Canada",
         )
 
-        adapter = HTTPAdapter(max_retries=retry_strategy)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
+        # Store additional fields in metadata
+        metadata = {
+            "type": data.get("type"),
+            "services": data.get("services", []),
+            "languages": data.get("languages", []),
+            "hours": [
+                {
+                    "day": hour["day"],
+                    "is_open": hour["is_open"],
+                    "open_time": hour.get("opentime"),
+                    "close_time": hour.get("closetime"),
+                    "is_24hour": hour.get("is_24hour", False),
+                }
+                for hour in data.get("hours", [])
+                if all(key in hour for key in ["day", "is_open"])
+            ],
+            "website": data.get("website"),
+            "fax": data.get("fax"),
+            "wheelchair_accessible": data.get("wheelchair"),
+            "parking": data.get("parking"),
+            "accepts_new_patients": data.get("new_patients", False),
+            "has_online_booking": data.get("has_ebooking", False),
+            "wait_time": data.get("wait_time"),
+            "timezone_offset": data.get("tzoffset"),
+        }
 
-    def get(self, *args: Any, **kwargs: Any) -> requests.Response:
-        """Perform GET request with retry capability."""
-        return self.session.get(*args, **kwargs)
+        return Service(
+            id=str(data["id"]),
+            name=data["name"],
+            description=data.get("description", "No description available"),
+            latitude=float(data.get("lat", 0)),
+            longitude=float(data.get("long", 0)),
+            phone_numbers=phones,
+            address=address,
+            email=data.get("email", ""),
+            metadata=metadata,
+            last_updated=datetime.now(),
+        )
+    except Exception as e:
+        logger.error(f"Error mapping service {data.get('id')}: {str(e)}")
+        raise
 
 
 class EmpowerDataFetcher:
@@ -49,7 +90,6 @@ class EmpowerDataFetcher:
         """Initialize the EmpowerDataFetcher."""
         self.api_key = api_key
         self.base_url = base_url
-        self.session = RetryableSession()
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -66,22 +106,6 @@ class EmpowerDataFetcher:
             11: "Family Doctor's Office",
         }
 
-    def _make_request(
-        self, url: str, params: Dict[str, Any], max_retries: int = 3
-    ) -> Dict[str, Any]:
-        """Make API request with retries and error handling."""
-        for attempt in range(max_retries):
-            try:
-                response = self.session.get(url, headers=self.headers, params=params)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.RequestException as e:
-                if attempt == max_retries - 1:
-                    raise
-                print(f"Attempt {attempt + 1} failed: {e}. Retrying...")
-                time.sleep((attempt + 1) * 2)  # Exponential backoff
-        raise Exception("Failed to make request after all retries")
-
     def map_provider_type(self, type_id: int) -> str:
         """Map provider type ID to human-readable string."""
         return self.provider_types.get(type_id, f"Unknown Type ({type_id})")
@@ -91,7 +115,7 @@ class EmpowerDataFetcher:
     ) -> Dict[str, Any]:
         """Fetch list of providers for a given page."""
         url = f"{self.base_url}/providers"
-        params = {
+        params: Dict[str, Any] = {
             "api_key": self.api_key,
             "lat": lat,
             "long": long,
@@ -99,9 +123,18 @@ class EmpowerDataFetcher:
             "page": page,
         }
 
-        data = self._make_request(url, params)
+        response = requests.get(url, headers=self.headers, params=params)
+        response.raise_for_status()
+        raw_data: Any = response.json()
 
-        for provider in data.get("providers", []):
+        # Create a properly typed dictionary
+        data: Dict[str, Any] = {
+            "providers": raw_data.get("providers", []),
+            "pages": raw_data.get("pages", {}),
+        }
+
+        # Map provider types in the response
+        for provider in data["providers"]:
             if "type" in provider:
                 provider["type"] = self.map_provider_type(provider["type"])
 
@@ -110,10 +143,16 @@ class EmpowerDataFetcher:
     def fetch_provider_details(self, provider_id: int) -> Dict[str, Any]:
         """Fetch detailed information for a specific provider."""
         url = f"{self.base_url}/providers/{provider_id}"
-        params = {"api_key": self.api_key}
+        params: Dict[str, str] = {"api_key": self.api_key}
 
-        data = self._make_request(url, params)
+        response = requests.get(url, headers=self.headers, params=params)
+        response.raise_for_status()
+        raw_data: Any = response.json()
 
+        # Create a properly typed dictionary
+        data: Dict[str, Any] = dict(raw_data)
+
+        # Map provider type in the response
         if "type" in data:
             data["type"] = self.map_provider_type(data["type"])
 
@@ -121,139 +160,57 @@ class EmpowerDataFetcher:
 
     def collect_provider_ids(self, lat: float, long: float, radius: float) -> List[int]:
         """Collect all provider IDs from paginated results."""
-        provider_ids: List[int] = []
+        provider_ids = []
         page = 1
 
+        # Fetch first page to get total pages
         initial_response = self.fetch_providers_list(lat, long, radius, page)
         total_pages = initial_response["pages"]["total_pages"]
 
-        print(f"Total pages to process: {total_pages}")
+        logger.info(f"Total pages to process: {total_pages}")
 
+        # Process all pages
         while page <= total_pages:
-            print(f"Fetching page {page}/{total_pages}")
-            try:
-                response = self.fetch_providers_list(lat, long, radius, page)
-                provider_ids.extend(p["id"] for p in response["providers"])
-                page += 1
-                time.sleep(0.5)  # Rate limiting
-            except Exception as e:
-                print(f"Error on page {page}: {e}. Retrying...")
-                time.sleep(2)  # Wait before retry
-                continue
+            logger.info(f"Fetching page {page}/{total_pages}")
+            response = self.fetch_providers_list(lat, long, radius, page)
+
+            # Extract provider IDs from current page
+            for provider in response["providers"]:
+                provider_ids.append(provider["id"])
+
+            page += 1
+            time.sleep(0.5)  # Rate limiting
 
         return provider_ids
 
     def fetch_all_provider_details(
-        self, provider_ids: List[int], output_dir: str
+        self, provider_ids: List[int], output_dir: Path
     ) -> None:
         """Fetch and save mapped provider details."""
-        os.makedirs(output_dir, exist_ok=True)
-        output_file = os.path.join(output_dir, "data-00.json")
-        error_log = os.path.join(output_dir, "errors.log")
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "data-00.json"
 
         mapped_providers = []
-        failed_providers = []
         total_providers = len(provider_ids)
 
         for idx, provider_id in enumerate(provider_ids, 1):
-            print(f"Fetching provider {idx}/{total_providers} (ID: {provider_id})")
+            logger.info(
+                f"Fetching provider {idx}/{total_providers} (ID: {provider_id})"
+            )
             try:
                 provider_details = self.fetch_provider_details(provider_id)
                 mapped_provider = map_empower_data_to_service(provider_details)
-                mapped_providers.append(mapped_provider)
-                time.sleep(0.25)
+                mapped_providers.append(mapped_provider.dict(exclude_none=True))
+                time.sleep(0.25)  # Rate limiting
             except Exception as e:
-                print(f"Error fetching provider {provider_id}: {e}")
-                failed_providers.append({"id": provider_id, "error": str(e)})
+                logger.error(f"Failed to process provider {provider_id}: {e}")
+                continue
 
-        # Save successful providers
         with open(output_file, "w") as f:
-            json.dump(mapped_providers, f, indent=2)
+            json.dump(mapped_providers, f, indent=2, default=str)
 
-        # Save failed providers
-        if failed_providers:
-            with open(error_log, "w") as f:
-                json.dump(failed_providers, f, indent=2)
-
-        print(f"Saved {len(mapped_providers)} provider details to {output_file}")
-        if failed_providers:
-            print(f"Failed to fetch {len(failed_providers)} providers. See {error_log}")
-
-
-def map_empower_data_to_service(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Map Empower API data to standardized Service format."""
-    try:
-        # Convert coordinates to float
-        latitude = float(data.get("lat", 0))
-        longitude = float(data.get("long", 0))
-    except (ValueError, TypeError):
-        latitude = longitude = 0.0
-
-    # Map operating hours
-    regular_hours = []
-    day_mapping = {
-        0: "sunday",
-        1: "monday",
-        2: "tuesday",
-        3: "wednesday",
-        4: "thursday",
-        5: "friday",
-        6: "saturday",
-    }
-
-    for hour in data.get("hours", []):
-        if all(key in hour for key in ["day", "is_open", "opentime", "closetime"]):
-            regular_hours.append(
-                {
-                    "day": day_mapping[hour["day"]],
-                    "is_open": hour["is_open"],
-                    "is_24hour": hour.get("is_24hour", False),
-                    "open_time": hour["opentime"],
-                    "close_time": hour["closetime"],
-                }
-            )
-
-    # Map address
-    physical_address = {
-        "street1": data.get("address"),
-        "city": data.get("city"),
-        "province": data.get("province"),
-        "postal_code": data.get("postal_code"),
-        "country": "Canada",
-    }
-
-    # Map phone numbers
-    phone_numbers = []
-    if data.get("phone"):
-        phone_numbers.append({"number": data["phone"]})
-
-    return {
-        "id": data["id"],
-        "name": data["name"],
-        "service_type": data["type"],
-        "latitude": latitude,
-        "longitude": longitude,
-        "physical_address": physical_address,
-        "phone_numbers": phone_numbers,
-        "fax": data.get("fax"),
-        "email": data.get("email"),
-        "website": data.get("website"),
-        "description": data.get("description"),
-        "services": data.get("services", []),
-        "languages": data.get("languages", []),
-        "status": data.get("status"),
-        "regular_hours": regular_hours,
-        "hours_exceptions": data.get("hours_exceptions", []),
-        "timezone_offset": data.get("tzoffset"),
-        "wheelchair_accessible": data.get("wheelchair", "unknown"),
-        "parking_type": data.get("parking"),
-        "accepts_new_patients": data.get("new_patients", False),
-        "wait_time": data.get("wait_time"),
-        "has_online_booking": data.get("has_ebooking", False),
-        "can_book": data.get("can_book", False),
-        "data_source": "Empower",
-        "last_updated": datetime.now().isoformat(),
-    }
+        logger.info(f"Saved {len(mapped_providers)} provider details to {output_file}")
 
 
 def main() -> None:
@@ -272,40 +229,31 @@ def main() -> None:
         help="Base URL for Empower API",
     )
     parser.add_argument(
-        "--data-dir", default="./data/empower", help="Directory to save data"
-    )
-    parser.add_argument(
-        "--lat",
-        type=float,
-        default=44.051507,
-        help="Latitude for search center",
-    )
-    parser.add_argument(
-        "--long",
-        type=float,
-        default=-79.45811,
-        help="Longitude for search center",
-    )
-    parser.add_argument(
-        "--radius",
-        type=float,
-        default=100,
-        help="Search radius in kilometers",
+        "--data-dir",
+        type=Path,
+        default=Path("./data/empower"),
+        help="Directory to save data",
     )
 
     args = parser.parse_args()
 
     if not args.api_key:
-        raise ValueError("EMPOWER_API_KEY is not set")
+        raise ValueError("EMPOWER_API_KEY environment variable is not set")
 
     fetcher = EmpowerDataFetcher(args.api_key, args.base_url)
 
+    # Parameters for the search
+    lat = 44.051507
+    long = -79.45811
+    radius = 100  # km
+
     try:
-        provider_ids = fetcher.collect_provider_ids(args.lat, args.long, args.radius)
-        print(f"Collected {len(provider_ids)} provider IDs")
+        provider_ids = fetcher.collect_provider_ids(lat, long, radius)
+        logger.info(f"Collected {len(provider_ids)} provider IDs")
         fetcher.fetch_all_provider_details(provider_ids, args.data_dir)
     except Exception as e:
-        print(f"Fatal error occurred: {e}")
+        logger.error(f"Fatal error occurred: {e}")
+        raise
 
 
 if __name__ == "__main__":
