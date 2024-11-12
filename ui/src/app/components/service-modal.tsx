@@ -20,9 +20,10 @@ import {
   Grid,
   GridItem,
   Link,
+  Badge,
 } from '@chakra-ui/react';
-import { FaMapMarkerAlt, FaPhone, FaGlobe, FaClock } from 'react-icons/fa';
-import { Service } from '../types/service';
+import { FaMapMarkerAlt, FaPhone, FaGlobe, FaClock, FaEnvelope } from 'react-icons/fa';
+import { Service, PhoneNumber, Address } from '../types/service';
 
 interface ServiceModalProps {
   isOpen: boolean;
@@ -38,13 +39,24 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const linkColor = useColorModeValue('pink.600', 'pink.300');
 
-  const formatServiceArea = (serviceArea: string | string[] | undefined): string => {
-    if (Array.isArray(serviceArea)) {
-      return serviceArea.join(', ');
-    } else if (typeof serviceArea === 'string') {
-      return serviceArea;
+  const formatAddress = (address: Address): string => {
+    const parts = [
+      address.street1,
+      address.street2,
+      address.city,
+      address.province,
+      address.postal_code,
+      address.country,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const formatPhoneNumber = (phone: PhoneNumber): string => {
+    let formatted = phone.number;
+    if (phone.extension) {
+      formatted += ` ext. ${phone.extension}`;
     }
-    return 'Not specified';
+    return formatted;
   };
 
   const renderHtml = (html: string) => {
@@ -52,7 +64,6 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
       replace: (domNode: DOMNode) => {
         if (domNode instanceof Element && domNode.name === 'a' && domNode.attribs) {
           let href = domNode.attribs.href || '';
-          // Ensure the URL has a protocol
           if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
             href = `https://${href}`;
           }
@@ -79,33 +90,42 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
     return parse(html, options);
   };
 
-  const renderAdditionalInfo = () => {
-    const excludedKeys = ['id', 'ParentId', 'Score', 'Hours2', 'RecordOwner', 'UniqueIDPriorSystem', 'Latitude', 'Longitude', 'TaxonomyCodes', 'TaxonomyTerm', 'TaxonomyTerms', 'PublicName', 'Description', 'ServiceArea', 'PhoneNumbers', 'Website', 'Hours'];
-    const additionalInfo = Object.entries(service).filter(([key]) => !excludedKeys.includes(key));
+  const renderMetadata = () => {
+    if (!service.metadata || Object.keys(service.metadata).length === 0) {
+      return null;
+    }
 
     return (
       <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-        {additionalInfo.map(([key, value]) => (
-          <GridItem key={key} colSpan={1}>
-            <Box
-              borderWidth={1}
-              borderColor={borderColor}
-              borderRadius="md"
-              overflow="hidden"
-            >
-              <Box bg={highlightColor} p={2}>
-                <Text fontWeight="bold" fontSize="sm">
-                  {key}
-                </Text>
+        {Object.entries(service.metadata).map(([key, value]) => {
+          if (!value) return null;
+
+          return (
+            <GridItem key={key} colSpan={1}>
+              <Box
+                borderWidth={1}
+                borderColor={borderColor}
+                borderRadius="md"
+                overflow="hidden"
+              >
+                <Box bg={highlightColor} p={2}>
+                  <Text fontWeight="bold" fontSize="sm">
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </Text>
+                </Box>
+                <Box p={2}>
+                  <Text fontSize="sm">
+                    {Array.isArray(value)
+                      ? value.join(', ')
+                      : typeof value === 'object'
+                        ? JSON.stringify(value)
+                        : String(value)}
+                  </Text>
+                </Box>
               </Box>
-              <Box p={2}>
-                <Text fontSize="sm">
-                  {typeof value === 'string' ? value : JSON.stringify(value)}
-                </Text>
-              </Box>
-            </Box>
-          </GridItem>
-        ))}
+            </GridItem>
+          );
+        })}
       </Grid>
     );
   };
@@ -114,41 +134,72 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
     <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
       <ModalOverlay />
       <ModalContent bg={bgColor}>
-        <ModalHeader color={textColor}>{service.PublicName}</ModalHeader>
+        <ModalHeader color={textColor}>{service.name}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack align="stretch" spacing={6}>
-            {service.Description && (
+            {service.description && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Heading as="h4" size="sm" color={textColor} mb={2}>
                   Description
                 </Heading>
-                <Box color={textColor}>{renderHtml(service.Description)}</Box>
+                <Box color={textColor}>{renderHtml(service.description)}</Box>
               </Box>
             )}
-            {service.ServiceArea && (
+
+            {service.address && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaMapMarkerAlt} color="purple.500" mr={2} />
                   <Heading as="h4" size="sm" color={textColor}>
-                    Service Area
+                    Address
                   </Heading>
                 </Flex>
-                <Text color={textColor}>{formatServiceArea(service.ServiceArea)}</Text>
+                <Text color={textColor}>{formatAddress(service.address)}</Text>
               </Box>
             )}
-            {service.PhoneNumbers && service.PhoneNumbers.length > 0 && (
+
+            {service.phone_numbers && service.phone_numbers.length > 0 && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaPhone} color="green.500" mr={2} />
                   <Heading as="h4" size="sm" color={textColor}>
-                    Phone
+                    Contact Numbers
                   </Heading>
                 </Flex>
-                <Text color={textColor}>{service.PhoneNumbers[0].phone}</Text>
+                <VStack align="stretch" spacing={2}>
+                  {service.phone_numbers.map((phone, index) => (
+                    <Flex key={index} justify="space-between" align="center">
+                      <Text color={textColor}>
+                        {formatPhoneNumber(phone)}
+                        {phone.name && ` (${phone.name})`}
+                      </Text>
+                      {phone.type && (
+                        <Badge colorScheme="purple" ml={2}>
+                          {phone.type}
+                        </Badge>
+                      )}
+                    </Flex>
+                  ))}
+                </VStack>
               </Box>
             )}
-            {service.Website && (
+
+            {service.email && (
+              <Box bg={sectionBgColor} p={4} borderRadius="md">
+                <Flex align="center" mb={2}>
+                  <Icon as={FaEnvelope} color="blue.500" mr={2} />
+                  <Heading as="h4" size="sm" color={textColor}>
+                    Email
+                  </Heading>
+                </Flex>
+                <Link href={`mailto:${service.email}`} color={linkColor}>
+                  {service.email}
+                </Link>
+              </Box>
+            )}
+
+            {service.metadata?.website && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaGlobe} color="purple.500" mr={2} />
@@ -157,15 +208,18 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                   </Heading>
                 </Flex>
                 <Link
-                  href={service.Website.startsWith('http') ? service.Website : `https://${service.Website}`}
+                  href={service.metadata.website.startsWith('http')
+                    ? service.metadata.website
+                    : `https://${service.metadata.website}`}
                   isExternal
                   color={linkColor}
                 >
-                  {service.Website}
+                  {service.metadata.website}
                 </Link>
               </Box>
             )}
-            {service.Hours && (
+
+            {service.metadata?.hours && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaClock} color="orange.500" mr={2} />
@@ -173,15 +227,21 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                     Hours
                   </Heading>
                 </Flex>
-                <Text color={textColor}>{service.Hours}</Text>
+                <Text color={textColor}>
+                  {Array.isArray(service.metadata.hours)
+                    ? service.metadata.hours.join(', ')
+                    : service.metadata.hours}
+                </Text>
               </Box>
             )}
+
             <Divider />
+
             <Box>
               <Heading as="h4" size="sm" color={textColor} mb={4}>
                 Additional Information
               </Heading>
-              {renderAdditionalInfo()}
+              {renderMetadata()}
             </Box>
           </VStack>
         </ModalBody>
