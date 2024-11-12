@@ -362,14 +362,27 @@ poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="
 </section>
 <section id="data-setup">
 <h3>📥 Data setup<a class="headerlink" href="#data-setup" title="Link to this heading">¶</a></h3>
-<section id="download-service-data-211-api">
-<h4>Download service data (211 API)<a class="headerlink" href="#download-service-data-211-api" title="Link to this heading">¶</a></h4>
-<p><strong>GTA data</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--is-gta<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+<section id="test-data">
+<h4>Test data<a class="headerlink" href="#test-data" title="Link to this heading">¶</a></h4>
+<p>If you want to test the system without real data, you can generate some dummy testing data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/generate_test_data.py
 </pre></div>
 </div>
-<p><strong>Ontario-wide data</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+</section>
+<section id="download-service-data">
+<h4>Download service data<a class="headerlink" href="#download-service-data" title="Link to this heading">¶</a></h4>
+<p>If you are using the 211 API or Empower’s API, make sure you check with them to see if the API keys are
+configured correctly for the geography of interest.</p>
+<p><strong>GTA data (211 API)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_211_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--is-gta<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+</pre></div>
+</div>
+<p><strong>Ontario-wide data (211 API)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_211_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+</pre></div>
+</div>
+<p><strong>Empower API data</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_empower_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_EMPOWER_API_KEY</span><span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
 </pre></div>
 </div>
 </section>
@@ -474,7 +487,8 @@ python3<span class="w"> </span>health_rec/manage_data.py<span class="w"> </span>
 <li><a class="reference internal" href="#installation">🛠️ Installation</a></li>
 <li><a class="reference internal" href="#running-the-services">🏃‍♂️ Running the services</a></li>
 <li><a class="reference internal" href="#data-setup">📥 Data setup</a><ul>
-<li><a class="reference internal" href="#download-service-data-211-api">Download service data (211 API)</a></li>
+<li><a class="reference internal" href="#test-data">Test data</a></li>
+<li><a class="reference internal" href="#download-service-data">Download service data</a></li>
 <li><a class="reference internal" href="#upload-data-and-embeddings">Upload data and embeddings</a></li>
 <li><a class="reference internal" href="#navigate-to-the-ui-on-the-browser">Navigate to the UI on the browser</a></li>
 <li><a class="reference internal" href="#in-case-you-wish-to-update-frontend-dependencies-run-the-following-commands-in-the-ui-directory">In case, you wish to update frontend dependencies, run the following commands in the <code class="docutils literal notranslate"><span class="pre">ui</span></code> directory:</a></li>
