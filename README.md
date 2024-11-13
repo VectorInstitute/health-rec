@@ -82,6 +82,8 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 
 ### 📥 Data setup
 
+For a detailed description of the data schema used for the recommendation engine, see [Data Schema](schema.rst).
+
 #### Test data
 
 If you want to test the system without real data, you can generate some dummy testing data:
@@ -96,7 +98,8 @@ You can follow the next step to load this data and embeddings to ChromaDB.
 #### Download service data
 
 If you are using the 211 API or Empower's API, make sure you check with them to see if the API keys are
-configured correctly for the geography of interest.
+configured correctly for the geography of interest. The scripts fetch data from the respective APIs and
+transforms them to be compatible with the [Data Schema](schema.rst).
 
 **GTA data (211 API)**
 
