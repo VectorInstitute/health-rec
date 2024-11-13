@@ -226,6 +226,7 @@
   <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Health Recommendation System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safety_and_evaluation.html">Safety and Evaluation</a></li>
 </ul>
 
@@ -362,6 +363,7 @@ poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="
 </section>
 <section id="data-setup">
 <h3>📥 Data setup<a class="headerlink" href="#data-setup" title="Link to this heading">¶</a></h3>
+<p>For a detailed description of the data schema used for the recommendation engine, see <a class="reference internal" href="schema.html"><span class="std std-doc">Data Schema</span></a>.</p>
 <section id="test-data">
 <h4>Test data<a class="headerlink" href="#test-data" title="Link to this heading">¶</a></h4>
 <p>If you want to test the system without real data, you can generate some dummy testing data:</p>
@@ -374,7 +376,8 @@ You can follow the next step to load this data and embeddings to ChromaDB.</p>
 <section id="download-service-data">
 <h4>Download service data<a class="headerlink" href="#download-service-data" title="Link to this heading">¶</a></h4>
 <p>If you are using the 211 API or Empower’s API, make sure you check with them to see if the API keys are
-configured correctly for the geography of interest.</p>
+configured correctly for the geography of interest. The scripts fetch data from the respective APIs and
+transforms them to be compatible with the <a class="reference internal" href="schema.html"><span class="std std-doc">Data Schema</span></a>.</p>
 <p><strong>GTA data (211 API)</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_211_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--is-gta<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
 </pre></div>

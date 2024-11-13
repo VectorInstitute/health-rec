@@ -3,16 +3,19 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
-    <meta name="google-site-verification" content="i0qQRaR9OA3tSz_9tDocdcXGY27Ox_cy4FrvTHD2C_0" />
+    <meta name="google-site-verification" content="i0qQRaR9OA3tSz_9tDocdcXGY27Ox_cy4FrvTHD2C_0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     
       <meta name="description" content="aieng-template Python API documentation">
-    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" />
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Safety and Evaluation" href="safety_and_evaluation.html" /><link rel="prev" title="API Reference" href="api.html" />
 
     <meta name="generator" content="sphinx-7.4.7, furo 2024.08.06"/>
 
     
-    <meta name="msvalidate.01" content="8D2A5032F006424CAF54C0DDCD16F666" /><title>HTTP Routing Table - Health Recommendation System</title>
-<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <meta name="msvalidate.01" content="8D2A5032F006424CAF54C0DDCD16F666" />
+      
+        <title>Data Schema - Health Recommendation System</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
@@ -220,10 +223,10 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Health Recommendation System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="schema.html">Data Schema</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Data Schema</a></li>
 <li class="toctree-l1"><a class="reference internal" href="safety_and_evaluation.html">Safety and Evaluation</a></li>
 </ul>
 
@@ -244,7 +247,8 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
+          
+<div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -258,75 +262,98 @@
           </label>
         </div>
         <article role="main">
-          
-<section class="domainindex-section">
-  <h1>HTTP Routing Table</h1>
-  <div class="domainindex-jumpbox"><a href="#cap-/questions"><strong>/questions</strong></a> | <a href="#cap-/recommend"><strong>/recommend</strong></a> | <a href="#cap-/refine_recommendations"><strong>/refine_recommendations</strong></a> | <a href="#cap-/services"><strong>/services</strong></a></div>
+          <section id="data-schema">
+<h1>Data Schema<a class="headerlink" href="#data-schema" title="Link to this heading">¶</a></h1>
+<p>The recommendation system aims to provide users with relevant health resources based on their initial query.
+We can use service data from different sources such as the <a class="reference external" href="https://211ontario.ca/211-data/">Ontario 211 API</a>
+or the <a class="reference external" href="https://www.empower.ca/it">Empower API</a>. But, for the recommendation system, we use a common schema.</p>
+<p>The schema is as follows:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Test Service 1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is a test service 1 providing medical clinic services.&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;latitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">43.563807766096275</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;longitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-79.40435634607296</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;phone_numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;number&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;574-696-8554&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;primary&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Test Service 1&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is the primary phone number for Test Service 1.&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;extension&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;street1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;994 Yonge Street&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Toronto&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;province&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ON&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;postal_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M5E1 B07&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Canada&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;service1@example.com&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Medical Clinic&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;languages&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="s2">&quot;English&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;French&quot;</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The schema is a JSON object with the following fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: A unique identifier for the service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: The name of the service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code>: A brief description of the service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">latitude</span></code>: The latitude of the service location.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">longitude</span></code>: The longitude of the service location.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phone_numbers</span></code>: A list of phone numbers associated with the service. Each phone number object has two fields:
+- <code class="docutils literal notranslate"><span class="pre">number</span></code>: The phone number.
+- <code class="docutils literal notranslate"><span class="pre">type</span></code>: The type of the phone number (e.g., primary, secondary).</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">address</span></code>: The address of the service. The address object has the following fields:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">street1</span></code>: The first line of the street address.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">city</span></code>: The city where the service is located.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">province</span></code>: The province where the service is located.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">postal_code</span></code>: The postal code of the service location.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">country</span></code>: The country where the service is located.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">email</span></code>: The email address of the service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code>: Additional metadata about the service. The metadata object can have any number of fields.</p></li>
+</ul>
 </section>
-<table class="domainindex-table">
-  <tr class="pcap">
-    <td></td><td>&#160;</td><td></td>
-  </tr>
-  <tr class="cap" id="cap-/questions">
-    <td></td><td><strong>/questions</strong></td><td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>
-        <a href="api.html#get--questions"><code class="xref">GET /questions</code></a></td><td>
-    <em></em></td>
-  </tr>
-  <tr class="pcap">
-    <td></td><td>&#160;</td><td></td>
-  </tr>
-  <tr class="cap" id="cap-/recommend">
-    <td></td><td><strong>/recommend</strong></td><td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>
-        <a href="api.html#post--recommend"><code class="xref">POST /recommend</code></a></td><td>
-    <em></em></td>
-  </tr>
-  <tr class="pcap">
-    <td></td><td>&#160;</td><td></td>
-  </tr>
-  <tr class="cap" id="cap-/refine_recommendations">
-    <td></td><td><strong>/refine_recommendations</strong></td><td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>
-        <a href="api.html#post--refine_recommendations"><code class="xref">POST /refine_recommendations</code></a></td><td>
-    <em></em></td>
-  </tr>
-  <tr class="pcap">
-    <td></td><td>&#160;</td><td></td>
-  </tr>
-  <tr class="cap" id="cap-/services">
-    <td></td><td><strong>/services</strong></td><td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>
-        <a href="api.html#get--services-all"><code class="xref">GET /services/all</code></a></td><td>
-    <em></em></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>
-        <a href="api.html#get--services-count"><code class="xref">GET /services/count</code></a></td><td>
-    <em></em></td>
-  </tr>
-</table>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="safety_and_evaluation.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Safety and Evaluation</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="api.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">API Reference</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -368,6 +395,5 @@
       
     </aside>
   </div>
-</div>
-    <script>DOCUMENTATION_OPTIONS.COLLAPSE_INDEX = true</script></body>
+</div></body>
 </html>
