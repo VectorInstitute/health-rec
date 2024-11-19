@@ -398,6 +398,7 @@ transforms them to be compatible with the <a class="reference internal" href="sc
 </pre></div>
 </div>
 <p>Then we can run the following commands to upload the data to the vector database:</p>
+<p><strong>Note</strong>: Replace <code class="docutils literal notranslate"><span class="pre">&lt;collection_name&gt;</span></code> with the name of the collection you want to create.  The default collection name specified in the <code class="docutils literal notranslate"><span class="pre">.env.development</span></code> file is <code class="docutils literal notranslate"><span class="pre">test</span></code>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>health_rec/manage_data.py<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>&lt;collection_name&gt;
 <span class="nv">OPENAI_API_KEY</span><span class="o">=</span><span class="nv">$YOUR_OPENAI_API_KEY</span><span class="w"> </span>python3<span class="w"> </span>health_rec/manage_data.py<span class="w"> </span>load<span class="w"> </span>--name<span class="w"> </span>&lt;collection_name&gt;<span class="w"> </span>--data_dir<span class="w"> </span>/data<span class="w"> </span>--load_embeddings
 python3<span class="w"> </span>health_rec/manage_data.py<span class="w"> </span>list
