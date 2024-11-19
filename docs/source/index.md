@@ -139,6 +139,8 @@ docker run -it --network health-rec_app-network -v <path_to_data_dir_with_json_f
 
 Then we can run the following commands to upload the data to the vector database:
 
+**Note**: Replace `<collection_name>` with the name of the collection you want to create.  The default collection name specified in the `.env.development` file is `test`.
+
 ```bash
 python3 health_rec/manage_data.py create --name <collection_name>
 OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --name <collection_name> --data_dir /data --load_embeddings

@@ -96,7 +96,7 @@ def create_synthetic_dataset(
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
-        {
+        {  # type: ignore
             "context": RunnablePassthrough(),
             "max_context_services": RunnablePassthrough(),
             "format_instructions": lambda _: output_parser.get_format_instructions(),
