@@ -41,20 +41,69 @@ export const TORONTO_COORDINATES: ViewState = {
 
 export const computeViewState = (locations: Location[]): ViewState => {
   if (locations.length === 0) return TORONTO_COORDINATES;
+
   const bounds = new mapboxgl.LngLatBounds();
   locations.forEach(location => bounds.extend([location.longitude, location.latitude]));
+
+  // Calculate the center and appropriate zoom level
+  const center = bounds.getCenter();
+  const [west, south, east, north] = bounds.toArray().flat();
+
+  // Calculate the appropriate zoom level based on bounds
+  const maxZoom = 15;
+  const padding = { top: 50, bottom: 50, left: 50, right: 50 };
+
   return {
-    ...bounds.getCenter(),
-    zoom: 11,
-    padding: { top: 40, bottom: 40, left: 40, right: 40 }
+    longitude: center.lng,
+    latitude: center.lat,
+    zoom: getBoundsZoomLevel(bounds, { width: 400, height: 400 }, padding, maxZoom),
+    padding
   };
 };
 
+function getBoundsZoomLevel(bounds: mapboxgl.LngLatBounds, mapDimensions: { width: number, height: number }, padding: any, maxZoom: number) {
+  const WORLD_DIM = { height: 256, width: 256 };
+  const ZOOM_MAX = maxZoom;
+
+  function latRad(lat: number) {
+    const sin = Math.sin((lat * Math.PI) / 180);
+    const radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
+    return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
+  }
+
+  function zoom(mapPx: number, worldPx: number, fraction: number) {
+    return Math.log2(mapPx / worldPx / fraction);
+  }
+
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+
+  const latFraction = (latRad(ne.lat) - latRad(sw.lat)) / Math.PI;
+
+  const lngDiff = ne.lng - sw.lng;
+  const lngFraction = ((lngDiff < 0) ? (lngDiff + 360) : lngDiff) / 360;
+
+  const latZoom = zoom(
+    mapDimensions.height - padding.top - padding.bottom,
+    WORLD_DIM.height,
+    latFraction
+  );
+  const lngZoom = zoom(
+    mapDimensions.width - padding.left - padding.right,
+    WORLD_DIM.width,
+    lngFraction
+  );
+
+  return Math.min(Math.min(latZoom, lngZoom), ZOOM_MAX);
+}
+
 const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width, initialViewState }) => {
-  const [viewState, setViewState] = useState<ViewState>(initialViewState || TORONTO_COORDINATES);
+  const mapRef = useRef<MapRef>(null);
+  const [viewState, setViewState] = useState<ViewState>(() =>
+    computeViewState(locations)
+  );
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isFullScreenMapOpen, setIsFullScreenMapOpen] = useState(false);
-  const mapRef = useRef<MapRef>(null);
 
   const handleMarkerClick = useCallback((location: Location) => {
     setSelectedLocation(location);
@@ -72,17 +121,20 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
     if (locations.length > 0 && mapRef.current) {
       const bounds = new mapboxgl.LngLatBounds();
       locations.forEach(location => bounds.extend([location.longitude, location.latitude]));
+
       mapRef.current.fitBounds(bounds, {
         padding: { top: 50, bottom: 50, left: 50, right: 50 },
         maxZoom: 15,
-        duration: 0 // Set to 0 for initial load to prevent movement
+        duration: 0
       });
     }
   }, [locations]);
 
   useEffect(() => {
+    const newViewState = computeViewState(locations);
+    setViewState(newViewState);
     fitMapToLocations();
-  }, [fitMapToLocations]);
+  }, [locations, fitMapToLocations]);
 
   const handleViewStateChange = useCallback((evt: ViewStateChangeEvent) => {
     setViewState(evt.viewState);
@@ -218,7 +270,6 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
                       <Box p={2} maxWidth="200px">
                         <Text fontWeight="bold">{selectedLocation.name}</Text>
                         <Text fontSize="sm">{selectedLocation.address}</Text>
-                        <Text fontSize="sm">{selectedLocation.phone}</Text>
                       </Box>
                     </Popup>
                   )}
