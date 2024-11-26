@@ -41,7 +41,11 @@ def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, Any], str]
     }
 
     doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
+<<<<<<< HEAD
     service_id = str(service.get("id", " "))
+=======
+    service_id = str(service.get("id", ""))
+>>>>>>> b21f4ae117c12a681b50f9100a7aa2be2dfec8ee
 
     return doc, metadata, service_id
 
