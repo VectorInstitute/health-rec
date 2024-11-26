@@ -8,6 +8,8 @@ data and embeddings.
 
 import argparse
 import glob
+import hashlib
+import json
 import logging
 import os
 from typing import Any, Dict, List
@@ -17,6 +19,7 @@ from chromadb.config import Settings
 
 from api.config import Config
 from load_data import load_data
+from update_data import update_data
 
 
 logging.basicConfig(
@@ -151,6 +154,52 @@ def print_collection_details(details: Dict[str, Any]) -> None:
     print(f"Number of Documents: {details['count']}")
 
 
+def calculate_hash(content: Dict[str, Any]) -> str:
+    """Calculate a hash for a dictionary content."""
+    # Sort dictionary to ensure consistent hash
+    content_str = json.dumps(content, sort_keys=True)
+    return hashlib.sha256(content_str.encode()).hexdigest()
+
+
+def update_data_in_collection(
+    collection_name: str,
+    data_dir: str,
+    load_embeddings: bool,
+) -> None:
+    """
+    Update a ChromaDB collection by comparing existing entries with new data.
+
+    Only generates new embeddings for changed or new entries.
+
+    Parameters
+    ----------
+    collection_name : str
+        Name of the collection to update
+    data_dir : str
+        Directory containing JSON files to process
+
+    Notes
+    -----
+    Expects data files in the format: data-XX.json where XX is a number.
+
+    """
+    files = sorted(glob.glob(os.path.join(data_dir, "*.json")))
+    logger.info(
+        f"Loading data from {len(files)} files into collection: {collection_name}"
+    )
+    for file_path in files:
+        update_data(
+            file_path=file_path,
+            host=Config.CHROMA_HOST,
+            port=Config.CHROMA_PORT,
+            collection_name=collection_name,
+            openai_api_key=Config.OPENAI_API_KEY,
+            load_embeddings=load_embeddings,
+        )
+
+    logger.info(f"Finished updating data into collection: {collection_name}")
+
+
 def main() -> None:
     """Manage Chroma collections for Health-Rec RAG application."""
     parser = argparse.ArgumentParser(
@@ -158,7 +207,7 @@ def main() -> None:
     )
     parser.add_argument(
         "action",
-        choices=["list", "create", "delete", "load", "inspect"],
+        choices=["list", "create", "delete", "load", "inspect", "update"],
         help="Action to perform",
     )
     parser.add_argument(
@@ -172,7 +221,7 @@ def main() -> None:
     parser.add_argument(
         "--load_embeddings",
         action="store_true",
-        help="Generate and load embeddings (for load action)",
+        help="Generate and load embeddings (for load and update action)",
     )
 
     args = parser.parse_args()
@@ -199,6 +248,14 @@ def main() -> None:
             parser.error("--name is required for inspect action")
         details = get_collection_details(args.name)
         print_collection_details(details)
+    elif args.action == "update":
+        if not args.name or not args.data_dir:
+            parser.error("--name and --data_dir are required for update action")
+        update_data_in_collection(
+            collection_name=args.name,
+            data_dir=args.data_dir,
+            load_embeddings=args.load_embeddings,
+        )
 
 
 if __name__ == "__main__":
