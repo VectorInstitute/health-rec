@@ -2,16 +2,18 @@
 211 Service Update Data Loader.
 
 This module provides functionality to update a ChromaDB collection with new data.
-It compares existing entries with new data and generates embeddings for changed or new entries.
+
+It compares existing entries with new data and
+generates embeddings for changed or new entries.
 """
 
-import logging
 import hashlib
 import json
+import logging
 from typing import Any, Dict, Optional, Tuple
 
 from api.config import Config
-from load_data import OpenAIEmbedding, load_json_data, get_or_create_collection
+from load_data import OpenAIEmbedding, get_or_create_collection, load_json_data
 
 
 logging.basicConfig(
@@ -27,7 +29,7 @@ def calculate_hash(content: Dict[str, Any]) -> str:
     return hashlib.sha256(content_str.encode()).hexdigest()
 
 
-def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, str]]:
+def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, Any], str]:
     """Prepare a document and metadata for a service entry."""
     metadata = {
         key: ", ".join(map(str, value))
@@ -38,10 +40,8 @@ def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, str]]:
         for key, value in service.items()
     }
 
-    doc = " | ".join(
-        f"{key}: {value}" for key, value in metadata.items() if value
-    )
-    service_id = str(service.get("id", ""))
+    doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
+    service_id = str(service.get("id", " "))
 
     return doc, metadata, service_id
 
@@ -57,6 +57,7 @@ def update_data(
 ) -> None:
     """
     Update a ChromaDB collection by comparing existing entries with new data.
+
     Only generates new embeddings for changed or new entries.
 
     Parameters
@@ -79,15 +80,12 @@ def update_data(
         Whether to load embeddings for the new data
 
     """
-
-
     logger.info("Starting update process")
     logger.info(f"File path: {file_path}")
     logger.info(f"Host: {host}")
     logger.info(f"Port: {port}")
     logger.info(f"Collection name: {collection_name}")
     try:
-
         services = load_json_data(file_path)
         logger.info(f"Loaded {len(services)} services from JSON file")
 
@@ -97,7 +95,9 @@ def update_data(
         openai_embedding = None
         if load_embeddings and openai_api_key:
             logger.info("Initializing OpenAI embedding function")
-            openai_embedding = OpenAIEmbedding(api_key=openai_api_key, model=embedding_model)
+            openai_embedding = OpenAIEmbedding(
+                api_key=openai_api_key, model=embedding_model
+            )
 
         # Process each JSON file
         total_processed = 0
@@ -112,21 +112,29 @@ def update_data(
             try:
                 # Check if the document exists
                 existing_result = collection.get(
-                    ids=[service_id],
-                    include=['documents', 'metadatas']
+                    ids=[service_id], include=["documents", "metadatas"]
                 )
 
                 needs_update = False
-                if existing_result['ids']:
+                if existing_result["ids"]:
                     # Compare existing document and metadata with new ones
-                    existing_doc = existing_result['documents'][0]
-                    existing_metadata = existing_result['metadatas'][0]
+                    existing_doc = existing_result["documents"][0]
+                    existing_metadata = existing_result["metadatas"][0]
 
                     # generate new hash for metadata and document
-                    new_metadata_hash, new_doc_hash = calculate_hash(metadata), calculate_hash({"document": doc})
-                    old_metadata_hash, old_doc_hash = calculate_hash(existing_metadata), calculate_hash({"document": existing_doc})
+                    new_metadata_hash, new_doc_hash = (
+                        calculate_hash(metadata),
+                        calculate_hash({"document": doc}),
+                    )
+                    old_metadata_hash, old_doc_hash = (
+                        calculate_hash(existing_metadata),
+                        calculate_hash({"document": existing_doc}),
+                    )
 
-                    if new_metadata_hash != old_metadata_hash or new_doc_hash != old_doc_hash:
+                    if (
+                        new_metadata_hash != old_metadata_hash
+                        or new_doc_hash != old_doc_hash
+                    ):
                         needs_update = True
                         logger.info(f"Update needed for service {service_id}")
                 else:
@@ -141,12 +149,12 @@ def update_data(
                         embedding = openai_embedding([doc])[0]
 
                     # Update or add the document
-                    if existing_result['ids']:
+                    if existing_result["ids"]:
                         collection.update(
                             ids=[service_id],
                             embeddings=[embedding],
                             metadatas=[metadata],
-                            documents=[doc]
+                            documents=[doc],
                         )
                         total_updated += 1
                     else:
@@ -154,7 +162,7 @@ def update_data(
                             ids=[service_id],
                             embeddings=[embedding],
                             metadatas=[metadata],
-                            documents=[doc]
+                            documents=[doc],
                         )
                         total_added += 1
 
@@ -162,8 +170,10 @@ def update_data(
                 logger.error(f"Error processing service {service_id}: {e}")
                 continue
 
-        logger.info(f"Update complete. Processed: {total_processed}, "
-                   f"Updated: {total_updated}, Added: {total_added}")
+        logger.info(
+            f"Update complete. Processed: {total_processed}, "
+            f"Updated: {total_updated}, Added: {total_added}"
+        )
 
     except Exception as e:
         logger.error(f"Error updating collection: {e}")
