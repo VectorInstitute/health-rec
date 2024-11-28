@@ -28,6 +28,8 @@ Make sure you have these tools installed:
 - Node.js (18.0.0+)
 - Poetry (1.4.0+)
 
+Note: the project is only tested with python 3.11, and it is recommended to use the same version.
+
 ### 🔑 API keys setup
 
 Create a `.env.development` file in the project root:
