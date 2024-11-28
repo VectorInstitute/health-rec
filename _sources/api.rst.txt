@@ -221,3 +221,49 @@ Common HTTP Status Codes
 - ``400 Bad Request``: Invalid parameters
 - ``422 Unprocessable Entity``: Invalid request body
 - ``500 Internal Server Error``: Server-side error
+
+
+API Benchmark
+-------------
+
+The following table shows latency benchmarks for the /recommend API endpoint. Tests were run with different combinations of query parameters and reranking options. Each request was made sequentially to measure individual request latency accurately.
+The summary statistics are generating from 50 runs with a timeout of 30 seconds w/ no delay between each request.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Test Case
+     - Mean (s)
+     - Median (s)
+     - Std Dev (s)
+     - Min (s)
+     - Max (s)
+     - Sample Size
+   * - Query only
+     - 6.686
+     - 5.985
+     - 2.336
+     - 4.504
+     - 19.362
+     - 48
+   * - Query w/ reranking
+     - 8.729
+     - 8.547
+     - 1.964
+     - 5.249
+     - 14.133
+     - 50
+   * - Query w/ location
+     - 6.795
+     - 6.260
+     - 3.560
+     - 3.277
+     - 27.860
+     - 46
+   * - Query w/ location and reranking
+     - 8.197
+     - 7.934
+     - 1.867
+     - 5.720
+     - 13.688
+     - 50

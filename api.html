@@ -541,6 +541,59 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code>: Server-side error</p></li>
 </ul>
 </section>
+<section id="api-benchmark">
+<h2>API Benchmark<a class="headerlink" href="#api-benchmark" title="Link to this heading">¶</a></h2>
+<p>The following table shows latency benchmarks for the /recommend API endpoint. Tests were run with different combinations of query parameters and reranking options. Each request was made sequentially to measure individual request latency accurately.
+The summary statistics are generating from 50 runs with a timeout of 30 seconds w/ no delay between each request.</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Test Case</p></th>
+<th class="head"><p>Mean (s)</p></th>
+<th class="head"><p>Median (s)</p></th>
+<th class="head"><p>Std Dev (s)</p></th>
+<th class="head"><p>Min (s)</p></th>
+<th class="head"><p>Max (s)</p></th>
+<th class="head"><p>Sample Size</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Query only</p></td>
+<td><p>6.686</p></td>
+<td><p>5.985</p></td>
+<td><p>2.336</p></td>
+<td><p>4.504</p></td>
+<td><p>19.362</p></td>
+<td><p>48</p></td>
+</tr>
+<tr class="row-odd"><td><p>Query w/ reranking</p></td>
+<td><p>8.729</p></td>
+<td><p>8.547</p></td>
+<td><p>1.964</p></td>
+<td><p>5.249</p></td>
+<td><p>14.133</p></td>
+<td><p>50</p></td>
+</tr>
+<tr class="row-even"><td><p>Query w/ location</p></td>
+<td><p>6.795</p></td>
+<td><p>6.260</p></td>
+<td><p>3.560</p></td>
+<td><p>3.277</p></td>
+<td><p>27.860</p></td>
+<td><p>46</p></td>
+</tr>
+<tr class="row-odd"><td><p>Query w/ location and reranking</p></td>
+<td><p>8.197</p></td>
+<td><p>7.934</p></td>
+<td><p>1.867</p></td>
+<td><p>5.720</p></td>
+<td><p>13.688</p></td>
+<td><p>50</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
         </article>
@@ -622,6 +675,7 @@
 <li><a class="reference internal" href="#service-information">Service Information</a></li>
 <li><a class="reference internal" href="#error-responses">Error Responses</a></li>
 <li><a class="reference internal" href="#common-http-status-codes">Common HTTP Status Codes</a></li>
+<li><a class="reference internal" href="#api-benchmark">API Benchmark</a></li>
 </ul>
 </li>
 </ul>
