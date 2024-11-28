@@ -38,10 +38,10 @@ class RAGService:
         """Filter services by location and radius."""
         filtered_services = []
         for service in services:
-            if service.metadata.get("Latitude") and service.metadata.get("Longitude"):
+            if service.metadata.get("latitude") and service.metadata.get("longitude"):
                 service_location = (
-                    float(service.metadata["Latitude"]),
-                    float(service.metadata["Longitude"]),
+                    float(service.metadata["latitude"]),
+                    float(service.metadata["longitude"]),
                 )
                 distance = _calculate_distance(service_location, location)
                 if distance <= radius:
