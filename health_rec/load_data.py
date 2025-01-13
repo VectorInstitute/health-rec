@@ -197,7 +197,7 @@ def load_data(
                     embeddings=embeddings,
                 )
                 logger.info(
-                    f"Added documents {i} to {i+len(batch_docs)} with embeddings"
+                    f"Added documents {i} to {i + len(batch_docs)} with embeddings"
                 )
 
             logger.info("Completed the data loading and embedding process")
