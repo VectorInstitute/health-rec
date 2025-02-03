@@ -1,5 +1,3 @@
-
-
 # Health Recommendation System
 
 ```{toctree}
@@ -121,6 +119,12 @@ python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --
 
 ```bash
 python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
+```
+
+**Ontario-wide data including ConnexOntario data**
+
+```bash
+python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset 211CX --data-dir <path_to_data_dir>
 ```
 
 **Empower API data**

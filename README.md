@@ -1,5 +1,3 @@
-
-
 # Health Recommendation System
 
 Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
@@ -113,6 +111,12 @@ python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --
 
 ```bash
 python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
+```
+
+**Ontario-wide data including ConnexOntario data**
+
+```bash
+python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset 211CX --data-dir <path_to_data_dir>
 ```
 
 **Empower API data**

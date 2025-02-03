@@ -1,5 +1,6 @@
 """Download and process data from the 211 API."""
 
+import argparse
 import json
 import logging
 import math
@@ -175,8 +176,6 @@ def main() -> None:
     """Main function to run the script."""
     load_dotenv("./.env.development")
 
-    import argparse
-
     parser = argparse.ArgumentParser(description="Download data from the 211 API.")
     parser.add_argument(
         "--api-key", default=os.getenv("211_API_KEY"), help="API key for 211 API"
@@ -186,7 +185,12 @@ def main() -> None:
         default="https://data.211support.org/api/v2/search",
         help="Base URL for 211 API",
     )
-    parser.add_argument("--dataset", default="211CX", help="Dataset to download")
+    parser.add_argument(
+        "--dataset",
+        default="211CX",
+        help="Dataset to download",
+        choices=["211CX", "on", "nl", "nb"],
+    )
     parser.add_argument(
         "--is-gta", action="store_true", help="Whether to download GTA data"
     )
