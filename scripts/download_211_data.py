@@ -186,7 +186,7 @@ def main() -> None:
         default="https://data.211support.org/api/v2/search",
         help="Base URL for 211 API",
     )
-    parser.add_argument("--dataset", default="on", help="Dataset to download")
+    parser.add_argument("--dataset", default="211CX", help="Dataset to download")
     parser.add_argument(
         "--is-gta", action="store_true", help="Whether to download GTA data"
     )
