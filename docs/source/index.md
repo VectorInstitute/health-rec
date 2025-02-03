@@ -127,6 +127,15 @@ python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --
 python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset 211CX --data-dir <path_to_data_dir>
 ```
 
+**Filter out ConnexOntario services**
+
+If we wish to only filter out ConnexOntario from the full ontario dataset, we can run this script after both
+the above data have been collected from the 211 API:
+
+```bash
+python3 scripts/connex.py --data-dir <path_to_data_dir>
+```
+
 **Empower API data**
 
 ```bash
