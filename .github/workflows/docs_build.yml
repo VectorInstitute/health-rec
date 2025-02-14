@@ -35,7 +35,9 @@ jobs:
           python-version-file: "health_rec/.python-version"
 
       - name: Install the project
-        run: uv sync --all-extras --all-groups
+        run: |
+          cd health_rec
+          uv sync --all-extras --all-groups
 
       - name: Build docs
         run: cd docs && rm -rf source/reference/api/_autosummary && uv run make html
