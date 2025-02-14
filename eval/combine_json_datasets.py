@@ -2,7 +2,7 @@ import json
 import glob
 
 
-def combine_json_files(input_pattern, output_file):
+def combine_json_files(input_pattern: str, output_file: str) -> None:
     """
     Combines multiple JSON files matching a pattern into a single JSON file.
 
@@ -53,7 +53,7 @@ def combine_json_files(input_pattern, output_file):
         print(f"Error writing to output file: {e}")
 
 
-def main():
+def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(

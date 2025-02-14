@@ -52,7 +52,7 @@ def download_dataset(
             base_url,
             headers={"Content-Type": "application/json"},
             params={"key": api_key},
-            json=create_payload(0, dataset, page_size),
+            json=payload,
         )
         response.raise_for_status()
         first_page = response.json()
