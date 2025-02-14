@@ -101,8 +101,6 @@ class Service(BaseModel):
         A list of phone numbers associated with the service.
     address : Address
         The physical address of the service.
-    email : str
-        The email address of the service.
     metadata : Dict[str, Any]
         Additional metadata associated with the service.
     last_updated : Optional[datetime]
@@ -117,7 +115,6 @@ class Service(BaseModel):
     longitude: float
     phone_numbers: List[PhoneNumber]
     address: Address
-    email: str
 
     # Optional metadata fields stored as key-value pairs
     metadata: Dict[str, Any] = Field(default_factory=dict)
