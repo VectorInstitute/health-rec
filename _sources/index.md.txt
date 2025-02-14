@@ -56,18 +56,21 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 
 ### 🛠️ Installation
 
+The python development environment can be set up using
+[uv](https://github.com/astral-sh/uv?tab=readme-ov-file#installation). Hence, make sure
+it is installed.
+
 1. **Clone and setup backend**
    ```bash
    # Clone repository
    git clone https://github.com/VectorInstitute/health-rec.git
    cd health-rec
 
-   # Create virtual environment
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
    # Install dependencies
-   poetry install --with test,docs
+   uv sync --dev
+
+   # Activate virtual environment
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
 2. **Run pre-commit checks**
