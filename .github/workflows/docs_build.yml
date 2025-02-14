@@ -38,9 +38,8 @@ jobs:
         run: |
           cd health_rec
           uv sync --all-extras --all-groups
-          source .venv/bin/activate
 
       - name: Build docs
         run: |
-          echo $pwd
-          cd ../docs && rm -rf source/reference/api/_autosummary && uv run make html
+          source .venv/bin/activate
+          cd docs && rm -rf source/reference/api/_autosummary && uv run make html
