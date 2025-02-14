@@ -1,31 +1,74 @@
-import csv
-import random
+import glob
 import json
-import argparse
+import logging
 import os
-from typing import List, Dict, Any
+import random
+from typing import Any, Dict, List
+
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain_core.runnables import RunnablePassthrough
 
+# get env variables
+from dotenv import load_dotenv
 
-# Load the services data
-def load_services(file_path: str) -> List[Dict[str, Any]]:
-    with open(file_path, "r") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+load_dotenv(".env.development")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
-# Create a prompt template for generating synthetic queries and answers
+def load_services(data_dir: str) -> List[Dict[str, Any]]:
+    """
+    Load services from multiple JSON files in a directory.
+
+    Parameters
+    ----------
+    data_dir : str
+        Path to directory containing JSON files (data-XX.json)
+
+    Returns
+    -------
+    List[Dict[str, Any]]
+        List of service dictionaries
+    """
+    services = []
+    json_files = sorted(glob.glob(os.path.join(data_dir, "data-*.json")))
+
+    if not json_files:
+        raise ValueError(f"No data-XX.json files found in {data_dir}")
+
+    for file_path in json_files:
+        logger.info(f"Loading services from {file_path}")
+        try:
+            with open(file_path, "r") as f:
+                file_services = json.load(f)
+                if isinstance(file_services, list):
+                    services.extend(file_services)
+                else:
+                    logger.warning(f"Skipping {file_path}: content is not a list")
+        except json.JSONDecodeError:
+            logger.error(f"Error decoding JSON from {file_path}")
+        except Exception as e:
+            logger.error(f"Error loading {file_path}: {str(e)}")
+
+    logger.info(f"Loaded {len(services)} services total")
+    return services
+
+
+# Create prompt template for generating synthetic queries and answers
 query_generation_template = """
-We are evaluating a RAG pipeline for generating health service recommendations to individuals in need.  The aim is to create a synthetic dataset of user queries and expected answers based on the context of health services provided.
+We are evaluating a RAG pipeline for generating health service recommendations to individuals in need. The aim is to create a synthetic dataset of user queries based on the context of health services provided.
 
-Given the following context of health services:
+Given the following context of health service:
 
 {context}
 
-Generate a user query that corresponds to 1-{max_context_services} services in the context.
+Generate a user query that corresponds to the service in the context.
 {situation_instruction}
 
 For each query, provide an expected answer based on the relevant services.
@@ -37,18 +80,7 @@ Remember to consider:
 2. Intersectional needs (e.g., elderly with mobility issues and mental health concerns)
 3. Primary and secondary service recommendations
 
-For demographics, use the following format:
-- Age: [child/teen/young adult/adult/senior]
-- Gender: [male/female/non-binary]
-- Ethnicity: [Caucasian/African/Asian/Hispanic/Indigenous/Other]
-- Employment status: [employed/unemployed/student/retired/unable to work]
-- Housing situation: [own home/renting/homeless/shelter/assisted living]
-- Disability status: [no disability/physical disability/cognitive disability]
-- Immigration status: [citizen/permanent resident/temporary resident/refugee/undocumented]
-
-If the demographic isn't **explicitly** mentioned in the generated user query, set it to N/A.
 Avoid providing services tailored to specific ethnicities or religions unless explicitly mentioned in the query.
-
 
 For the level of detail:
 - Low: Brief, general queries with minimal context
@@ -64,66 +96,27 @@ Output the results in the specified format.
 response_schemas = [
     ResponseSchema(name="query", description="The user's query about health services"),
     ResponseSchema(
-        name="relevant_services", description="List of id for relevant services (1-5)"
-    ),
-    ResponseSchema(
         name="answer",
         description="Expected answer based on the query and relevant services",
-    ),
-    ResponseSchema(
-        name="is_emergency",
-        description="Boolean indicating if this is an emergency situation",
-    ),
-    ResponseSchema(
-        name="is_out_of_scope",
-        description="Boolean indicating if the query is out of scope for available services",
-    ),
-    ResponseSchema(
-        name="demographics",
-        description="Relevant demographic information for the query in the specified format",
-    ),
-    ResponseSchema(
-        name="detail_level",
-        description="The level of detail in the query (low/medium/high)",
     ),
 ]
 
 output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
-EMERGENCY_SERVICES_TEXT = """
-**In an emergency, call 9‑1‑1.**
 
-* At home, you can dial 9‑1‑1 directly. At a business or other location, you may need to dial an outside line before dialing 9‑1‑1.
-* At a pay phone, dial 9‑1‑1; the call is free. When using a cellular phone, be prepared to give the exact location of the emergency; the call is free.
-* For TTY access (Telephone Device for the Deaf), press the space bar announcer key repeatedly until a response is received. Deaf, deafened, Hard of Hearing, or Speech Impaired persons may register for Text with 9-1-1 Service.
-
-**If you do not speak English,** stay on the line while the call taker contacts the telephone translations service.
-
-When you call, remain calm and speak clearly. Identify which emergency service you require (police, fire, or ambulance) and be prepared to provide the following information: a description of what is happening, the location, and your name, address, and telephone number.
-
-Please remain on the line to provide additional information if requested by the call taker. Do not hang up until the call taker tells you to.
-"""
-
-OUT_OF_SCOPE_TEXT = "I apologize, but I couldn't find any relevant services that match your query. The services available may not cover this specific need. If you have a different health-related question or need, please feel free to ask, and I'll do my best to help you find appropriate resources."
-
-
-# Create the Langchain pipeline
 def create_synthetic_dataset(
     services: List[Dict[str, Any]],
     num_samples: int,
-    num_random_services: int,
-    max_context_services: int,
     situation_type: str,
     detail_level: str,
 ) -> List[Dict[str, Any]]:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
-
+    """Create synthetic dataset from services."""
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
         {  # type: ignore
             "context": RunnablePassthrough(),
-            "max_context_services": RunnablePassthrough(),
             "situation_instruction": RunnablePassthrough(),
             "detail_level": RunnablePassthrough(),
             "format_instructions": lambda _: output_parser.get_format_instructions(),
@@ -135,98 +128,68 @@ def create_synthetic_dataset(
 
     synthetic_dataset = []
 
-    for _ in range(num_samples):
-        # Randomly select services for context
-        context_services = random.sample(services, num_random_services)
-        context = "\n\n".join(
-            [
-                f"Service {s['id']}:\n{s['PublicName']}\n{s['Description']}"
-                for s in context_services
-            ]
-        )
+    # get num_samples from services randomly without replacement
+    random_services = random.sample(services, num_samples)
+
+    for context_service in random_services:
+        context = f"Service {str(context_service.get('id', ''))}:\n{context_service.get('PublicName', 'Unnamed Service')}\n{context_service.get('Description', 'No description available')}"
 
         # Set situation instruction based on the specified type
         if situation_type == "emergency":
-            situation_instruction = "Generate an user query for an urgent situation that requires emergency services."
+            situation_instruction = "Generate a user query for an urgent situation that requires emergency services."
         elif situation_type == "out_of_scope":
-            situation_instruction = "Generate a user query that is out of scope and inappropriate.  \
-                Don't take into account whether the user query matches the context of health services provided."
+            situation_instruction = (
+                "Generate a user query that is out of scope and inappropriate. "
+                "Don't take into account whether the user query matches the context of health services provided."
+            )
         else:
             situation_instruction = (
                 "Consider various demographics and intersectional needs."
             )
 
-        # Generate queries and answers
         try:
             result = chain.invoke(
                 {
                     "context": context,
-                    "max_context_services": max_context_services,
                     "situation_instruction": situation_instruction,
                     "detail_level": detail_level,
                 }
             )
 
-            if isinstance(result, list):
-                parsed_result = result
-            else:
-                parsed_result = [result]
-
-            for item in parsed_result:
-                relevant_services = [
-                    s["id"]
-                    for s in context_services
-                    if s["id"] in item.get("relevant_services", [])
-                ]
-
-                # Handle emergency and out-of-scope situations
-                # if item.get('is_emergency'):
-                #     item['answer'] = EMERGENCY_SERVICES_TEXT + "\n\n" + item.get('answer', '')
-                # elif item.get('is_out_of_scope'):
-                #     item['answer'] = OUT_OF_SCOPE_TEXT
-
-                synthetic_dataset.append(
-                    {
-                        "query": item.get("query", ""),
-                        "context": relevant_services,
-                        "answer": item.get("answer", ""),
-                        "is_emergency": item.get("is_emergency", False),
-                        "is_out_of_scope": item.get("is_out_of_scope", False),
-                        "demographics": item.get("demographics", ""),
-                        "detail_level": item.get("detail_level", detail_level),
-                    }
-                )
+            synthetic_dataset.append(
+                {
+                    "query": result.get("query", ""),
+                    "context": context_service["id"],
+                    "answer": result.get("answer", ""),
+                    "is_emergency": True if situation_type == "emergency" else False,
+                    "is_out_of_scope": True
+                    if situation_type == "out_of_scope"
+                    else False,
+                    "detail_level": detail_level,
+                }
+            )
         except Exception as e:
-            print(f"Error generating sample: {e}")
+            logger.error(f"Error generating sample: {e}")
+            logger.error(f"Result was: {result}")
 
     return synthetic_dataset
 
 
-# Main execution
-if __name__ == "__main__":
+def main() -> None:
+    """Main function to run the script."""
+    import argparse
+
     parser = argparse.ArgumentParser(
         description="Generate synthetic dataset for RAG evaluation"
     )
     parser.add_argument(
-        "--input_file", default="data/211_nb.csv", help="Path to the input CSV file"
+        "--input_dir", required=True, help="Directory containing the JSON files"
     )
     parser.add_argument(
         "--output_dir", default="./eval", help="Directory to save the output JSON file"
     )
     parser.add_argument(
         "--name", default="synthetic_dataset", help="Name of the output JSON file"
-    )
-    parser.add_argument(
-        "--num_random_services",
-        type=int,
-        default=10,
-        help="Number of services to randomly select for each sample",
-    )
-    parser.add_argument(
-        "--max_context_services",
-        type=int,
-        default=5,
-        help="Maximum number of services to include in the context",
     )
     parser.add_argument(
         "--num_samples", type=int, default=20, help="Number of samples to generate"
@@ -256,12 +219,13 @@ if __name__ == "__main__":
     # Set the API key for the ChatOpenAI model
     os.environ["OPENAI_API_KEY"] = openai_api_key
 
-    services = load_services(args.input_file)
+    # Load services from JSON files
+    services = load_services(args.input_dir)
+
+    # Generate synthetic dataset
     synthetic_dataset = create_synthetic_dataset(
         services,
         num_samples=args.num_samples,
-        num_random_services=args.num_random_services,
-        max_context_services=args.max_context_services,
         situation_type=args.situation_type,
         detail_level=args.detail_level,
     )
@@ -271,6 +235,10 @@ if __name__ == "__main__":
     with open(output_file, "w") as f:
         json.dump(synthetic_dataset, f, indent=2)
 
-    print(
+    logger.info(
         f"Generated {len(synthetic_dataset)} synthetic samples. Saved to {output_file}"
     )
+
+
+if __name__ == "__main__":
+    main()

@@ -79,7 +79,7 @@ class RAGService:
 
         try:
             completion = self.client.chat.completions.create(
-                model="gpt-4",
+                model=Config.OPENAI_MODEL,
                 messages=[
                     {
                         "role": "user",

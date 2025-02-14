@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import chromadb
 import openai
 from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
+from tiktoken import get_encoding
 
 from api.config import Config
 
@@ -82,6 +83,9 @@ def prepare_documents(
 ) -> Tuple[Documents, List[Dict[str, Any]], List[str]]:
     """Prepare documents, metadata, and IDs from service data for Chroma storage.
 
+    Truncates documents that exceed the maximum token length for embeddings.
+    Uses tiktoken for accurate OpenAI token counting.
+
     Parameters
     ----------
     services (List[Dict[str, Any]]): A list of dictionaries representing
@@ -91,11 +95,13 @@ def prepare_documents(
     -------
     Tuple[Documents, List[Dict[str, Any]], List[str]]: A tuple containing the
     documents, metadata, and IDs.
-
     """
     documents: Documents = []
     metadatas: List[Dict[str, Any]] = []
     ids: List[str] = []
+
+    # Get the appropriate tokenizer for the embedding model
+    tokenizer = get_encoding("cl100k_base")  # Used by text-embedding API
 
     for service in services:
         metadata = {
@@ -107,6 +113,20 @@ def prepare_documents(
             for key, value in service.items()
         }
         doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
+
+        # Count tokens in the document
+        tokens = tokenizer.encode(doc)
+        num_tokens = len(tokens)
+
+        # Truncate document if it exceeds max token length
+        if num_tokens > Config.EMBEDDING_MAX_CONTEXT_LENGTH:
+            logger.warning(
+                f"Document exceeds max token length ({num_tokens} > {Config.EMBEDDING_MAX_CONTEXT_LENGTH}). "
+                f"Truncating document with ID: {service.get('id', 'unknown')}"
+            )
+            # Decode only the allowed number of tokens back to text
+            doc = tokenizer.decode(tokens[: Config.EMBEDDING_MAX_CONTEXT_LENGTH])
+
         documents.append(doc)
         metadatas.append(metadata)
         ids.append(str(service.get("id", f"generated_{len(ids)}")))

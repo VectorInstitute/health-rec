@@ -124,7 +124,7 @@ class RefineService:
             """
 
             completion = self.client.chat.completions.create(
-                model="gpt-4",
+                model=Config.OPENAI_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=300,
             )

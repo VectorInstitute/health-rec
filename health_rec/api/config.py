@@ -62,6 +62,7 @@ class Config:
     CHROMA_PORT: int = 8000
     COLLECTION_NAME: str = getenv("COLLECTION_NAME", "211_gta")
     RELEVANCY_WEIGHT: float = float(getenv("RELEVANCY_WEIGHT", "0.5"))
+    EMBEDDING_MAX_CONTEXT_LENGTH: int = 8192
     MAX_CONTEXT_LENGTH: int = 300
     TOP_K: int = 5
     RERANKER_MAX_CONTEXT_LENGTH: int = 150
