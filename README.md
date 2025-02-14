@@ -115,6 +115,18 @@ python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --
 python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset on --data-dir <path_to_data_dir>
 ```
 
+**Ontario-wide data including Connex data (211 API)**
+
+```bash
+python3 scripts/download_211_data.py --api-key $YOUR_211_API_KEY --dataset 211CX --data-dir <path_to_data_dir>
+```
+
+**Download only Connex data (211 API)**
+
+```bash
+python3 scripts/download_connex_data.py --api-key $YOUR_211_API_KEY  --output-dir <path_to_data_dir>
+```
+
 **Empower API data**
 
 ```bash

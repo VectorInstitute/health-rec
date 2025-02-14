@@ -1,156 +1,199 @@
-import argparse
-import torch
 import json
-import csv
-from tqdm import tqdm
-from collections import defaultdict
-from typing import List, Dict, Any, DefaultDict
-
-
-def load_embeddings(path: str) -> Any:
-    return torch.load(path)
-
-
-def calculate_similarity_scores(
-    query_vec: torch.Tensor, doc_vectors: torch.Tensor, scoring_method: str
-) -> torch.Tensor:
-    if scoring_method == "max":
-        # For models like ColBERT
-        scores = torch.matmul(
-            query_vec.unsqueeze(0).float(), doc_vectors.transpose(1, 2).float()
-        )
-        max_scores_per_query_term = scores.max(dim=2).values
-        total_scores = max_scores_per_query_term.sum(dim=1)
-    elif scoring_method == "mean":
-        # For single vector per query/doc models
-        total_scores = torch.matmul(query_vec.unsqueeze(0), doc_vectors.t()).squeeze(0)
-    else:
-        raise ValueError("Invalid scoring method. Choose 'max' or 'mean'.")
-
-    return total_scores
+import requests
+from typing import List, Dict
+from urllib.parse import urljoin
+import argparse
 
 
 def calculate_topk_accuracy(
-    query_vectors: torch.Tensor,
-    doc_vectors: torch.Tensor,
-    ground_truth: List[Any],
-    query_dataset: List[Dict[str, Any]],
-    k_values: List[int],
-    scoring_method: str,
-) -> DefaultDict[str, DefaultDict[str, float]]:
-    results: DefaultDict[str, DefaultDict[str, float]] = defaultdict(
-        lambda: defaultdict(float)
-    )
-    splits = ["detail_level", "is_emergency", "is_out_of_scope"]
-    split_counts: DefaultDict[str, DefaultDict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
+    retrieved_ids: List[str], relevant_id: str, k: int
+) -> float:
+    """
+    Calculates the top-k accuracy for a single relevant ID.
 
-    for k in k_values:
-        for i, query_vec in tqdm(enumerate(query_vectors), desc=f"Calculating acc@{k}"):
-            total_scores = calculate_similarity_scores(
-                query_vec, doc_vectors, scoring_method
+    Parameters
+    ----------
+    retrieved_ids : List[str]
+        List of IDs retrieved by the system.
+    relevant_id : str
+        The single ground truth relevant ID.
+    k : int
+        The 'k' in top-k accuracy.
+
+    Returns
+    -------
+    float
+        The top-k accuracy. Returns 0 if retrieved_ids is empty or no match is found.
+    """
+    if not retrieved_ids or not relevant_id:
+        return 0.0
+
+    top_k_retrieved = retrieved_ids[:k]
+    return 1.0 if str(relevant_id) in top_k_retrieved else 0.0
+
+
+def evaluate_retrieval_accuracy(
+    dataset_path: str, endpoint: str, top_k_values: List[int]
+) -> Dict[str, Dict[str, Dict[int, float]]]:
+    """
+    Evaluates the top-k accuracy of the retrieval API, split by categories.
+
+    Parameters
+    ----------
+    dataset_path : str
+        Path to the JSON dataset file.
+    endpoint : str
+        The retrieval API endpoint URL.
+    top_k_values : List[int]
+        A list of 'k' values for which to calculate top-k accuracy.
+
+    Returns
+    -------
+    Dict[str, Dict[int, float]]
+        A dictionary of dictionaries. The outer keys are categories
+        (e.g., "is_emergency", "is_out_of_scope", "detail_level").
+        The inner dictionaries map top-k values to average accuracies
+        for that category and k.
+    """
+
+    with open(dataset_path, "r") as f:
+        dataset = json.load(f)
+
+    # Initialize results dictionary
+    results: Dict[str, Dict[str, Dict[int, List[float]]]] = {
+        "is_emergency": {},
+        "is_out_of_scope": {},
+        "detail_level": {},
+    }
+    for category in results:
+        if category in ("is_emergency", "is_out_of_scope"):
+            results[category] = {
+                "true": {k: [] for k in top_k_values},
+                "false": {k: [] for k in top_k_values},
+            }
+        elif category == "detail_level":
+            results[category] = {
+                "low": {k: [] for k in top_k_values},
+                "medium": {k: [] for k in top_k_values},
+                "high": {k: [] for k in top_k_values},
+            }
+
+    for item in dataset:
+        query = item["query"]
+        relevant_id = item["context"]  # Now expects a single ID instead of a list
+
+        # Skip items with empty context (no relevant service ID)
+        if not relevant_id:
+            continue
+
+        # Build the request payload
+        payload = {
+            "query": query,
+            "latitude": None,
+            "longitude": None,
+            "radius": None,
+            "detail_level": "low",  # This doesn't affect retrieval, but is part of the schema
+        }
+
+        try:
+            response = requests.post(
+                urljoin(endpoint, "retrieve"),
+                json=payload,
+                params={"top_k": max(top_k_values)},
             )
-            sorted_indices = total_scores.argsort(descending=True)
+            response.raise_for_status()
+            retrieved_services = response.json()
+            retrieved_ids = [service["id"] for service in retrieved_services]
 
-            topk_indices = sorted_indices[:k]
-            topk_ids = [ground_truth[idx] for idx in topk_indices]
-            hit = int(query_dataset[i]["context"] in topk_ids)
+            for k in top_k_values:
+                accuracy = calculate_topk_accuracy(retrieved_ids, relevant_id, k)
 
-            results["all"][f"acc@{k}"] += hit
-            for split in splits:
-                if split in query_dataset[i]:
-                    split_value = query_dataset[i][split]
-                    results[split][f"{split_value}_acc@{k}"] += hit
-                    split_counts[split][split_value] += 1
+                # Store results based on categories
+                for category in ["is_emergency", "is_out_of_scope", "detail_level"]:
+                    if category in ("is_emergency", "is_out_of_scope"):
+                        category_value = str(item.get(category, "false")).lower()
+                    else:  # detail_level
+                        category_value = item.get(category, "low").lower()
 
-    total_queries = len(query_vectors)
-    for k in k_values:
-        results["all"][f"acc@{k}"] /= total_queries
-        for split in splits:
-            for split_value, count in split_counts[split].items():
-                if count > 0:
-                    results[split][f"{split_value}_acc@{k}"] /= count
+                    if category_value in list(results[category].keys()):
+                        results[category][category_value][k].append(accuracy)
+                    else:
+                        print(
+                            f"Warning: Unknown value '{category_value}' for category '{category}'. Skipping."
+                        )
 
-    return results
+        except requests.exceptions.RequestException as e:
+            print(f"Error during API request for query '{query}': {e}")
+            continue
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON response for query '{query}': {e}")
+            continue
+        except KeyError as e:
+            print(f"KeyError for query '{query}', likely missing 'id' in service: {e}")
+            continue
 
-
-def save_results_to_csv(
-    results: DefaultDict[str, DefaultDict[str, float]],
-    experiment_name: str,
-    scoring_method: str,
-    output_file: str,
-) -> None:
-    with open(output_file, "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["experiment", "scoring_method", "metric", "value"])
-
-        for category, metrics in results.items():
-            for metric, value in metrics.items():
-                writer.writerow(
-                    [experiment_name, scoring_method, f"{category}_{metric}", value]
+    # Calculate average accuracies
+    average_accuracies: Dict[str, Dict[str, Dict[int, float]]] = {}
+    for category, sub_categories in results.items():
+        average_accuracies[category] = {}
+        for sub_category, k_values in sub_categories.items():
+            average_accuracies[category][sub_category] = {}
+            for k, accuracies in k_values.items():
+                average_accuracies[category][sub_category][k] = (
+                    sum(accuracies) / len(accuracies) if accuracies else 0.0
                 )
 
-
-def main(args: argparse.Namespace) -> None:
-    # Load embeddings
-    query_vectors = load_embeddings(args.query_embeddings)
-    doc_vectors = load_embeddings(args.doc_embeddings)
-
-    # Load ground truth and query dataset
-    with open(args.ground_truth, "r") as f:
-        ground_truth: List[Any] = json.load(f)
-
-    with open(args.query_dataset, "r") as f:
-        query_dataset: List[Dict[str, Any]] = json.load(f)
-
-    # Calculate top-k accuracy
-    k_values = [int(k) for k in args.topk.split(",")]
-    results = calculate_topk_accuracy(
-        query_vectors,
-        doc_vectors,
-        ground_truth,
-        query_dataset,
-        k_values,
-        args.scoring_method,
-    )
-
-    # Save results
-    output_file = f"{args.experiment_name}_{args.scoring_method}_results.csv"
-    save_results_to_csv(results, args.experiment_name, args.scoring_method, output_file)
-    print(f"Results saved to {output_file}")
+    return average_accuracies
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """
+    Main function to run the evaluation using command-line arguments.
+    """
     parser = argparse.ArgumentParser(
-        description="Calculate top-k accuracy for embeddings"
+        description="Evaluate retrieval accuracy of an API."
+    )
+    parser.add_argument("dataset_path", type=str, help="Path to the JSON dataset file.")
+    parser.add_argument(
+        "--endpoint",
+        type=str,
+        default="http://localhost:8005/",
+        help="The retrieval API endpoint URL (default: http://localhost:8005/).",
     )
     parser.add_argument(
-        "--query_embeddings", required=True, help="Path to query embeddings .pt file"
-    )
-    parser.add_argument(
-        "--doc_embeddings", required=True, help="Path to document embeddings .pt file"
-    )
-    parser.add_argument(
-        "--ground_truth", required=True, help="Path to ground truth JSON file"
-    )
-    parser.add_argument(
-        "--query_dataset", required=True, help="Path to query dataset JSON file"
-    )
-    parser.add_argument(
-        "--experiment_name", required=True, help="Name of the experiment"
-    )
-    parser.add_argument(
-        "--topk",
+        "--top_k",
+        type=str,
         default="5,10,15,20",
-        help="Comma-separated list of k values for top-k accuracy",
+        help="Comma-separated list of top-k values (default: 5,10,15,20).",
     )
     parser.add_argument(
-        "--scoring_method",
-        choices=["max", "mean"],
-        required=True,
-        help="Scoring method: 'max' for models like ColBERT, 'mean' for single vector models",
+        "--output",
+        type=str,
+        default="eval_results.json",
+        help="Output file name for JSON results (default: eval_results.json).",
     )
 
     args = parser.parse_args()
-    main(args)
+
+    # Parse top_k values
+    try:
+        top_k_values = [int(k) for k in args.top_k.split(",")]
+    except ValueError:
+        print(
+            "Error: Invalid top_k values. Provide a comma-separated list of integers."
+        )
+        return
+
+    accuracies = evaluate_retrieval_accuracy(
+        args.dataset_path, args.endpoint, top_k_values
+    )
+
+    # Output to JSON file
+    with open(args.output, "w") as outfile:
+        json.dump(accuracies, outfile, indent=4)
+
+    print(f"Evaluation results saved to {args.output}")
+
+
+if __name__ == "__main__":
+    main()

@@ -84,7 +84,7 @@ class ReRankingService:
         try:
             messages = self._create_ranking_prompt(query, services)
             completion = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o",
                 messages=messages,  # type: ignore
                 temperature=0,
             )

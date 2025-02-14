@@ -10,10 +10,13 @@ from api.data import (
     RecommendationResponse,
     RefineRequest,
     Service,
+    ServiceDocument,
 )
 from services.dev.data import ChromaService
 from services.rag import RAGService
+from services.ranking import _calculate_distance
 from services.refine import RefineService
+from services.retriever import Retriever
 
 
 # Configure logging
@@ -151,3 +154,52 @@ async def get_services_count(
         The number of services.
     """
     return await chroma_service.get_services_count()
+
+
+@router.post("/retrieve", response_model=List[ServiceDocument])
+async def retrieve(query: Query, top_k: int = 5) -> List[ServiceDocument]:
+    """
+    Retrieve relevant services based on the input query.
+
+    This endpoint performs only retrieval without generation or reranking.
+
+    Parameters
+    ----------
+    query : Query
+        The user's query with optional location data.
+    top_k : int, optional
+        The maximum number of services to retrieve, by default 5.
+
+    Returns
+    -------
+    List[ServiceDocument]
+        List of retrieved service documents.
+    """
+    try:
+        retriever = Retriever()
+        services: List[ServiceDocument] = retriever.retrieve(
+            query.query, n_results=top_k
+        )
+
+        # Apply location filtering if location data is provided
+        if query.latitude and query.longitude and query.radius:
+            location = (query.latitude, query.longitude)
+            services = [
+                service
+                for service in services
+                if service.metadata.get("latitude")
+                and service.metadata.get("longitude")
+                and _calculate_distance(
+                    (
+                        float(service.metadata["latitude"]),
+                        float(service.metadata["longitude"]),
+                    ),
+                    location,
+                )
+                <= query.radius
+            ]
+
+        return services
+    except Exception as e:
+        logger.error(f"Error in retrieval: {e}")
+        raise HTTPException(status_code=422, detail=str(e)) from e
