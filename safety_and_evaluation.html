@@ -57,6 +57,7 @@
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/require.min.js?v=53367eec"></script>
     <script src="_static/custom.js?v=275847af"></script>
     
@@ -352,7 +353,7 @@ poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="
 <h4>Emergency Situation<a class="headerlink" href="#emergency-situation" title="Link to this heading">¶</a></h4>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My child is experiencing severe abdominal pain and I am very concerned. What should I do?&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;69796097&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;69795331&quot;</span><span class="p">],</span>
+<span class="w">   </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;69796097&quot;</span><span class="p">],</span>
 <span class="w">   </span><span class="nt">&quot;answer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You should take your child to the nearest pediatric emergency department immediately. For urgent care, you can visit the Hospital for Sick Children, located at Elizabeth St. For further assistance, you can also go to North York General Hospital at 4001 Leslie St, first floor.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
@@ -371,52 +372,79 @@ poetry<span class="w"> </span>install<span class="w"> </span>--with<span class="
 </div>
 </section>
 </section>
+<section id="ragas-metrics-overview">
+<h3>RAGAS Metrics Overview<a class="headerlink" href="#ragas-metrics-overview" title="Link to this heading">¶</a></h3>
+<p>The system uses four key RAGAS metrics for evaluation:</p>
+<ol class="arabic">
+<li><p><strong>Answer Relevancy</strong>: Measures response alignment with user input using:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{\|E_{g_i}\| \|E_o\|}\]</div>
+</div>
+<p>Where E_g are embeddings of generated questions and E_o is the embedding of the original query and the metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).</p>
+</li>
+<li><p><strong>Faithfulness</strong>: Measures factual consistency with retrieved context:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}\]</div>
+</div>
+<p>Uses LLM to generate a set of claims from the generated answer and cross-checks them with given context to determine if it can be inferred from the context.</p>
+</li>
+<li><p><strong>Context Recall</strong>: Measures completeness of retrieved relevant documents (asks the question, did we retrieve all the contexts we needed?):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}\]</div>
+</div>
+<p>LLM breaks down the reference answer into individual claims and classifies whether they can be attributed to the retrieved contexts. High recall means we found most of the needed information. Low recall means we missed important information.</p>
+</li>
+<li><p><strong>Context Precision</strong>: Measures relevance of retrieved chunks (asks the question, of the contexts we retrieved, how many were actually relevant?)</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{Context Precision&#64;K} = \frac{\sum_{k=1}^{K} (\text{Precision&#64;k} \times v_k)}{\text{Relevant items in top K}}\]</div>
+</div>
+<p>LLM computes a score based on the position and usefulness of each context and calculates weighted average. High precision means most retrieved contexts were useful. Low precision means we retrieved many irrelevant contexts.</p>
+</li>
+</ol>
 </section>
-<section id="evaluation-scripts">
-<h2>Evaluation Scripts<a class="headerlink" href="#evaluation-scripts" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">eval/</span></code> directory contains scripts for both dataset generation and evaluation:</p>
-<section id="dataset-generation">
-<h3>Dataset Generation<a class="headerlink" href="#dataset-generation" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate synthetic dataset</span>
-python<span class="w"> </span>eval/generate_dataset.py<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--input_file<span class="w"> </span>data/211_data.csv<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output_dir<span class="w"> </span>./eval<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--name<span class="w"> </span>synthetic_dataset<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--num_samples<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--situation_type<span class="w"> </span><span class="o">[</span>regular<span class="p">|</span>emergency<span class="p">|</span>out_of_scope<span class="o">]</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--detail_level<span class="w"> </span><span class="o">[</span>low<span class="p">|</span>medium<span class="p">|</span>high<span class="o">]</span>
-
-<span class="c1"># Generate full dataset with distribution</span>
-./eval/generate_large_dataset.sh
+<section id="evaluation-workflow">
+<h3>Evaluation Workflow<a class="headerlink" href="#evaluation-workflow" title="Link to this heading">¶</a></h3>
+<p>To run evaluations, follow these steps:</p>
+<ol class="arabic">
+<li><p>Export your OpenAI API key:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>your_key_here
 </pre></div>
 </div>
-</section>
-<section id="system-output-collection">
-<h3>System Output Collection<a class="headerlink" href="#system-output-collection" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Collect RAG system outputs for evaluation</span>
-python<span class="w"> </span>eval/collect_rag_outputs.py<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--input<span class="w"> </span>path/to/synthetic_dataset.json<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output<span class="w"> </span>path/to/processed_results.json<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--batch-size<span class="w"> </span><span class="m">5</span>
+</li>
+<li><p>Generate evaluation dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># For Connex dataset</span>
+./eval/generate_connex_dataset.sh
+<span class="c1"># OR for Ontario dataset</span>
+./eval/generate_on_dataset.sh
 </pre></div>
 </div>
-</section>
-<section id="ragas-evaluation">
-<h3>RAGAS Evaluation<a class="headerlink" href="#ragas-evaluation" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Evaluate full RAG pipeline</span>
-python<span class="w"> </span>eval/evaluate.py<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--input<span class="w"> </span>path/to/processed_results.json<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output-dir<span class="w"> </span>./evaluation_results
+</li>
+<li><p>Evaluate retrieval accuracy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>evaluate_topkacc.py<span class="w"> </span>dataset_connex.json<span class="w"> </span>--output<span class="w"> </span>connex_topkacc_results.json
 </pre></div>
 </div>
+</li>
+<li><p>Collect RAG outputs:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>eval/collect_rag_outputs.py<span class="w"> </span>--input<span class="w"> </span>eval/dataset_connex.json<span class="w"> </span>--output<span class="w"> </span>eval/rag_outputs.json<span class="w"> </span>--collection<span class="w"> </span>211cx
+</pre></div>
+</div>
+</li>
+<li><p>Run RAGAS evaluation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>eval/evaluate.py<span class="w"> </span>--input<span class="w"> </span>./eval/rag_outputs.json<span class="w"> </span>--query-dataset<span class="w"> </span>eval/dataset_connex.json<span class="w"> </span>--output-dir<span class="w"> </span>./eval
+</pre></div>
+</div>
+</li>
+</ol>
 </section>
 </section>
 <section id="performance-metrics">
 <h2>Performance Metrics<a class="headerlink" href="#performance-metrics" title="Link to this heading">¶</a></h2>
-<section id="ragas-metrics-by-category">
-<h3>RAGAS Metrics By Category<a class="headerlink" href="#ragas-metrics-by-category" title="Link to this heading">¶</a></h3>
-<p>Note: These metrics were obtained using a synthetic dataset specifically generated from services in the Greater Toronto Area (GTA).
-The RAG system evaluated used specialized prompts that differ marginally from the current system.</p>
+<section id="ragas-metrics-by-category-ontario-data">
+<h3>RAGAS Metrics By Category - Ontario Data<a class="headerlink" href="#ragas-metrics-by-category-ontario-data" title="Link to this heading">¶</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
@@ -477,9 +505,77 @@ The RAG system evaluated used specialized prompts that differ marginally from th
 </table>
 </div>
 </section>
-<section id="retrieval-performance-and-re-ranking-strategy">
-<h3>Retrieval Performance and Re-ranking Strategy<a class="headerlink" href="#retrieval-performance-and-re-ranking-strategy" title="Link to this heading">¶</a></h3>
-<p>The system’s retrieval performance provides a compelling case for implementing a re-ranking stage:</p>
+<section id="ragas-metrics-by-category-connex-data">
+<h3>RAGAS Metrics By Category - Connex Data<a class="headerlink" href="#ragas-metrics-by-category-connex-data" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Subgroup</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Answer Relevancy</p></th>
+<th class="head"><p>Faithfulness</p></th>
+<th class="head"><p>Context Recall</p></th>
+<th class="head"><p>Context Precision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Detail Level</p></td>
+<td><p>Low</p></td>
+<td><p>0.88</p></td>
+<td><p>0.82</p></td>
+<td><p>0.75</p></td>
+<td><p>0.89</p></td>
+</tr>
+<tr class="row-odd"><td><p>Detail Level</p></td>
+<td><p>Medium</p></td>
+<td><p>0.80</p></td>
+<td><p>0.59</p></td>
+<td><p>0.67</p></td>
+<td><p>0.64</p></td>
+</tr>
+<tr class="row-even"><td><p>Detail Level</p></td>
+<td><p>High</p></td>
+<td><p>0.87</p></td>
+<td><p>0.67</p></td>
+<td><p>0.73</p></td>
+<td><p>0.93</p></td>
+</tr>
+<tr class="row-odd"><td><p>Is Emergency</p></td>
+<td><p>True</p></td>
+<td><p>0.81</p></td>
+<td><p>0.50</p></td>
+<td><p>0.60</p></td>
+<td><p>0.10</p></td>
+</tr>
+<tr class="row-even"><td><p>Is Emergency</p></td>
+<td><p>False</p></td>
+<td><p>0.84</p></td>
+<td><p>0.69</p></td>
+<td><p>0.72</p></td>
+<td><p>0.86</p></td>
+</tr>
+<tr class="row-odd"><td><p>Is Out of Scope</p></td>
+<td><p>True</p></td>
+<td><p>0.59</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="retrieval-performance-ontario-data">
+<h3>Retrieval Performance - Ontario Data<a class="headerlink" href="#retrieval-performance-ontario-data" title="Link to this heading">¶</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
@@ -530,24 +626,69 @@ The RAG system evaluated used specialized prompts that differ marginally from th
 </tbody>
 </table>
 </div>
-<p>The metrics reveal several key insights that motivate the use of a re-ranking stage:</p>
+</section>
+<section id="retrieval-performance-connex-data">
+<h3>Retrieval Performance - Connex Data<a class="headerlink" href="#retrieval-performance-connex-data" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>acc&#64;5</p></th>
+<th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;10">acc<span>&#64;</span>10</a></p></th>
+<th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;15">acc<span>&#64;</span>15</a></p></th>
+<th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Overall</p></td>
+<td><p>0.77</p></td>
+<td><p>0.82</p></td>
+<td><p>0.82</p></td>
+<td><p>0.84</p></td>
+</tr>
+<tr class="row-odd"><td><p>High Detail</p></td>
+<td><p>0.83</p></td>
+<td><p>0.89</p></td>
+<td><p>0.89</p></td>
+<td><p>0.89</p></td>
+</tr>
+<tr class="row-even"><td><p>Low Detail</p></td>
+<td><p>0.75</p></td>
+<td><p>0.79</p></td>
+<td><p>0.79</p></td>
+<td><p>0.81</p></td>
+</tr>
+<tr class="row-odd"><td><p>Emergency</p></td>
+<td><p>0.45</p></td>
+<td><p>0.55</p></td>
+<td><p>0.60</p></td>
+<td><p>0.65</p></td>
+</tr>
+<tr class="row-even"><td><p>Out of Scope</p></td>
+<td><p>0.60</p></td>
+<td><p>0.60</p></td>
+<td><p>0.60</p></td>
+<td><p>0.60</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The metrics reveal several key insights:</p>
 <ol class="arabic simple">
-<li><p><strong>Wider Pool Contains Relevant Services</strong>: The significant increase in accuracy from acc&#64;5 (0.55) to <a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> (0.74) indicates that relevant services are often being retrieved but ranked lower than optimal. This suggests that a more sophisticated ranking mechanism could improve the final recommendations.</p></li>
-<li><p><strong>Query Type Variations</strong>: Performance varies notably across query types:
-- Low Detail queries achieve high <a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> (0.88), suggesting simpler queries benefit from broader retrieval
-- Emergency queries show lower initial accuracy but steady improvement up to <a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> (0.54), indicating relevant services are present but need better ranking
-- High Detail queries show consistent improvement up to <a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> (0.74), suggesting additional context could help with ranking</p></li>
-<li><dl class="simple">
-<dt><strong>Re-ranking Implementation</strong>: Based on these metrics, the system implements an optional re-ranking stage (based on <a class="reference external" href="https://arxiv.org/abs/2304.09542">RankGPT</a>) that can be enabled via the API’s <cite>rerank</cite> parameter (see <a class="reference internal" href="api.html#post--recommend" title="POST /recommend"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/recommend</span></code></a>). When enabled:</dt><dd><ul class="simple">
+<li><p><strong>Improved Overall Performance</strong>: The Connex dataset shows generally higher performance across most metrics compared to the Ontario dataset, particularly in detail handling and non-emergency cases.</p></li>
+<li><p><strong>Emergency Detection</strong>: Both datasets show distinct performance characteristics for emergency vs. non-emergency queries, with emergency queries generally showing lower performance metrics, indicating the system’s conservative approach to emergency situations.</p></li>
+<li><p><strong>Detail Level Impact</strong>: High detail queries show strong performance in the Connex dataset, particularly in context precision (0.93) and retrieval accuracy (<a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> = 0.89).</p></li>
+<li><p><strong>Out-of-Scope Handling</strong>: The system shows robust capability in identifying out-of-scope queries, with clear differentiation in metrics between in-scope and out-of-scope requests.</p></li>
+</ol>
+<dl class="simple">
+<dt>Based on these metrics, the system implements an optional re-ranking stage that can be enabled via the API’s <cite>rerank</cite> parameter. When enabled:</dt><dd><ul class="simple">
 <li><p>First stage: Retrieves top 20 candidates using efficient embedding-based similarity</p></li>
 <li><p>Second stage: Applies GPT-4 based semantic analysis to re-rank these candidates</p></li>
 <li><p>Returns the top 5 most relevant services after re-ranking</p></li>
 </ul>
 </dd>
 </dl>
-</li>
-</ol>
-<p>To enable re-ranking in your API calls, simply set the <cite>rerank</cite> parameter to <cite>true</cite> in your request to the <a class="reference internal" href="api.html#post--recommend" title="POST /recommend"><code class="xref http http-post docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/recommend</span></code></a> endpoint:</p>
+<p>To enable re-ranking in your API calls, simply set the <cite>rerank</cite> parameter to <cite>true</cite> in your request:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I need mental health support&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;latitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">43.6532</span><span class="p">,</span>
@@ -635,17 +776,15 @@ The RAG system evaluated used specialized prompts that differ marginally from th
 <li><a class="reference internal" href="#emergency-situation">Emergency Situation</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#evaluation-scripts">Evaluation Scripts</a><ul>
-<li><a class="reference internal" href="#dataset-generation">Dataset Generation</a></li>
-<li><a class="reference internal" href="#system-output-collection">System Output Collection</a></li>
-<li><a class="reference internal" href="#ragas-evaluation">RAGAS Evaluation</a></li>
+<li><a class="reference internal" href="#ragas-metrics-overview">RAGAS Metrics Overview</a></li>
+<li><a class="reference internal" href="#evaluation-workflow">Evaluation Workflow</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#performance-metrics">Performance Metrics</a><ul>
-<li><a class="reference internal" href="#ragas-metrics-by-category">RAGAS Metrics By Category</a></li>
-<li><a class="reference internal" href="#retrieval-performance-and-re-ranking-strategy">Retrieval Performance and Re-ranking Strategy</a></li>
+<li><a class="reference internal" href="#ragas-metrics-by-category-ontario-data">RAGAS Metrics By Category - Ontario Data</a></li>
+<li><a class="reference internal" href="#ragas-metrics-by-category-connex-data">RAGAS Metrics By Category - Connex Data</a></li>
+<li><a class="reference internal" href="#retrieval-performance-ontario-data">Retrieval Performance - Ontario Data</a></li>
+<li><a class="reference internal" href="#retrieval-performance-connex-data">Retrieval Performance - Connex Data</a></li>
 </ul>
 </li>
 </ul>

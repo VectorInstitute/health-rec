@@ -32,7 +32,6 @@ The schema is as follows:
                 "postal_code": "M5E1 B07",
                 "country": "Canada"
             },
-            "email": "service1@example.com",
             "metadata": {
                 "type": "Medical Clinic",
                 "languages": [
@@ -59,5 +58,4 @@ The schema is a JSON object with the following fields:
     - ``province``: The province where the service is located.
     - ``postal_code``: The postal code of the service location.
     - ``country``: The country where the service is located.
-- ``email``: The email address of the service.
 - ``metadata``: Additional metadata about the service. The metadata object can have any number of fields.

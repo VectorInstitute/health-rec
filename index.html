@@ -57,6 +57,7 @@
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/design-tabs.js?v=36754332"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/require.min.js?v=53367eec"></script>
     <script src="_static/custom.js?v=275847af"></script>
     
@@ -384,6 +385,14 @@ transforms them to be compatible with the <a class="reference internal" href="sc
 </div>
 <p><strong>Ontario-wide data (211 API)</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_211_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>on<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+</pre></div>
+</div>
+<p><strong>Ontario-wide data including Connex data (211 API)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_211_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w"> </span>--dataset<span class="w"> </span>211CX<span class="w"> </span>--data-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
+</pre></div>
+</div>
+<p><strong>Download only Connex data (211 API)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>scripts/download_connex_data.py<span class="w"> </span>--api-key<span class="w"> </span><span class="nv">$YOUR_211_API_KEY</span><span class="w">  </span>--output-dir<span class="w"> </span>&lt;path_to_data_dir&gt;
 </pre></div>
 </div>
 <p><strong>Empower API data</strong></p>

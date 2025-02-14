@@ -26,7 +26,6 @@ To run the evaluation pipeline, you'll need to install additional dependencies f
     # Install dependencies including evaluation packages
     poetry install --with test,docs,eval
 
-
 Evaluation Framework
 --------------------
 
@@ -100,7 +99,7 @@ Emergency Situation
 
     {
        "query": "My child is experiencing severe abdominal pain and I am very concerned. What should I do?",
-       "context": ["69796097", "69795331"],
+       "context": ["69796097"],
        "answer": "You should take your child to the nearest pediatric emergency department immediately. For urgent care, you can visit the Hospital for Sick Children, located at Elizabeth St. For further assistance, you can also go to North York General Hospital at 4001 Leslie St, first floor.",
        "is_emergency": true,
        "is_out_of_scope": false,
@@ -116,57 +115,88 @@ Emergency Situation
        "detail_level": "medium"
     }
 
-Evaluation Scripts
-------------------
+RAGAS Metrics Overview
+^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``eval/`` directory contains scripts for both dataset generation and evaluation:
+The system uses four key RAGAS metrics for evaluation:
 
-Dataset Generation
-^^^^^^^^^^^^^^^^^^
+1. **Answer Relevancy**: Measures response alignment with user input using:
 
-.. code-block:: bash
+   .. math::
 
-    # Generate synthetic dataset
-    python eval/generate_dataset.py \
-      --input_file data/211_data.csv \
-      --output_dir ./eval \
-      --name synthetic_dataset \
-      --num_samples 1000 \
-      --situation_type [regular|emergency|out_of_scope] \
-      --detail_level [low|medium|high]
+      \text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{\|E_{g_i}\| \|E_o\|}
 
-    # Generate full dataset with distribution
-    ./eval/generate_large_dataset.sh
+   Where E_g are embeddings of generated questions and E_o is the embedding of the original query and the metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).
 
-System Output Collection
-^^^^^^^^^^^^^^^^^^^^^^^^
+2. **Faithfulness**: Measures factual consistency with retrieved context:
 
-.. code-block:: bash
+   .. math::
 
-    # Collect RAG system outputs for evaluation
-    python eval/collect_rag_outputs.py \
-      --input path/to/synthetic_dataset.json \
-      --output path/to/processed_results.json \
-      --batch-size 5
+      \text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}
 
-RAGAS Evaluation
-^^^^^^^^^^^^^^^^
+   Uses LLM to generate a set of claims from the generated answer and cross-checks them with given context to determine if it can be inferred from the context.
 
-.. code-block:: bash
+3. **Context Recall**: Measures completeness of retrieved relevant documents (asks the question, did we retrieve all the contexts we needed?):
 
-    # Evaluate full RAG pipeline
-    python eval/evaluate.py \
-      --input path/to/processed_results.json \
-      --output-dir ./evaluation_results
+   .. math::
+
+      \text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}
+
+   LLM breaks down the reference answer into individual claims and classifies whether they can be attributed to the retrieved contexts. High recall means we found most of the needed information. Low recall means we missed important information.
+
+4. **Context Precision**: Measures relevance of retrieved chunks (asks the question, of the contexts we retrieved, how many were actually relevant?)
+
+   .. math::
+
+      \text{Context Precision@K} = \frac{\sum_{k=1}^{K} (\text{Precision@k} \times v_k)}{\text{Relevant items in top K}}
+
+   LLM computes a score based on the position and usefulness of each context and calculates weighted average. High precision means most retrieved contexts were useful. Low precision means we retrieved many irrelevant contexts.
+
+
+
+Evaluation Workflow
+^^^^^^^^^^^^^^^^^^^^
+
+To run evaluations, follow these steps:
+
+1. Export your OpenAI API key:
+
+   .. code-block:: bash
+
+      export OPENAI_API_KEY=your_key_here
+
+2. Generate evaluation dataset:
+
+   .. code-block:: bash
+
+      # For Connex dataset
+      ./eval/generate_connex_dataset.sh
+      # OR for Ontario dataset
+      ./eval/generate_on_dataset.sh
+
+3. Evaluate retrieval accuracy:
+
+   .. code-block:: bash
+
+      python3 evaluate_topkacc.py dataset_connex.json --output connex_topkacc_results.json
+
+4. Collect RAG outputs:
+
+   .. code-block:: bash
+
+      python3 eval/collect_rag_outputs.py --input eval/dataset_connex.json --output eval/rag_outputs.json --collection 211cx
+
+5. Run RAGAS evaluation:
+
+   .. code-block:: bash
+
+      python eval/evaluate.py --input ./eval/rag_outputs.json --query-dataset eval/dataset_connex.json --output-dir ./eval
 
 Performance Metrics
 -------------------
 
-RAGAS Metrics By Category
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Note: These metrics were obtained using a synthetic dataset specifically generated from services in the Greater Toronto Area (GTA).
-The RAG system evaluated used specialized prompts that differ marginally from the current system.
+RAGAS Metrics By Category - Ontario Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -208,12 +238,57 @@ The RAG system evaluated used specialized prompts that differ marginally from th
      - -
      - -
 
+RAGAS Metrics By Category - Connex Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Retrieval Performance and Re-ranking Strategy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. list-table::
+   :header-rows: 1
 
-The system's retrieval performance provides a compelling case for implementing a re-ranking stage:
+   * - Subgroup
+     - Category
+     - Answer Relevancy
+     - Faithfulness
+     - Context Recall
+     - Context Precision
+   * - Detail Level
+     - Low
+     - 0.88
+     - 0.82
+     - 0.75
+     - 0.89
+   * - Detail Level
+     - Medium
+     - 0.80
+     - 0.59
+     - 0.67
+     - 0.64
+   * - Detail Level
+     - High
+     - 0.87
+     - 0.67
+     - 0.73
+     - 0.93
+   * - Is Emergency
+     - True
+     - 0.81
+     - 0.50
+     - 0.60
+     - 0.10
+   * - Is Emergency
+     - False
+     - 0.84
+     - 0.69
+     - 0.72
+     - 0.86
+   * - Is Out of Scope
+     - True
+     - 0.59
+     - -
+     - -
+     - -
 
+Retrieval Performance - Ontario Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -255,21 +330,59 @@ The system's retrieval performance provides a compelling case for implementing a
      - 0.40
      - 0.60
 
-The metrics reveal several key insights that motivate the use of a re-ranking stage:
+Retrieval Performance - Connex Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. **Wider Pool Contains Relevant Services**: The significant increase in accuracy from acc@5 (0.55) to acc@20 (0.74) indicates that relevant services are often being retrieved but ranked lower than optimal. This suggests that a more sophisticated ranking mechanism could improve the final recommendations.
+.. list-table::
+   :header-rows: 1
 
-2. **Query Type Variations**: Performance varies notably across query types:
-   - Low Detail queries achieve high acc@20 (0.88), suggesting simpler queries benefit from broader retrieval
-   - Emergency queries show lower initial accuracy but steady improvement up to acc@20 (0.54), indicating relevant services are present but need better ranking
-   - High Detail queries show consistent improvement up to acc@20 (0.74), suggesting additional context could help with ranking
+   * - Metric
+     - acc@5
+     - acc@10
+     - acc@15
+     - acc@20
+   * - Overall
+     - 0.77
+     - 0.82
+     - 0.82
+     - 0.84
+   * - High Detail
+     - 0.83
+     - 0.89
+     - 0.89
+     - 0.89
+   * - Low Detail
+     - 0.75
+     - 0.79
+     - 0.79
+     - 0.81
+   * - Emergency
+     - 0.45
+     - 0.55
+     - 0.60
+     - 0.65
+   * - Out of Scope
+     - 0.60
+     - 0.60
+     - 0.60
+     - 0.60
 
-3. **Re-ranking Implementation**: Based on these metrics, the system implements an optional re-ranking stage (based on `RankGPT <https://arxiv.org/abs/2304.09542>`_) that can be enabled via the API's `rerank` parameter (see :http:post:`/recommend`). When enabled:
+The metrics reveal several key insights:
+
+1. **Improved Overall Performance**: The Connex dataset shows generally higher performance across most metrics compared to the Ontario dataset, particularly in detail handling and non-emergency cases.
+
+2. **Emergency Detection**: Both datasets show distinct performance characteristics for emergency vs. non-emergency queries, with emergency queries generally showing lower performance metrics, indicating the system's conservative approach to emergency situations.
+
+3. **Detail Level Impact**: High detail queries show strong performance in the Connex dataset, particularly in context precision (0.93) and retrieval accuracy (acc@20 = 0.89).
+
+4. **Out-of-Scope Handling**: The system shows robust capability in identifying out-of-scope queries, with clear differentiation in metrics between in-scope and out-of-scope requests.
+
+Based on these metrics, the system implements an optional re-ranking stage that can be enabled via the API's `rerank` parameter. When enabled:
     - First stage: Retrieves top 20 candidates using efficient embedding-based similarity
     - Second stage: Applies GPT-4 based semantic analysis to re-rank these candidates
     - Returns the top 5 most relevant services after re-ranking
 
-To enable re-ranking in your API calls, simply set the `rerank` parameter to `true` in your request to the :http:post:`/recommend` endpoint:
+To enable re-ranking in your API calls, simply set the `rerank` parameter to `true` in your request:
 
 .. code-block:: json
 
