@@ -26,7 +26,7 @@ Make sure you have these tools installed:
 - Docker & Docker Compose (v20.10.0+)
 - Python (3.11+)
 - Node.js (18.0.0+)
-- Poetry (1.4.0+)
+- uv (0.6.0+)
 
 Note: the project is only tested with python 3.11, and it is recommended to use the same version.
 
