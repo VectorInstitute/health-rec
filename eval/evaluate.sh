@@ -46,7 +46,7 @@ for category in "${CATEGORIES[@]}"; do
       echo "Error: Input file not found: $input_file"
       continue  # Skip to the next iteration
     fi
-    
+
     # Temporary output path
     temp_output_file="${TEMP_RAG_OUTPUT_DIR}/rag_output_${category}_${detail_level}.json"
 
