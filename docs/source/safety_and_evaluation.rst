@@ -24,7 +24,7 @@ To run the evaluation pipeline, you'll need to install additional dependencies f
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
     # Install dependencies including evaluation packages
-    poetry install --with test,docs,eval
+    uv sync --dev --group eval
 
 Evaluation Framework
 --------------------

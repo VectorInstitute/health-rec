@@ -1,62 +1,63 @@
-[tool.poetry]
+[project]
 name = "health-rec"
 version = "0.1.0"
 description = "Health services recommendation API"
-authors = ["Vector Institute <ai_engineering@vectorinstitute.ai>"]
-repository = "https://github.com/VectorInstitute/health-rec"
-license = "Apache-2.0"
-packages = [
-    { include = "api/" },
-]
 readme = "README.md"
+authors = [{name = "Vector Institute", email = "ai_engineering@vectorinstitute.ai"}]
+license = "Apache-2.0"
+repository = "https://github.com/VectorInstitute/health-rec"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.2",
+    "uvicorn>=0.30.6",
+    "openai>=1.45.1",
+    "chromadb==0.5.15",
+    "python-dotenv>=1.0.1",
+    "tiktoken>=0.8.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.115.2"
-uvicorn = "^0.30.6"
-openai = "^1.45.1"
-chromadb = "0.5.15"
-python-dotenv = "^1.0.1"
-tiktoken = "^0.8.0"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.group.test]
-optional = true
+[tool.hatch.build.targets.wheel]
+packages = ["api/"]
 
-[tool.poetry.group.test.dependencies]
-pytest = "^7.1.1"
-pre-commit = "^4.0.0"
-pytest-cov = "^3.0.0"
-codecov = "^2.1.13"
-mypy = "^1.7.0"
-ruff = "^0.6.0"
-pip-audit = "^2.7.1"
+[dependency-groups]
+dev = [
+    "pytest>=7.1.1",
+    "pre-commit>=4.0.0",
+    "pytest-cov>=3.0.0",
+    "codecov>=2.1.13",
+    "mypy>=1.7.0",
+    "ruff>=0.6.0",
+    "pip-audit>=2.7.1",
+]
 
-[tool.poetry.group.docs]
-optional = true
+docs = [
+    "numpydoc>=1.2",
+    "sphinx>=7.2.5",
+    "sphinxcontrib-apidoc>=0.4.0",
+    "sphinx-autodoc-typehints>=1.24.0",
+    "myst-parser>=2.0.0",
+    "sphinx-design>=0.5.0",
+    "sphinx-copybutton>=0.5.0",
+    "sphinx-autoapi>=2.0.0",
+    "nbsphinx>=0.9.3",
+    "ipython>=8.8.0",
+    "ipykernel>=6.23.0",
+    "furo>=2024.01.29",
+    "sphinxcontrib-httpdomain>=1.8.1",
+]
 
-[tool.poetry.group.docs.dependencies]
-numpydoc = "^1.2"
-sphinx = "^7.2.5"
-sphinxcontrib-apidoc = "^0.4.0"
-sphinx-autodoc-typehints = "^1.24.0"
-myst-parser = "^2.0.0"
-sphinx-design = "^0.5.0"
-sphinx-copybutton = "^0.5.0"
-sphinx-autoapi = "^2.0.0"
-nbsphinx = "^0.9.3"
-ipython = "^8.8.0"
-ipykernel = "^6.23.0"
-furo = "^2024.01.29"
-sphinxcontrib-httpdomain = "^1.8.1"
-
-
-[tool.poetry.group.eval.dependencies]
-langchain-core = "^0.3.13"
-langchain-openai = "^0.2.4"
-langchain-community = "^0.3.3"
-ragas = "^0.2.3"
-datasets = "^3.0.2"
-nltk = "^3.9.1"
+eval = [
+    "langchain-core>=0.3.13",
+    "langchain-openai>=0.2.4",
+    "langchain-community>=0.3.3",
+    "ragas>=0.2.3",
+    "datasets>=3.0.2",
+    "nltk>=3.9.1",
+]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
@@ -92,36 +93,20 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = [
-    "A", # flake8-builtins
-    "B", # flake8-bugbear
-    "COM", # flake8-commas
-    "C4", # flake8-comprehensions
-    "RET", # flake8-return
-    "SIM", # flake8-simplify
-    "ICN", # flake8-import-conventions
-    "Q", # flake8-quotes
-    "RSE", # flake8-raise
-    "D", # pydocstyle
-    "E", # pycodestyle
-    "F", # pyflakes
-    "I", # isort
-    "W", # pycodestyle
-    "N", # pep8-naming
-    "ERA", # eradicate
-    "PL", # pylint
+    "A", "B", "COM", "C4", "RET", "SIM",
+    "ICN", "Q", "RSE", "D", "E", "F",
+    "I", "W", "N", "ERA", "PL"
 ]
-fixable = ["A", "B", "COM", "C4", "RET", "SIM", "ICN", "Q", "RSE", "D", "E", "F", "I", "W", "N", "ERA", "PL"]
+fixable = [
+    "A", "B", "COM", "C4", "RET", "SIM",
+    "ICN", "Q", "RSE", "D", "E", "F",
+    "I", "W", "N", "ERA", "PL"
+]
 ignore = [
-    "B905", # `zip()` without an explicit `strict=` parameter
-    "E501", # line too long
-    "D203", # 1 blank line required before class docstring
-    "D213", # Multi-line docstring summary should start at the second line
-    "PLR2004", # Replace magic number with named constant
-    "PLR0913", # Too many arguments
-    "COM812", # Missing trailing comma
+    "B905", "E501", "D203", "D213",
+    "PLR2004", "PLR0913", "COM812"
 ]
 
-# Ignore import violations in all `__init__.py` files.
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401", "F403", "F811"]
 
@@ -137,6 +122,11 @@ convention = "numpy"
 [tool.ruff.lint.pycodestyle]
 max-doc-length = 88
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.pytest.ini_options]
+markers = [
+    "integration_test: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["health_rec"]
+omit = ["tests/*", "*__init__.py"]
