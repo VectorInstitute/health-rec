@@ -11,7 +11,7 @@ from typing import Dict
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from api.config import FastAPIConfig
+from api.config import Config, FastAPIConfig
 from api.routes import router as api_router
 
 
@@ -20,6 +20,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# Add this before app initialization
+def log_configuration() -> None:
+    """Log the current configuration values."""
+    logger.info("=== Health Rec API Configuration ===")
+    logger.info(f"OPENAI_MODEL: {Config.OPENAI_MODEL}")
+    logger.info(f"OPENAI_EMBEDDING: {Config.OPENAI_EMBEDDING}")
+    logger.info(f"CHROMA_HOST: {Config.CHROMA_HOST}")
+    logger.info(f"CHROMA_PORT: {Config.CHROMA_PORT}")
+    logger.info(f"COLLECTION_NAME: {Config.COLLECTION_NAME}")
+    logger.info(f"RELEVANCY_WEIGHT: {Config.RELEVANCY_WEIGHT}")
+    logger.info(f"EMBEDDING_MAX_CONTEXT_LENGTH: {Config.EMBEDDING_MAX_CONTEXT_LENGTH}")
+    logger.info(f"MAX_CONTEXT_LENGTH: {Config.MAX_CONTEXT_LENGTH}")
+    logger.info(f"TOP_K: {Config.TOP_K}")
+    logger.info(f"RERANKER_MAX_CONTEXT_LENGTH: {Config.RERANKER_MAX_CONTEXT_LENGTH}")
+    logger.info(f"RERANKER_MAX_SERVICES: {Config.RERANKER_MAX_SERVICES}")
+    logger.info("====================================")
+
+
+log_configuration()
 
 app = FastAPI(**FastAPIConfig().__dict__)
 app.add_middleware(
