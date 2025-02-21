@@ -305,22 +305,22 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <li><p><strong>Out-of-Scope Situations (10%)</strong>: Queries for services not covered by the system</p></li>
 </ul>
 <p>Each query in the dataset includes:</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">    </span><span class="s2">&quot;query&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;User&#39;s query text&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;context&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;service_id1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;service_id2&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="s2">&quot;answer&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Expected answer text&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="s2">&quot;is_emergency&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;boolean&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// true or false</span>
-<span class="w">    </span><span class="s2">&quot;is_out_of_scope&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;boolean&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// true or false</span>
-<span class="w">    </span><span class="s2">&quot;demographics&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="s2">&quot;Age&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: child, teen, young adult, adult, senior</span>
-<span class="w">        </span><span class="s2">&quot;Gender&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: male, female, non-binary, N/A</span>
-<span class="w">        </span><span class="s2">&quot;Ethnicity&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: Caucasian, African, Asian, Hispanic, Indigenous, Other, N/A</span>
-<span class="w">        </span><span class="s2">&quot;Employment status&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: employed, unemployed, student, retired, unable to work, N/A</span>
-<span class="w">        </span><span class="s2">&quot;Housing situation&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: own home, renting, homeless, shelter, assisted living, N/A</span>
-<span class="w">        </span><span class="s2">&quot;Disability status&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: no disability, physical disability, cognitive disability, N/A</span>
-<span class="w">        </span><span class="s2">&quot;Immigration status&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="w">  </span><span class="c1">// one of: citizen, permanent resident, temporary resident, refugee, undocumented, N/A</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User&#39;s query text&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;service_id1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;service_id2&quot;</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;answer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Expected answer text&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;demographics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;Age&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: child, teen, young adult, adult, senior</span>
+<span class="w">        </span><span class="nt">&quot;Gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: male, female, non-binary, N/A</span>
+<span class="w">        </span><span class="nt">&quot;Ethnicity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: Caucasian, African, Asian, Hispanic, Indigenous, Other, N/A</span>
+<span class="w">        </span><span class="nt">&quot;Employment status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: employed, unemployed, student, retired, unable to work, N/A</span>
+<span class="w">        </span><span class="nt">&quot;Housing situation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: own home, renting, homeless, shelter, assisted living, N/A</span>
+<span class="w">        </span><span class="nt">&quot;Disability status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// one of: no disability, physical disability, cognitive disability, N/A</span>
+<span class="w">        </span><span class="nt">&quot;Immigration status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="w">  </span><span class="c1">// one of: citizen, permanent resident, temporary resident, refugee, undocumented, N/A</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="s2">&quot;detail_level&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="w">  </span><span class="c1">// one of: low, medium, high</span>
+<span class="w">    </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;boolean&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// true or false</span>
+<span class="w">    </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;boolean&gt;&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// true or false</span>
+<span class="w">    </span><span class="nt">&quot;detail_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="w">  </span><span class="c1">// one of: low, medium, high</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -333,8 +333,6 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <span class="w">   </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I&#39;m looking for help with my child&#39;s eating disorder. What services are available?&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;69796102&quot;</span><span class="p">],</span>
 <span class="w">   </span><span class="nt">&quot;answer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The North York General Hospital offers a Child and Adolescent Eating Disorders Program, which includes outpatient services for assessment, diagnosis, and treatment, as well as a day program with medical, nutritional, and mental health care support.&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;demographics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">     </span><span class="nt">&quot;Age&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;child&quot;</span><span class="p">,</span>
 <span class="w">     </span><span class="nt">&quot;Gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span><span class="p">,</span>
@@ -344,6 +342,8 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <span class="w">     </span><span class="nt">&quot;Disability status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span><span class="p">,</span>
 <span class="w">     </span><span class="nt">&quot;Immigration status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span>
 <span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;detail_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;low&quot;</span>
 <span class="p">}</span>
 </pre></div>
@@ -355,8 +355,6 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <span class="w">   </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My child is experiencing severe abdominal pain and I am very concerned. What should I do?&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;69796097&quot;</span><span class="p">],</span>
 <span class="w">   </span><span class="nt">&quot;answer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;You should take your child to the nearest pediatric emergency department immediately. For urgent care, you can visit the Hospital for Sick Children, located at Elizabeth St. For further assistance, you can also go to North York General Hospital at 4001 Leslie St, first floor.&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;demographics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">     </span><span class="nt">&quot;Age&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;child&quot;</span><span class="p">,</span>
 <span class="w">     </span><span class="nt">&quot;Gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span><span class="p">,</span>
@@ -366,6 +364,8 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <span class="w">     </span><span class="nt">&quot;Disability status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span><span class="p">,</span>
 <span class="w">     </span><span class="nt">&quot;Immigration status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;N/A&quot;</span>
 <span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;is_emergency&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;is_out_of_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;detail_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
 <span class="p">}</span>
 </pre></div>
@@ -443,10 +443,73 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </section>
 <section id="performance-metrics">
 <h2>Performance Metrics<a class="headerlink" href="#performance-metrics" title="Link to this heading">¶</a></h2>
-<section id="ragas-metrics-by-category-ontario-data">
-<h3>RAGAS Metrics By Category - Ontario Data<a class="headerlink" href="#ragas-metrics-by-category-ontario-data" title="Link to this heading">¶</a></h3>
-<div class="table-wrapper docutils container">
-<table class="docutils align-default">
+<section id="ragas-metrics-by-category-gta-data">
+<h3>RAGAS Metrics By Category - GTA Data<a class="headerlink" href="#ragas-metrics-by-category-gta-data" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper docutils container" id="id1">
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">GTA Emergency and Out-of-Scope Performance</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Answer Relevancy</p></th>
+<th class="head"><p>Faithfulness</p></th>
+<th class="head"><p>Context Recall</p></th>
+<th class="head"><p>Context Precision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GPT-4o</p></td>
+<td><p>Emergency</p></td>
+<td><p>0.801</p></td>
+<td><p>0.920</p></td>
+<td><p>0.485</p></td>
+<td><p>0.107</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT-4o</p></td>
+<td><p>Out of Scope</p></td>
+<td><p>0.717</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>GPT-4o-mini</p></td>
+<td><p>Emergency</p></td>
+<td><p>0.805</p></td>
+<td><p>0.889</p></td>
+<td><p>0.527</p></td>
+<td><p>0.162</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT-4o-mini</p></td>
+<td><p>Out of Scope</p></td>
+<td><p>0.721</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="table-wrapper docutils container" id="id2">
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">GTA - GPT-4o - Detail Level</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Subgroup</p></th>
 <th class="head"><p>Category</p></th>
@@ -457,49 +520,63 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Detail Level</p></td>
-<td><p>Low</p></td>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>high</p></td>
 <td><p>0.82</p></td>
-<td><p>0.54</p></td>
-<td><p>0.58</p></td>
-<td><p>0.57</p></td>
-</tr>
-<tr class="row-odd"><td><p>Detail Level</p></td>
-<td><p>Medium</p></td>
+<td><p>0.68</p></td>
 <td><p>0.72</p></td>
-<td><p>0.47</p></td>
-<td><p>0.49</p></td>
-<td><p>0.31</p></td>
+<td><p>0.89</p></td>
 </tr>
-<tr class="row-even"><td><p>Detail Level</p></td>
-<td><p>High</p></td>
-<td><p>0.84</p></td>
-<td><p>0.53</p></td>
-<td><p>0.30</p></td>
-<td><p>0.84</p></td>
+<tr class="row-odd"><td><p>detail level</p></td>
+<td><p>low</p></td>
+<td><p>0.85</p></td>
+<td><p>0.76</p></td>
+<td><p>0.70</p></td>
+<td><p>0.86</p></td>
 </tr>
-<tr class="row-odd"><td><p>Is Emergency</p></td>
-<td><p>True</p></td>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>medium</p></td>
+<td><p>0.79</p></td>
+<td><p>0.72</p></td>
+<td><p>0.59</p></td>
+<td><p>0.65</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="table-wrapper docutils container" id="id3">
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">GTA - GPT-4o-mini - Detail Level</span><a class="headerlink" href="#id3" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Subgroup</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Answer Relevancy</p></th>
+<th class="head"><p>Faithfulness</p></th>
+<th class="head"><p>Context Recall</p></th>
+<th class="head"><p>Context Precision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>high</p></td>
 <td><p>0.83</p></td>
-<td><p>0.78</p></td>
-<td><p>0.46</p></td>
-<td><p>1.00</p></td>
+<td><p>0.72</p></td>
+<td><p>0.72</p></td>
+<td><p>0.91</p></td>
 </tr>
-<tr class="row-even"><td><p>Is Out of Scope</p></td>
-<td><p>True</p></td>
-<td><p>0.52</p></td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
-<td><ul class="simple">
-<li></li>
-</ul>
-</td>
+<tr class="row-odd"><td><p>detail level</p></td>
+<td><p>low</p></td>
+<td><p>0.87</p></td>
+<td><p>0.84</p></td>
+<td><p>0.71</p></td>
+<td><p>0.87</p></td>
+</tr>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>medium</p></td>
+<td><p>0.81</p></td>
+<td><p>0.76</p></td>
+<td><p>0.62</p></td>
+<td><p>0.67</p></td>
 </tr>
 </tbody>
 </table>
@@ -507,10 +584,11 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </section>
 <section id="ragas-metrics-by-category-connex-data">
 <h3>RAGAS Metrics By Category - Connex Data<a class="headerlink" href="#ragas-metrics-by-category-connex-data" title="Link to this heading">¶</a></h3>
-<div class="table-wrapper docutils container">
-<table class="docutils align-default">
+<div class="table-wrapper docutils container" id="id4">
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">CONNEX Emergency and Out-of-Scope Performance</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
 <thead>
-<tr class="row-odd"><th class="head"><p>Subgroup</p></th>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
 <th class="head"><p>Category</p></th>
 <th class="head"><p>Answer Relevancy</p></th>
 <th class="head"><p>Faithfulness</p></th>
@@ -519,44 +597,39 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Detail Level</p></td>
-<td><p>Low</p></td>
-<td><p>0.88</p></td>
-<td><p>0.82</p></td>
-<td><p>0.75</p></td>
-<td><p>0.89</p></td>
+<tr class="row-even"><td><p>GPT-4o</p></td>
+<td><p>Emergency</p></td>
+<td><p>0.803</p></td>
+<td><p>0.908</p></td>
+<td><p>0.588</p></td>
+<td><p>0.050</p></td>
 </tr>
-<tr class="row-odd"><td><p>Detail Level</p></td>
-<td><p>Medium</p></td>
-<td><p>0.80</p></td>
-<td><p>0.59</p></td>
-<td><p>0.67</p></td>
-<td><p>0.64</p></td>
+<tr class="row-odd"><td><p>GPT-4o</p></td>
+<td><p>Out of Scope</p></td>
+<td><p>0.547</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
 </tr>
-<tr class="row-even"><td><p>Detail Level</p></td>
-<td><p>High</p></td>
-<td><p>0.87</p></td>
-<td><p>0.67</p></td>
-<td><p>0.73</p></td>
-<td><p>0.93</p></td>
+<tr class="row-even"><td><p>GPT-4o-mini</p></td>
+<td><p>Emergency</p></td>
+<td><p>0.809</p></td>
+<td><p>0.929</p></td>
+<td><p>0.580</p></td>
+<td><p>0.150</p></td>
 </tr>
-<tr class="row-odd"><td><p>Is Emergency</p></td>
-<td><p>True</p></td>
-<td><p>0.81</p></td>
-<td><p>0.50</p></td>
-<td><p>0.60</p></td>
-<td><p>0.10</p></td>
-</tr>
-<tr class="row-even"><td><p>Is Emergency</p></td>
-<td><p>False</p></td>
-<td><p>0.84</p></td>
-<td><p>0.69</p></td>
-<td><p>0.72</p></td>
-<td><p>0.86</p></td>
-</tr>
-<tr class="row-odd"><td><p>Is Out of Scope</p></td>
-<td><p>True</p></td>
-<td><p>0.59</p></td>
+<tr class="row-odd"><td><p>GPT-4o-mini</p></td>
+<td><p>Out of Scope</p></td>
+<td><p>0.565</p></td>
 <td><ul class="simple">
 <li></li>
 </ul>
@@ -573,55 +646,117 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </tbody>
 </table>
 </div>
+<div class="table-wrapper docutils container" id="id5">
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">CONNEX - GPT-4o - Detail Level</span><a class="headerlink" href="#id5" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Subgroup</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Answer Relevancy</p></th>
+<th class="head"><p>Faithfulness</p></th>
+<th class="head"><p>Context Recall</p></th>
+<th class="head"><p>Context Precision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>high</p></td>
+<td><p>0.84</p></td>
+<td><p>0.68</p></td>
+<td><p>0.77</p></td>
+<td><p>0.97</p></td>
+</tr>
+<tr class="row-odd"><td><p>detail level</p></td>
+<td><p>low</p></td>
+<td><p>0.89</p></td>
+<td><p>0.76</p></td>
+<td><p>0.70</p></td>
+<td><p>0.90</p></td>
+</tr>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>medium</p></td>
+<td><p>0.79</p></td>
+<td><p>0.68</p></td>
+<td><p>0.67</p></td>
+<td><p>0.65</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="table-wrapper docutils container" id="id6">
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">CONNEX - GPT-4o-mini - Detail Level</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Subgroup</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Answer Relevancy</p></th>
+<th class="head"><p>Faithfulness</p></th>
+<th class="head"><p>Context Recall</p></th>
+<th class="head"><p>Context Precision</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>high</p></td>
+<td><p>0.89</p></td>
+<td><p>0.69</p></td>
+<td><p>0.80</p></td>
+<td><p>0.98</p></td>
+</tr>
+<tr class="row-odd"><td><p>detail level</p></td>
+<td><p>low</p></td>
+<td><p>0.91</p></td>
+<td><p>0.81</p></td>
+<td><p>0.72</p></td>
+<td><p>0.91</p></td>
+</tr>
+<tr class="row-even"><td><p>detail level</p></td>
+<td><p>medium</p></td>
+<td><p>0.80</p></td>
+<td><p>0.75</p></td>
+<td><p>0.69</p></td>
+<td><p>0.68</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
-<section id="retrieval-performance-ontario-data">
-<h3>Retrieval Performance - Ontario Data<a class="headerlink" href="#retrieval-performance-ontario-data" title="Link to this heading">¶</a></h3>
+<section id="retrieval-performance-gta-data">
+<h3>Retrieval Performance - GTA Data<a class="headerlink" href="#retrieval-performance-gta-data" title="Link to this heading">¶</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Metric</p></th>
-<th class="head"><p>acc&#64;1</p></th>
-<th class="head"><p>acc&#64;3</p></th>
 <th class="head"><p>acc&#64;5</p></th>
 <th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;10">acc<span>&#64;</span>10</a></p></th>
+<th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;15">acc<span>&#64;</span>15</a></p></th>
 <th class="head"><p><a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Overall</p></td>
-<td><p>0.34</p></td>
-<td><p>0.47</p></td>
-<td><p>0.55</p></td>
-<td><p>0.67</p></td>
-<td><p>0.74</p></td>
+<td><p>0.57</p></td>
+<td><p>0.63</p></td>
+<td><p>0.66</p></td>
+<td><p>0.68</p></td>
 </tr>
 <tr class="row-odd"><td><p>High Detail</p></td>
-<td><p>0.31</p></td>
-<td><p>0.44</p></td>
-<td><p>0.53</p></td>
-<td><p>0.63</p></td>
+<td><p>0.66</p></td>
+<td><p>0.71</p></td>
 <td><p>0.74</p></td>
+<td><p>0.75</p></td>
 </tr>
 <tr class="row-even"><td><p>Low Detail</p></td>
-<td><p>0.35</p></td>
-<td><p>0.54</p></td>
-<td><p>0.64</p></td>
-<td><p>0.82</p></td>
-<td><p>0.88</p></td>
+<td><p>0.65</p></td>
+<td><p>0.72</p></td>
+<td><p>0.75</p></td>
+<td><p>0.76</p></td>
 </tr>
 <tr class="row-odd"><td><p>Emergency</p></td>
-<td><p>0.18</p></td>
-<td><p>0.29</p></td>
-<td><p>0.35</p></td>
-<td><p>0.41</p></td>
-<td><p>0.54</p></td>
-</tr>
-<tr class="row-even"><td><p>Out of Scope</p></td>
-<td><p>0.20</p></td>
-<td><p>0.20</p></td>
-<td><p>0.20</p></td>
-<td><p>0.40</p></td>
-<td><p>0.60</p></td>
+<td><p>0.55</p></td>
+<td><p>0.63</p></td>
+<td><p>0.66</p></td>
+<td><p>0.69</p></td>
 </tr>
 </tbody>
 </table>
@@ -641,10 +776,10 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Overall</p></td>
+<td><p>0.70</p></td>
+<td><p>0.74</p></td>
+<td><p>0.75</p></td>
 <td><p>0.77</p></td>
-<td><p>0.82</p></td>
-<td><p>0.82</p></td>
-<td><p>0.84</p></td>
 </tr>
 <tr class="row-odd"><td><p>High Detail</p></td>
 <td><p>0.83</p></td>
@@ -664,21 +799,15 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 <td><p>0.60</p></td>
 <td><p>0.65</p></td>
 </tr>
-<tr class="row-even"><td><p>Out of Scope</p></td>
-<td><p>0.60</p></td>
-<td><p>0.60</p></td>
-<td><p>0.60</p></td>
-<td><p>0.60</p></td>
-</tr>
 </tbody>
 </table>
 </div>
 <p>The metrics reveal several key insights:</p>
 <ol class="arabic simple">
-<li><p><strong>Improved Overall Performance</strong>: The Connex dataset shows generally higher performance across most metrics compared to the Ontario dataset, particularly in detail handling and non-emergency cases.</p></li>
-<li><p><strong>Emergency Detection</strong>: Both datasets show distinct performance characteristics for emergency vs. non-emergency queries, with emergency queries generally showing lower performance metrics, indicating the system’s conservative approach to emergency situations.</p></li>
-<li><p><strong>Detail Level Impact</strong>: High detail queries show strong performance in the Connex dataset, particularly in context precision (0.93) and retrieval accuracy (<a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> = 0.89).</p></li>
-<li><p><strong>Out-of-Scope Handling</strong>: The system shows robust capability in identifying out-of-scope queries, with clear differentiation in metrics between in-scope and out-of-scope requests.</p></li>
+<li><p><strong>Dataset Performance Variation</strong>: The Connex dataset shows higher performance in standard queries and detail handling, while the GTA dataset demonstrates more consistent performance across different query types. This suggests the need for dataset-specific optimization strategies.</p></li>
+<li><p><strong>Emergency Response Challenges</strong>: Both datasets show concerning performance metrics for emergency queries, particularly in context precision (0.050-0.162) and retrieval accuracy.</p></li>
+<li><p><strong>Detail Level Impact</strong>: High and low detail queries consistently outperform medium detail queries across both datasets. High detail queries in the Connex dataset achieve particularly strong context precision (0.97-0.98) and retrieval accuracy (<a class="reference external" href="mailto:acc&#37;&#52;&#48;20">acc<span>&#64;</span>20</a> = 0.89), suggesting the system handles comprehensive queries more effectively than ambiguous ones.</p></li>
+<li><p><strong>Out-of-Scope Detection Variance</strong>: The system shows notably different capabilities in out-of-scope detection between datasets (GTA: 0.717-0.721 vs Connex: 0.547-0.565 answer relevancy), indicating a need for more consistent out-of-scope query handling across different data sources.</p></li>
 </ol>
 <dl class="simple">
 <dt>Based on these metrics, the system implements an optional re-ranking stage that can be enabled via the API’s <cite>rerank</cite> parameter. When enabled:</dt><dd><ul class="simple">
@@ -781,9 +910,9 @@ uv<span class="w"> </span>sync<span class="w"> </span>--dev<span class="w"> </sp
 </ul>
 </li>
 <li><a class="reference internal" href="#performance-metrics">Performance Metrics</a><ul>
-<li><a class="reference internal" href="#ragas-metrics-by-category-ontario-data">RAGAS Metrics By Category - Ontario Data</a></li>
+<li><a class="reference internal" href="#ragas-metrics-by-category-gta-data">RAGAS Metrics By Category - GTA Data</a></li>
 <li><a class="reference internal" href="#ragas-metrics-by-category-connex-data">RAGAS Metrics By Category - Connex Data</a></li>
-<li><a class="reference internal" href="#retrieval-performance-ontario-data">Retrieval Performance - Ontario Data</a></li>
+<li><a class="reference internal" href="#retrieval-performance-gta-data">Retrieval Performance - GTA Data</a></li>
 <li><a class="reference internal" href="#retrieval-performance-connex-data">Retrieval Performance - Connex Data</a></li>
 </ul>
 </li>

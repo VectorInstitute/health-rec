@@ -46,14 +46,12 @@ The evaluation utilizes a synthetic dataset of 1000 queries, carefully structure
 
 Each query in the dataset includes:
 
-.. code-block:: javascript
+.. code-block:: json
 
     {
         "query": "User's query text",
         "context": ["service_id1", "service_id2"],
         "answer": "Expected answer text",
-        "is_emergency": "<boolean>",  // true or false
-        "is_out_of_scope": "<boolean>",  // true or false
         "demographics": {
             "Age": "<string>",  // one of: child, teen, young adult, adult, senior
             "Gender": "<string>",  // one of: male, female, non-binary, N/A
@@ -63,6 +61,8 @@ Each query in the dataset includes:
             "Disability status": "<string>",  // one of: no disability, physical disability, cognitive disability, N/A
             "Immigration status": "<string>"  // one of: citizen, permanent resident, temporary resident, refugee, undocumented, N/A
         },
+        "is_emergency": "<boolean>",  // true or false
+        "is_out_of_scope": "<boolean>",  // true or false
         "detail_level": "<string>"  // one of: low, medium, high
     }
 
@@ -78,8 +78,6 @@ Regular Situation (Low Detail)
        "query": "I'm looking for help with my child's eating disorder. What services are available?",
        "context": ["69796102"],
        "answer": "The North York General Hospital offers a Child and Adolescent Eating Disorders Program, which includes outpatient services for assessment, diagnosis, and treatment, as well as a day program with medical, nutritional, and mental health care support.",
-       "is_emergency": false,
-       "is_out_of_scope": false,
        "demographics": {
          "Age": "child",
          "Gender": "N/A",
@@ -89,6 +87,8 @@ Regular Situation (Low Detail)
          "Disability status": "N/A",
          "Immigration status": "N/A"
        },
+       "is_emergency": false,
+       "is_out_of_scope": false,
        "detail_level": "low"
     }
 
@@ -101,8 +101,6 @@ Emergency Situation
        "query": "My child is experiencing severe abdominal pain and I am very concerned. What should I do?",
        "context": ["69796097"],
        "answer": "You should take your child to the nearest pediatric emergency department immediately. For urgent care, you can visit the Hospital for Sick Children, located at Elizabeth St. For further assistance, you can also go to North York General Hospital at 4001 Leslie St, first floor.",
-       "is_emergency": true,
-       "is_out_of_scope": false,
        "demographics": {
          "Age": "child",
          "Gender": "N/A",
@@ -112,6 +110,8 @@ Emergency Situation
          "Disability status": "N/A",
          "Immigration status": "N/A"
        },
+       "is_emergency": true,
+       "is_out_of_scope": false,
        "detail_level": "medium"
     }
 
@@ -195,10 +195,44 @@ To run evaluations, follow these steps:
 Performance Metrics
 -------------------
 
-RAGAS Metrics By Category - Ontario Data
+RAGAS Metrics By Category - GTA Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. list-table::
+.. list-table:: GTA Emergency and Out-of-Scope Performance
+ :header-rows: 1
+
+ * - Model
+   - Category
+   - Answer Relevancy
+   - Faithfulness
+   - Context Recall
+   - Context Precision
+ * - GPT-4o
+   - Emergency
+   - 0.801
+   - 0.920
+   - 0.485
+   - 0.107
+ * - GPT-4o
+   - Out of Scope
+   - 0.717
+   - -
+   - -
+   - -
+ * - GPT-4o-mini
+   - Emergency
+   - 0.805
+   - 0.889
+   - 0.527
+   - 0.162
+ * - GPT-4o-mini
+   - Out of Scope
+   - 0.721
+   - -
+   - -
+   - -
+
+.. list-table:: GTA - GPT-4o - Detail Level
    :header-rows: 1
 
    * - Subgroup
@@ -207,41 +241,91 @@ RAGAS Metrics By Category - Ontario Data
      - Faithfulness
      - Context Recall
      - Context Precision
-   * - Detail Level
-     - Low
+   * - detail level
+     - high
      - 0.82
-     - 0.54
-     - 0.58
-     - 0.57
-   * - Detail Level
-     - Medium
+     - 0.68
      - 0.72
-     - 0.47
-     - 0.49
-     - 0.31
-   * - Detail Level
-     - High
-     - 0.84
-     - 0.53
-     - 0.30
-     - 0.84
-   * - Is Emergency
-     - True
+     - 0.89
+   * - detail level
+     - low
+     - 0.85
+     - 0.76
+     - 0.70
+     - 0.86
+   * - detail level
+     - medium
+     - 0.79
+     - 0.72
+     - 0.59
+     - 0.65
+
+.. list-table:: GTA - GPT-4o-mini - Detail Level
+   :header-rows: 1
+
+   * - Subgroup
+     - Category
+     - Answer Relevancy
+     - Faithfulness
+     - Context Recall
+     - Context Precision
+   * - detail level
+     - high
      - 0.83
-     - 0.78
-     - 0.46
-     - 1.00
-   * - Is Out of Scope
-     - True
-     - 0.52
-     - -
-     - -
-     - -
+     - 0.72
+     - 0.72
+     - 0.91
+   * - detail level
+     - low
+     - 0.87
+     - 0.84
+     - 0.71
+     - 0.87
+   * - detail level
+     - medium
+     - 0.81
+     - 0.76
+     - 0.62
+     - 0.67
+
 
 RAGAS Metrics By Category - Connex Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. list-table:: CONNEX Emergency and Out-of-Scope Performance
+ :header-rows: 1
 
-.. list-table::
+ * - Model
+   - Category
+   - Answer Relevancy
+   - Faithfulness
+   - Context Recall
+   - Context Precision
+ * - GPT-4o
+   - Emergency
+   - 0.803
+   - 0.908
+   - 0.588
+   - 0.050
+ * - GPT-4o
+   - Out of Scope
+   - 0.547
+   - -
+   - -
+   - -
+ * - GPT-4o-mini
+   - Emergency
+   - 0.809
+   - 0.929
+   - 0.580
+   - 0.150
+ * - GPT-4o-mini
+   - Out of Scope
+   - 0.565
+   - -
+   - -
+   - -
+
+.. list-table:: CONNEX - GPT-4o - Detail Level
    :header-rows: 1
 
    * - Subgroup
@@ -250,88 +334,56 @@ RAGAS Metrics By Category - Connex Data
      - Faithfulness
      - Context Recall
      - Context Precision
-   * - Detail Level
-     - Low
-     - 0.88
-     - 0.82
-     - 0.75
-     - 0.89
-   * - Detail Level
-     - Medium
-     - 0.80
-     - 0.59
-     - 0.67
-     - 0.64
-   * - Detail Level
-     - High
-     - 0.87
-     - 0.67
-     - 0.73
-     - 0.93
-   * - Is Emergency
-     - True
-     - 0.81
-     - 0.50
-     - 0.60
-     - 0.10
-   * - Is Emergency
-     - False
+   * - detail level
+     - high
      - 0.84
-     - 0.69
-     - 0.72
-     - 0.86
-   * - Is Out of Scope
-     - True
-     - 0.59
-     - -
-     - -
-     - -
+     - 0.68
+     - 0.77
+     - 0.97
+   * - detail level
+     - low
+     - 0.89
+     - 0.76
+     - 0.70
+     - 0.90
+   * - detail level
+     - medium
+     - 0.79
+     - 0.68
+     - 0.67
+     - 0.65
 
-Retrieval Performance - Ontario Data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. list-table::
+.. list-table:: CONNEX - GPT-4o-mini - Detail Level
    :header-rows: 1
 
-   * - Metric
-     - acc@1
-     - acc@3
-     - acc@5
-     - acc@10
-     - acc@20
-   * - Overall
-     - 0.34
-     - 0.47
-     - 0.55
-     - 0.67
-     - 0.74
-   * - High Detail
-     - 0.31
-     - 0.44
-     - 0.53
-     - 0.63
-     - 0.74
-   * - Low Detail
-     - 0.35
-     - 0.54
-     - 0.64
-     - 0.82
-     - 0.88
-   * - Emergency
-     - 0.18
-     - 0.29
-     - 0.35
-     - 0.41
-     - 0.54
-   * - Out of Scope
-     - 0.20
-     - 0.20
-     - 0.20
-     - 0.40
-     - 0.60
+   * - Subgroup
+     - Category
+     - Answer Relevancy
+     - Faithfulness
+     - Context Recall
+     - Context Precision
+   * - detail level
+     - high
+     - 0.89
+     - 0.69
+     - 0.80
+     - 0.98
+   * - detail level
+     - low
+     - 0.91
+     - 0.81
+     - 0.72
+     - 0.91
+   * - detail level
+     - medium
+     - 0.80
+     - 0.75
+     - 0.69
+     - 0.68
 
-Retrieval Performance - Connex Data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Retrieval Performance - GTA Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
@@ -342,10 +394,43 @@ Retrieval Performance - Connex Data
      - acc@15
      - acc@20
    * - Overall
+     - 0.57
+     - 0.63
+     - 0.66
+     - 0.68
+   * - High Detail
+     - 0.66
+     - 0.71
+     - 0.74
+     - 0.75
+   * - Low Detail
+     - 0.65
+     - 0.72
+     - 0.75
+     - 0.76
+   * - Emergency
+     - 0.55
+     - 0.63
+     - 0.66
+     - 0.69
+
+
+Retrieval Performance - Connex Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Metric
+     - acc@5
+     - acc@10
+     - acc@15
+     - acc@20
+   * - Overall
+     - 0.70
+     - 0.74
+     - 0.75
      - 0.77
-     - 0.82
-     - 0.82
-     - 0.84
    * - High Detail
      - 0.83
      - 0.89
@@ -361,21 +446,16 @@ Retrieval Performance - Connex Data
      - 0.55
      - 0.60
      - 0.65
-   * - Out of Scope
-     - 0.60
-     - 0.60
-     - 0.60
-     - 0.60
 
 The metrics reveal several key insights:
 
-1. **Improved Overall Performance**: The Connex dataset shows generally higher performance across most metrics compared to the Ontario dataset, particularly in detail handling and non-emergency cases.
+1. **Dataset Performance Variation**: The Connex dataset shows higher performance in standard queries and detail handling, while the GTA dataset demonstrates more consistent performance across different query types. This suggests the need for dataset-specific optimization strategies.
 
-2. **Emergency Detection**: Both datasets show distinct performance characteristics for emergency vs. non-emergency queries, with emergency queries generally showing lower performance metrics, indicating the system's conservative approach to emergency situations.
+2. **Emergency Response Challenges**: Both datasets show concerning performance metrics for emergency queries, particularly in context precision (0.050-0.162) and retrieval accuracy.
 
-3. **Detail Level Impact**: High detail queries show strong performance in the Connex dataset, particularly in context precision (0.93) and retrieval accuracy (acc@20 = 0.89).
+3. **Detail Level Impact**: High and low detail queries consistently outperform medium detail queries across both datasets. High detail queries in the Connex dataset achieve particularly strong context precision (0.97-0.98) and retrieval accuracy (acc@20 = 0.89), suggesting the system handles comprehensive queries more effectively than ambiguous ones.
 
-4. **Out-of-Scope Handling**: The system shows robust capability in identifying out-of-scope queries, with clear differentiation in metrics between in-scope and out-of-scope requests.
+4. **Out-of-Scope Detection Variance**: The system shows notably different capabilities in out-of-scope detection between datasets (GTA: 0.717-0.721 vs Connex: 0.547-0.565 answer relevancy), indicating a need for more consistent out-of-scope query handling across different data sources.
 
 Based on these metrics, the system implements an optional re-ranking stage that can be enabled via the API's `rerank` parameter. When enabled:
     - First stage: Retrieves top 20 candidates using efficient embedding-based similarity
