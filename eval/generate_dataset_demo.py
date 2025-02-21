@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import random
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 
 from langchain_openai import ChatOpenAI
@@ -70,16 +70,16 @@ def parse_demographics_string(demographics: str) -> Dict[str, str]:
         "Employment status": "N/A",
         "Housing situation": "N/A",
         "Disability status": "N/A",
-        "Immigration status": "N/A"
+        "Immigration status": "N/A",
     }
-    
+
     try:
         # Handle string format
         if isinstance(demographics, str):
-            pairs = [pair.strip() for pair in demographics.split(',')]
+            pairs = [pair.strip() for pair in demographics.split(",")]
             for pair in pairs:
-                if ':' in pair:
-                    key, value = pair.split(':', 1)
+                if ":" in pair:
+                    key, value = pair.split(":", 1)
                     key = key.strip()
                     value = value.strip()
                     if key in demo_dict:
@@ -91,14 +91,14 @@ def parse_demographics_string(demographics: str) -> Dict[str, str]:
                     demo_dict[key] = demographics[key]
     except Exception as e:
         logger.error(f"Error parsing demographics: {e}")
-    
+
     return demo_dict
 
 
 def process_result(result: Dict[str, Any]) -> Dict[str, Any]:
     """Process and standardize the result from the LLM."""
     processed = result.copy()
-    
+
     # Ensure demographics is properly formatted
     demographics = result.get("demographics", {})
     if isinstance(demographics, str):
@@ -113,12 +113,12 @@ def process_result(result: Dict[str, Any]) -> Dict[str, Any]:
             "Employment status": demographics.get("Employment status", "N/A"),
             "Housing situation": demographics.get("Housing situation", "N/A"),
             "Disability status": demographics.get("Disability status", "N/A"),
-            "Immigration status": demographics.get("Immigration status", "N/A")
+            "Immigration status": demographics.get("Immigration status", "N/A"),
         }
     else:
         # Default empty demographics
         processed["demographics"] = parse_demographics_string("")
-    
+
     return processed
 
 
@@ -193,7 +193,7 @@ def create_synthetic_dataset(
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
-        {
+        {  # type: ignore
             "context": RunnablePassthrough(),
             "situation_instruction": RunnablePassthrough(),
             "detail_level": RunnablePassthrough(),
@@ -245,7 +245,9 @@ def create_synthetic_dataset(
                     "answer": processed_result.get("answer", ""),
                     "demographics": processed_result.get("demographics", {}),
                     "is_emergency": True if situation_type == "emergency" else False,
-                    "is_out_of_scope": True if situation_type == "out_of_scope" else False,
+                    "is_out_of_scope": True
+                    if situation_type == "out_of_scope"
+                    else False,
                     "detail_level": detail_level,
                 }
             )
