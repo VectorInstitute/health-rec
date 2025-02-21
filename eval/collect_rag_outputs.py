@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 from typing import Dict, Any, List, Optional
+from tqdm import tqdm
 
 import aiohttp
 import chromadb
@@ -45,7 +46,7 @@ async def fetch_recommendation(
     try:
         async with session.post(
             endpoint,
-            json={"query": query["query"], "rerank": True},
+            json={"query": query["query"]},
         ) as response:
             if response.status == 200:
                 result = await response.json()
@@ -107,6 +108,9 @@ async def process_samples(
 
     results: List[Dict[str, Any]] = []
     async with aiohttp.ClientSession() as session:
+        # Set up progress bar for overall processing
+        pbar = tqdm(total=len(samples), desc="Processing samples")
+
         # Process in batches
         for i in range(0, len(samples), batch_size):
             batch = samples[i : i + batch_size]
@@ -117,13 +121,20 @@ async def process_samples(
                 for query in batch
             ]
             batch_results = await asyncio.gather(*tasks)
-            results.extend([r for r in batch_results if r is not None])
+            valid_results = [r for r in batch_results if r is not None]
+            results.extend(valid_results)
+
+            # Update progress bar with the number of successful results
+            pbar.update(len(batch))
+            pbar.set_postfix({"success": f"{len(valid_results)}/{len(batch)}"})
+
+        pbar.close()
 
     # Save results
     with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
 
-    logger.info(f"Processed {len(results)} samples successfully")
+    logger.info(f"Processed {len(results)}/{len(samples)} samples successfully")
 
 
 def main() -> None:
@@ -166,6 +177,9 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
+    # Show overall progress message
+    logger.info(f"Starting processing of samples from {args.input}")
 
     asyncio.run(
         process_samples(

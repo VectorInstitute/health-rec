@@ -3,7 +3,8 @@ import json
 import logging
 import os
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
+
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -60,6 +61,67 @@ def load_services(data_dir: str) -> List[Dict[str, Any]]:
     return services
 
 
+def parse_demographics_string(demographics: str) -> Dict[str, str]:
+    """Convert a comma-separated demographics string into a structured dictionary."""
+    demo_dict = {
+        "Age": "N/A",
+        "Gender": "N/A",
+        "Ethnicity": "N/A",
+        "Employment status": "N/A",
+        "Housing situation": "N/A",
+        "Disability status": "N/A",
+        "Immigration status": "N/A"
+    }
+    
+    try:
+        # Handle string format
+        if isinstance(demographics, str):
+            pairs = [pair.strip() for pair in demographics.split(',')]
+            for pair in pairs:
+                if ':' in pair:
+                    key, value = pair.split(':', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    if key in demo_dict:
+                        demo_dict[key] = value.strip()
+        # Handle dict format
+        elif isinstance(demographics, dict):
+            for key in demo_dict:
+                if key in demographics:
+                    demo_dict[key] = demographics[key]
+    except Exception as e:
+        logger.error(f"Error parsing demographics: {e}")
+    
+    return demo_dict
+
+
+def process_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Process and standardize the result from the LLM."""
+    processed = result.copy()
+    
+    # Ensure demographics is properly formatted
+    demographics = result.get("demographics", {})
+    if isinstance(demographics, str):
+        # Convert string format to dictionary
+        processed["demographics"] = parse_demographics_string(demographics)
+    elif isinstance(demographics, dict):
+        # Ensure all required fields exist
+        processed["demographics"] = {
+            "Age": demographics.get("Age", "N/A"),
+            "Gender": demographics.get("Gender", "N/A"),
+            "Ethnicity": demographics.get("Ethnicity", "N/A"),
+            "Employment status": demographics.get("Employment status", "N/A"),
+            "Housing situation": demographics.get("Housing situation", "N/A"),
+            "Disability status": demographics.get("Disability status", "N/A"),
+            "Immigration status": demographics.get("Immigration status", "N/A")
+        }
+    else:
+        # Default empty demographics
+        processed["demographics"] = parse_demographics_string("")
+    
+    return processed
+
+
 # Create prompt template for generating synthetic queries and answers
 query_generation_template = """
 We are evaluating a RAG pipeline for generating health service recommendations to individuals in need. The aim is to create a synthetic dataset of user queries based on the context of health services provided.
@@ -80,6 +142,7 @@ Remember to consider:
 2. Intersectional needs (e.g., elderly with mobility issues and mental health concerns)
 3. Primary and secondary service recommendations
 
+If the demographic isn't **explicitly** mentioned in the generated user query, set it to N/A.
 Avoid providing services tailored to specific ethnicities or religions unless explicitly mentioned in the query.
 
 For the level of detail:
@@ -93,11 +156,25 @@ Output the results in the specified format.
 """
 
 # Define the output schema
+# Update the response schemas to be more specific
 response_schemas = [
     ResponseSchema(name="query", description="The user's query about health services"),
     ResponseSchema(
         name="answer",
         description="Expected answer based on the query and relevant services",
+    ),
+    ResponseSchema(
+        name="demographics",
+        description="""Demographic information in the following format:
+        {
+            "Age": "[child/teen/young adult/adult/senior]",
+            "Gender": "[male/female/non-binary]",
+            "Ethnicity": "[Caucasian/African/Asian/Hispanic/Indigenous/Other]",
+            "Employment status": "[employed/unemployed/student/retired/unable to work]",
+            "Housing situation": "[own home/renting/homeless/shelter/assisted living]",
+            "Disability status": "[no disability/physical disability/cognitive disability]",
+            "Immigration status": "[citizen/permanent resident/temporary resident/refugee/undocumented]"
+        }""",
     ),
 ]
 
@@ -111,12 +188,12 @@ def create_synthetic_dataset(
     detail_level: str,
     name: str,
 ) -> List[Dict[str, Any]]:
-    """Create synthetic dataset from services."""
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)
+    """Create synthetic dataset from services with robust demographics handling."""
+    llm = ChatOpenAI(model="gpt-4", temperature=0.7)
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
-        {  # type: ignore
+        {
             "context": RunnablePassthrough(),
             "situation_instruction": RunnablePassthrough(),
             "detail_level": RunnablePassthrough(),
@@ -128,8 +205,6 @@ def create_synthetic_dataset(
     )
 
     synthetic_dataset = []
-
-    # get num_samples from services randomly without replacement
     random_services = random.sample(services, num_samples)
 
     for context_service in random_services:
@@ -160,15 +235,17 @@ def create_synthetic_dataset(
                 }
             )
 
+            # Process the result to ensure consistent formatting
+            processed_result = process_result(result)
+
             synthetic_dataset.append(
                 {
-                    "query": result.get("query", ""),
+                    "query": processed_result.get("query", ""),
                     "context": context_service["id"],
-                    "answer": result.get("answer", ""),
+                    "answer": processed_result.get("answer", ""),
+                    "demographics": processed_result.get("demographics", {}),
                     "is_emergency": True if situation_type == "emergency" else False,
-                    "is_out_of_scope": True
-                    if situation_type == "out_of_scope"
-                    else False,
+                    "is_out_of_scope": True if situation_type == "out_of_scope" else False,
                     "detail_level": detail_level,
                 }
             )

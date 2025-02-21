@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Set the total number of samples
-TOTAL_SAMPLES=1000
+TOTAL_SAMPLES=100
 
 # Set the distribution percentages (keeping the same proportions as original)
 REGULAR_PERCENT=80
 EMERGENCY_PERCENT=10
 OUT_OF_SCOPE_PERCENT=10
-SUFFIX="on"
-INPUT_DIR="health_rec/data/on"
+SUFFIX="gta"
+INPUT_DIR="health_rec/data/gta"
+INCLUDE_DEMOGRAPHICS=1
 
 # Calculate the number of samples for each situation type
 REGULAR_SAMPLES=$((TOTAL_SAMPLES * REGULAR_PERCENT / 100))
@@ -32,7 +33,11 @@ generate_samples() {
     OUTPUT_FILE="dataset_${SITUATION}_${DETAIL}_${SUFFIX}"
 
     echo "Generating $COUNT $SITUATION samples with $DETAIL detail level..."
-    python3 eval/generate_dataset.py --input_dir  $INPUT_DIR --situation_type $SITUATION --detail_level $DETAIL --num_samples $COUNT --name $OUTPUT_FILE
+    if [ $INCLUDE_DEMOGRAPHICS -eq 1 ]; then
+        python3 eval/generate_dataset_demo.py --input_dir  $INPUT_DIR --situation_type $SITUATION --detail_level $DETAIL --num_samples $COUNT --name $OUTPUT_FILE
+    else
+        python3 eval/generate_dataset.py --input_dir  $INPUT_DIR --situation_type $SITUATION --detail_level $DETAIL --num_samples $COUNT --name $OUTPUT_FILE
+    fi
 }
 
 # Generate regular samples with varying detail levels
