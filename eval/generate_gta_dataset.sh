@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the total number of samples
-TOTAL_SAMPLES=100
+TOTAL_SAMPLES=1000
 
 # Set the distribution percentages (keeping the same proportions as original)
 REGULAR_PERCENT=80
@@ -9,7 +9,7 @@ EMERGENCY_PERCENT=10
 OUT_OF_SCOPE_PERCENT=10
 SUFFIX="gta"
 INPUT_DIR="health_rec/data/gta"
-INCLUDE_DEMOGRAPHICS=1
+INCLUDE_DEMOGRAPHICS=0
 
 # Calculate the number of samples for each situation type
 REGULAR_SAMPLES=$((TOTAL_SAMPLES * REGULAR_PERCENT / 100))
