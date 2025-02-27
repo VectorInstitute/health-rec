@@ -25,9 +25,9 @@ The system features an intuitive interface that allows users to:
 
 ![User Interface Search Page](docs/source/_static/ui_screenshots/search_page.png)
 *The main search interface where users can input their needs*
-  
+
 ![Results Page with Map View](docs/source/_static/ui_screenshots/results_page.png)
-*Screenshot: Search results displaying services with an interactive map*
+Search results displaying services with an interactive map*
 
 For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api.html).
 
