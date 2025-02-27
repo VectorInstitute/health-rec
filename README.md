@@ -15,6 +15,20 @@ The Health Recommendation System is built with a modern microservices architectu
 | Vector Database | ChromaDB | Service data storage |
 | AI Engine | OpenAI | Embeddings & recommendations |
 
+This tool is a Minimum Viable Product (MVP) designed for organizations looking to implement AI-powered health or community service recommendation systems. It can be adapted by healthcare providers, social service agencies, community organizations, and government entities who want to connect individuals with appropriate resources based on their specific needs.
+
+The system features an intuitive interface that allows users to:
+- Search for services using natural language queries
+- Filter results by location
+- View detailed information about each service
+- Refine recommendations based on user feedback
+
+![User Interface Search Page](docs/source/_static/ui_screenshots/search_page.png)
+*The main search interface where users can input their needs*
+
+![Results Page with Map View](docs/source/_static/ui_screenshots/results_page.png)
+Search results displaying services with an interactive map*
+
 For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api.html).
 
 ## 🚀 Getting started
