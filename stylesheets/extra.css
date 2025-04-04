@@ -89,3 +89,64 @@
   opacity: 0.7;
   margin-right: 0.2em;
 }
+
+/* Enhanced table styling */
+.md-typeset table:not([class]) {
+  font-size: 0.9rem;
+  border-collapse: collapse;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: left;
+  padding: 0.8rem;
+  border-bottom: 2px solid rgba(255,255,255,0.3);
+}
+
+.md-typeset table:not([class]) tr {
+  background-color: var(--md-card-bg-color);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease;
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: rgba(0,0,0,0.03);
+}
+
+.md-typeset table:not([class]) tr:nth-child(even) {
+  background-color: rgba(0,0,0,0.02);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.8rem;
+  vertical-align: middle;
+}
+
+.md-typeset table:not([class]) td:first-child {
+  font-weight: 500;
+  border-left: 3px solid var(--md-primary-fg-color);
+}
+
+/* For bold highlighting of best results */
+.md-typeset table:not([class]) strong {
+  font-weight: 700;
+  color: var(--md-accent-fg-color);
+  position: relative;
+}
+
+.md-typeset table:not([class]) strong::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--md-accent-fg-color);
+  opacity: 0.5;
+}

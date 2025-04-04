@@ -902,22 +902,22 @@
 <ol>
 <li>
 <p><strong>Answer Relevancy</strong>: Measures response alignment with user input using:</p>
-<p>$\text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{|E_{g_i}| |E_o|}$</p>
-<p>Where E_g are embeddings of generated questions and E_o is the embedding of the original query and the metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).</p>
+<div class="arithmatex">\[\text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{||E_{g_i}|| \cdot ||E_o||}\]</div>
+<p>Where <span class="arithmatex">\(<span class="arithmatex">\(E_{g_i}\)</span>\)</span> are embeddings of generated questions and <span class="arithmatex">\(<span class="arithmatex">\(E_o\)</span>\)</span> is the embedding of the original query. The metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).</p>
 </li>
 <li>
 <p><strong>Faithfulness</strong>: Measures factual consistency with retrieved context:</p>
-<p>$\text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}$</p>
+<div class="arithmatex">\[\text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}\]</div>
 <p>Uses LLM to generate a set of claims from the generated answer and cross-checks them with given context to determine if it can be inferred from the context.</p>
 </li>
 <li>
 <p><strong>Context Recall</strong>: Measures completeness of retrieved relevant documents (asks the question, did we retrieve all the contexts we needed?):</p>
-<p>$\text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}$</p>
+<div class="arithmatex">\[\text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}\]</div>
 <p>LLM breaks down the reference answer into individual claims and classifies whether they can be attributed to the retrieved contexts. High recall means we found most of the needed information. Low recall means we missed important information.</p>
 </li>
 <li>
 <p><strong>Context Precision</strong>: Measures relevance of retrieved chunks (asks the question, of the contexts we retrieved, how many were actually relevant?)</p>
-<p>$\text{Context Precision@K} = \frac{\sum_{k=1}^{K} (\text{Precision@k} \times v_k)}{\text{Relevant items in top K}}$</p>
+<div class="arithmatex">\[\text{Context Precision@K} = \frac{\sum_{k=1}^{K} (\text{Precision@k} \times v_k)}{\text{Relevant items in top K}}\]</div>
 <p>LLM computes a score based on the position and usefulness of each context and calculates weighted average. High precision means most retrieved contexts were useful. Low precision means we retrieved many irrelevant contexts.</p>
 </li>
 </ol>
@@ -969,7 +969,7 @@
 <td>GPT-4o</td>
 <td>Emergency</td>
 <td>0.801</td>
-<td>0.920</td>
+<td><strong>0.920</strong></td>
 <td>0.485</td>
 <td>0.107</td>
 </tr>
@@ -984,15 +984,15 @@
 <tr>
 <td>GPT-4o-mini</td>
 <td>Emergency</td>
-<td>0.805</td>
+<td><strong>0.805</strong></td>
 <td>0.889</td>
-<td>0.527</td>
-<td>0.162</td>
+<td><strong>0.527</strong></td>
+<td><strong>0.162</strong></td>
 </tr>
 <tr>
 <td>GPT-4o-mini</td>
 <td>Out of Scope</td>
-<td>0.721</td>
+<td><strong>0.721</strong></td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1016,14 +1016,14 @@
 <td>high</td>
 <td>0.82</td>
 <td>0.68</td>
-<td>0.72</td>
-<td>0.89</td>
+<td><strong>0.72</strong></td>
+<td><strong>0.89</strong></td>
 </tr>
 <tr>
 <td>detail level</td>
 <td>low</td>
-<td>0.85</td>
-<td>0.76</td>
+<td><strong>0.85</strong></td>
+<td><strong>0.76</strong></td>
 <td>0.70</td>
 <td>0.86</td>
 </tr>
@@ -1054,14 +1054,14 @@
 <td>high</td>
 <td>0.83</td>
 <td>0.72</td>
-<td>0.72</td>
-<td>0.91</td>
+<td><strong>0.72</strong></td>
+<td><strong>0.91</strong></td>
 </tr>
 <tr>
 <td>detail level</td>
 <td>low</td>
-<td>0.87</td>
-<td>0.84</td>
+<td><strong>0.87</strong></td>
+<td><strong>0.84</strong></td>
 <td>0.71</td>
 <td>0.87</td>
 </tr>
@@ -1093,7 +1093,7 @@
 <td>Emergency</td>
 <td>0.803</td>
 <td>0.908</td>
-<td>0.588</td>
+<td><strong>0.588</strong></td>
 <td>0.050</td>
 </tr>
 <tr>
@@ -1107,15 +1107,15 @@
 <tr>
 <td>GPT-4o-mini</td>
 <td>Emergency</td>
-<td>0.809</td>
-<td>0.929</td>
+<td><strong>0.809</strong></td>
+<td><strong>0.929</strong></td>
 <td>0.580</td>
-<td>0.150</td>
+<td><strong>0.150</strong></td>
 </tr>
 <tr>
 <td>GPT-4o-mini</td>
 <td>Out of Scope</td>
-<td>0.565</td>
+<td><strong>0.565</strong></td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1139,14 +1139,14 @@
 <td>high</td>
 <td>0.84</td>
 <td>0.68</td>
-<td>0.77</td>
-<td>0.97</td>
+<td><strong>0.77</strong></td>
+<td><strong>0.97</strong></td>
 </tr>
 <tr>
 <td>detail level</td>
 <td>low</td>
-<td>0.89</td>
-<td>0.76</td>
+<td><strong>0.89</strong></td>
+<td><strong>0.76</strong></td>
 <td>0.70</td>
 <td>0.90</td>
 </tr>
@@ -1177,14 +1177,14 @@
 <td>high</td>
 <td>0.89</td>
 <td>0.69</td>
-<td>0.80</td>
-<td>0.98</td>
+<td><strong>0.80</strong></td>
+<td><strong>0.98</strong></td>
 </tr>
 <tr>
 <td>detail level</td>
 <td>low</td>
-<td>0.91</td>
-<td>0.81</td>
+<td><strong>0.91</strong></td>
+<td><strong>0.81</strong></td>
 <td>0.72</td>
 <td>0.91</td>
 </tr>
@@ -1226,10 +1226,10 @@
 </tr>
 <tr>
 <td>Low Detail</td>
-<td>0.65</td>
-<td>0.72</td>
-<td>0.75</td>
-<td>0.76</td>
+<td><strong>0.65</strong></td>
+<td><strong>0.72</strong></td>
+<td><strong>0.75</strong></td>
+<td><strong>0.76</strong></td>
 </tr>
 <tr>
 <td>Emergency</td>
@@ -1261,10 +1261,10 @@
 </tr>
 <tr>
 <td>High Detail</td>
-<td>0.83</td>
-<td>0.89</td>
-<td>0.89</td>
-<td>0.89</td>
+<td><strong>0.83</strong></td>
+<td><strong>0.89</strong></td>
+<td><strong>0.89</strong></td>
+<td><strong>0.89</strong></td>
 </tr>
 <tr>
 <td>Low Detail</td>
@@ -1410,6 +1410,12 @@
     
     
       <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
     
   </body>
