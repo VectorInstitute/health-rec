@@ -113,25 +113,25 @@ The system uses four key RAGAS metrics for evaluation:
 
 1. **Answer Relevancy**: Measures response alignment with user input using:
 
-    $\text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{\|E_{g_i}\| \|E_o\|}$
+    $$\text{Answer Relevancy} = \frac{1}{N} \sum_{i=1}^{N} \frac{E_{g_i} \cdot E_o}{||E_{g_i}|| \cdot ||E_o||}$$
 
-    Where E_g are embeddings of generated questions and E_o is the embedding of the original query and the metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).
+    Where $$E_{g_i}$$ are embeddings of generated questions and $$E_o$$ is the embedding of the original query. The metric is defined by the mean cosine similarity between LLM-generated questions and the original query ranging from -1 to 1 (though we expect values to be between 0 to 1).
 
 2. **Faithfulness**: Measures factual consistency with retrieved context:
 
-    $\text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}$
+    $$\text{Faithfulness} = \frac{\text{Claims supported by context}}{\text{Total claims in response}}$$
 
     Uses LLM to generate a set of claims from the generated answer and cross-checks them with given context to determine if it can be inferred from the context.
 
 3. **Context Recall**: Measures completeness of retrieved relevant documents (asks the question, did we retrieve all the contexts we needed?):
 
-    $\text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}$
+    $$\text{Context Recall} = \frac{\text{Claims in reference supported by context}}{\text{Total claims in reference}}$$
 
     LLM breaks down the reference answer into individual claims and classifies whether they can be attributed to the retrieved contexts. High recall means we found most of the needed information. Low recall means we missed important information.
 
 4. **Context Precision**: Measures relevance of retrieved chunks (asks the question, of the contexts we retrieved, how many were actually relevant?)
 
-    $\text{Context Precision@K} = \frac{\sum_{k=1}^{K} (\text{Precision@k} \times v_k)}{\text{Relevant items in top K}}$
+    $$\text{Context Precision@K} = \frac{\sum_{k=1}^{K} (\text{Precision@k} \times v_k)}{\text{Relevant items in top K}}$$
 
     LLM computes a score based on the position and usefulness of each context and calculates weighted average. High precision means most retrieved contexts were useful. Low precision means we retrieved many irrelevant contexts.
 
@@ -178,42 +178,42 @@ To run evaluations, follow these steps:
 
 | Model | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |-------|----------|------------------|--------------|----------------|-------------------|
-| GPT-4o | Emergency | 0.801 | 0.920 | 0.485 | 0.107 |
+| GPT-4o | Emergency | 0.801 | **0.920** | 0.485 | 0.107 |
 | GPT-4o | Out of Scope | 0.717 | - | - | - |
-| GPT-4o-mini | Emergency | 0.805 | 0.889 | 0.527 | 0.162 |
-| GPT-4o-mini | Out of Scope | 0.721 | - | - | - |
+| GPT-4o-mini | Emergency | **0.805** | 0.889 | **0.527** | **0.162** |
+| GPT-4o-mini | Out of Scope | **0.721** | - | - | - |
 
 | Subgroup | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |----------|----------|------------------|--------------|----------------|-------------------|
-| detail level | high | 0.82 | 0.68 | 0.72 | 0.89 |
-| detail level | low | 0.85 | 0.76 | 0.70 | 0.86 |
+| detail level | high | 0.82 | 0.68 | **0.72** | **0.89** |
+| detail level | low | **0.85** | **0.76** | 0.70 | 0.86 |
 | detail level | medium | 0.79 | 0.72 | 0.59 | 0.65 |
 
 | Subgroup | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |----------|----------|------------------|--------------|----------------|-------------------|
-| detail level | high | 0.83 | 0.72 | 0.72 | 0.91 |
-| detail level | low | 0.87 | 0.84 | 0.71 | 0.87 |
+| detail level | high | 0.83 | 0.72 | **0.72** | **0.91** |
+| detail level | low | **0.87** | **0.84** | 0.71 | 0.87 |
 | detail level | medium | 0.81 | 0.76 | 0.62 | 0.67 |
 
 ### RAGAS Metrics By Category - Connex Data
 
 | Model | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |-------|----------|------------------|--------------|----------------|-------------------|
-| GPT-4o | Emergency | 0.803 | 0.908 | 0.588 | 0.050 |
+| GPT-4o | Emergency | 0.803 | 0.908 | **0.588** | 0.050 |
 | GPT-4o | Out of Scope | 0.547 | - | - | - |
-| GPT-4o-mini | Emergency | 0.809 | 0.929 | 0.580 | 0.150 |
-| GPT-4o-mini | Out of Scope | 0.565 | - | - | - |
+| GPT-4o-mini | Emergency | **0.809** | **0.929** | 0.580 | **0.150** |
+| GPT-4o-mini | Out of Scope | **0.565** | - | - | - |
 
 | Subgroup | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |----------|----------|------------------|--------------|----------------|-------------------|
-| detail level | high | 0.84 | 0.68 | 0.77 | 0.97 |
-| detail level | low | 0.89 | 0.76 | 0.70 | 0.90 |
+| detail level | high | 0.84 | 0.68 | **0.77** | **0.97** |
+| detail level | low | **0.89** | **0.76** | 0.70 | 0.90 |
 | detail level | medium | 0.79 | 0.68 | 0.67 | 0.65 |
 
 | Subgroup | Category | Answer Relevancy | Faithfulness | Context Recall | Context Precision |
 |----------|----------|------------------|--------------|----------------|-------------------|
-| detail level | high | 0.89 | 0.69 | 0.80 | 0.98 |
-| detail level | low | 0.91 | 0.81 | 0.72 | 0.91 |
+| detail level | high | 0.89 | 0.69 | **0.80** | **0.98** |
+| detail level | low | **0.91** | **0.81** | 0.72 | 0.91 |
 | detail level | medium | 0.80 | 0.75 | 0.69 | 0.68 |
 
 ### Retrieval Performance - GTA Data
@@ -222,7 +222,7 @@ To run evaluations, follow these steps:
 |--------|-------|--------|--------|--------|
 | Overall | 0.57 | 0.63 | 0.66 | 0.68 |
 | High Detail | 0.66 | 0.71 | 0.74 | 0.75 |
-| Low Detail | 0.65 | 0.72 | 0.75 | 0.76 |
+| Low Detail | **0.65** | **0.72** | **0.75** | **0.76** |
 | Emergency | 0.55 | 0.63 | 0.66 | 0.69 |
 
 ### Retrieval Performance - Connex Data
@@ -230,7 +230,7 @@ To run evaluations, follow these steps:
 | Metric | acc@5 | acc@10 | acc@15 | acc@20 |
 |--------|-------|--------|--------|--------|
 | Overall | 0.70 | 0.74 | 0.75 | 0.77 |
-| High Detail | 0.83 | 0.89 | 0.89 | 0.89 |
+| High Detail | **0.83** | **0.89** | **0.89** | **0.89** |
 | Low Detail | 0.75 | 0.79 | 0.79 | 0.81 |
 | Emergency | 0.45 | 0.55 | 0.60 | 0.65 |
 

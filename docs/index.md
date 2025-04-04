@@ -1,5 +1,1 @@
----
-title: Health Recommendation System
----
-
-{! ../README.md !}
+{% include-markdown "../README.md" %}
