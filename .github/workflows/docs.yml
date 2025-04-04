@@ -51,15 +51,13 @@ jobs:
         with:
           python-version-file: "health_rec/.python-version"
 
-      - name: Install the project and docs dependencies
+      - name: Install the project and dependencies
         run: |
           cd health_rec
           uv sync --all-extras --group docs
 
       - name: Build docs
-        run: |
-          cd health_rec
-          uv run -m mkdocs build --config-file ../mkdocs.yml --site-dir ../site
+        run: uv run -m mkdocs build
 
       - name: Create .nojekyll file
         run: touch site/.nojekyll
