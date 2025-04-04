@@ -35,19 +35,12 @@ dev = [
 ]
 
 docs = [
-    "numpydoc>=1.2",
-    "sphinx>=7.2.5",
-    "sphinxcontrib-apidoc>=0.4.0",
-    "sphinx-autodoc-typehints>=1.24.0",
-    "myst-parser>=2.0.0",
-    "sphinx-design>=0.5.0",
-    "sphinx-copybutton>=0.5.0",
-    "sphinx-autoapi>=2.0.0",
-    "nbsphinx>=0.9.3",
-    "ipython>=8.8.0",
-    "ipykernel>=6.23.0",
-    "furo>=2024.01.29",
-    "sphinxcontrib-httpdomain>=1.8.1",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings>=0.24.0",
+    "mkdocstrings-python>=1.8.0",
+    "pymdown-extensions>=10.7.0",
+    "mkdocs-include-markdown-plugin>=4.0.0",
 ]
 
 eval = [
