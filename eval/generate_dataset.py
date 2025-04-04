@@ -116,7 +116,7 @@ def create_synthetic_dataset(
     prompt = ChatPromptTemplate.from_template(query_generation_template)
 
     chain = (
-        {  # type: ignore
+        {
             "context": RunnablePassthrough(),
             "situation_instruction": RunnablePassthrough(),
             "detail_level": RunnablePassthrough(),

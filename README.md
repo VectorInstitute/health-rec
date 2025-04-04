@@ -1,5 +1,3 @@
-
-
 # Health Recommendation System
 
 Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
@@ -23,13 +21,13 @@ The system features an intuitive interface that allows users to:
 - View detailed information about each service
 - Refine recommendations based on user feedback
 
-![User Interface Search Page](docs/source/_static/ui_screenshots/search_page.png)
+![User Interface Search Page](docs/assets/search_page.png)
 *The main search interface where users can input their needs*
 
-![Results Page with Map View](docs/source/_static/ui_screenshots/results_page.png)
-Search results displaying services with an interactive map*
+![Results Page with Map View](docs/assets/results_page.png)
+*Search results displaying services with an interactive map*
 
-For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api.html).
+For API documentation, see the [API Reference](https://vectorinstitute.github.io/health-rec/api) or the local [API Documentation](docs/api.md).
 
 ## 🚀 Getting started
 
@@ -101,7 +99,7 @@ docker compose --env-file .env.development --profile frontend -f docker-compose.
 
 ### 📥 Data setup
 
-For a detailed description of the data schema used for the recommendation engine, see [Data Schema](schema.rst).
+For a detailed description of the data schema used for the recommendation engine, see [Data Schema](https://vectorinstitute.github.io/health-rec/schema) or the local [Data Schema](docs/schema.md).
 
 #### Test data
 
@@ -118,7 +116,7 @@ You can follow the next step to load this data and embeddings to ChromaDB.
 
 If you are using the 211 API or Empower's API, make sure you check with them to see if the API keys are
 configured correctly for the geography of interest. The scripts fetch data from the respective APIs and
-transforms them to be compatible with the [Data Schema](schema.rst).
+transforms them to be compatible with the data schema described above.
 
 **GTA data (211 API)**
 
@@ -160,7 +158,7 @@ docker run -it --network health-rec_app-network -v <path_to_data_dir_with_json_f
 
 Then we can run the following commands to upload the data to the vector database:
 
-**Note**: Replace `<collection_name>` with the name of the collection you want to create.  The default collection name specified in the `.env.development` file is `test`.
+**Note**: Replace `<collection_name>` with the name of the collection you want to create. The default collection name specified in the `.env.development` file is `test`.
 
 ```bash
 python3 health_rec/manage_data.py create --name <collection_name>
@@ -177,7 +175,6 @@ python3 health_rec/manage_data.py remove --name <collection_name> --data_ids <da
 ```
 
 These commands allow you to manage your collections efficiently without the need to reload all data, saving time and resources.
-
 
 Careful while loading embeddings, it uses the OpenAI API, and hence make sure the data you want to use is correct. Test with a small amount of data first.
 
