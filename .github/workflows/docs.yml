@@ -18,6 +18,8 @@ on:
       - uv.lock
       - pyproject.toml
       - mkdocs.yml
+      - '**.png'
+      - '**.svg'
   pull_request:
     branches:
       - main
@@ -32,6 +34,8 @@ on:
       - pyproject.toml
       - '**.md'
       - mkdocs.yml
+      - '**.png'
+      - '**.svg'
 
 jobs:
   build:
