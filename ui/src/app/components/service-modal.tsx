@@ -37,6 +37,9 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   const sectionBgColor = useColorModeValue('gray.50', 'gray.700');
   const highlightColor = useColorModeValue('pink.50', 'pink.900');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
+  
+  const website = service.metadata?.website as string | undefined;
+  const hours = service.metadata?.hours as string[] | string | undefined;
   const linkColor = useColorModeValue('pink.600', 'pink.300');
 
   const formatAddress = (address: Address): string => {
@@ -199,7 +202,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
               </Box>
             )}
 
-            {service.metadata?.website && (
+            {website && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaGlobe} color="purple.500" mr={2} />
@@ -208,18 +211,18 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                   </Heading>
                 </Flex>
                 <Link
-                  href={service.metadata.website.startsWith('http')
-                    ? service.metadata.website
-                    : `https://${service.metadata.website}`}
+                  href={website?.startsWith('http')
+                    ? website
+                    : `https://${website}`}
                   isExternal
                   color={linkColor}
                 >
-                  {service.metadata.website}
+                  {website}
                 </Link>
               </Box>
             )}
 
-            {service.metadata?.hours && (
+            {hours && (
               <Box bg={sectionBgColor} p={4} borderRadius="md">
                 <Flex align="center" mb={2}>
                   <Icon as={FaClock} color="orange.500" mr={2} />
@@ -228,9 +231,9 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
                   </Heading>
                 </Flex>
                 <Text color={textColor}>
-                  {Array.isArray(service.metadata.hours)
-                    ? service.metadata.hours.join(', ')
-                    : service.metadata.hours}
+                  {Array.isArray(hours)
+                    ? hours.join(', ')
+                    : hours}
                 </Text>
               </Box>
             )}

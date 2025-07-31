@@ -27,7 +27,7 @@ interface Service {
   email: string;
 
   // Optional fields
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   last_updated?: string | null;
 }
 
@@ -38,6 +38,9 @@ interface Location {
   longitude: number;
   description: string;
   address: string;
+  rating?: number;
+  reviewCount?: number;
+  phone?: string;
 }
 
 interface Recommendation {

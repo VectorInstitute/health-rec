@@ -65,7 +65,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
   };
 
   const primaryPhone = service.phone_numbers[0]?.number;
-  const website = service.metadata?.website;
+  const website = service.metadata?.website as string | undefined;
+  const services = service.metadata?.services as string[] | string | undefined;
 
   return (
     <>
@@ -163,26 +164,26 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, bgColor }) => {
         </VStack>
 
         <Flex mt={4} align="center" justify="space-between">
-          {service.metadata?.services && (
+          {services && (
             <Flex gap={2} flexWrap="wrap">
-              {(Array.isArray(service.metadata.services)
-                ? service.metadata.services
-                : [service.metadata.services]
+              {(Array.isArray(services)
+                ? services
+                : [services]
               ).slice(0, 2).map((serviceName, index) => (
                 <Badge
                   key={index}
                   colorScheme="purple"
                   fontSize="xs"
                 >
-                  {serviceName}
+                  {String(serviceName)}
                 </Badge>
               ))}
-              {(Array.isArray(service.metadata.services)
-                ? service.metadata.services.length
+              {(Array.isArray(services)
+                ? services.length
                 : 1) > 2 && (
                 <Badge colorScheme="gray" fontSize="xs">
-                  +{(Array.isArray(service.metadata.services)
-                    ? service.metadata.services.length
+                  +{(Array.isArray(services)
+                    ? services.length
                     : 1) - 2} more
                 </Badge>
               )}

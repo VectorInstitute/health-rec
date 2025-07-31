@@ -2,7 +2,7 @@
 
 /// <reference types="@types/google.maps" />
 
-import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
 import { Box, Container, Input, Button, Text, VStack, InputGroup, InputRightElement, Flex, useBreakpointValue, Skeleton, useToast } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { MdMyLocation } from 'react-icons/md'
@@ -159,18 +159,13 @@ const SearchForm: React.FC = () => {
     }
   }, []);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
 
   const handleDistanceChange = useCallback((distance: string) => {
     setSelectedDistance(distance);
   }, []);
 
-  const debouncedHandleLocationChange = useCallback(
-    debounce((value: string) => {
+  const debouncedHandleLocationChange = useMemo(
+    () => debounce((value: string) => {
       if (autocompleteService && value) {
         autocompleteService.getPlacePredictions({ input: value }, (predictions, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
@@ -277,7 +272,7 @@ const SearchForm: React.FC = () => {
                   />
                 </InputGroup>
                 <Text fontSize="sm" color="gray.500" mt={2}>
-                  Tell us a little about yourself and what you're looking for! The more you share, the better we can tailor our recommendations to suit your needs.
+                  Tell us a little about yourself and what you&apos;re looking for! The more you share, the better we can tailor our recommendations to suit your needs.
                 </Text>
               </Skeleton>
             </Box>
