@@ -164,8 +164,10 @@ const SearchForm: React.FC = () => {
     setSelectedDistance(distance);
   }, []);
 
-  const debouncedHandleLocationChange = useMemo(
-    () => debounce((value: string) => {
+  const debouncedHandleLocationChangeRef = useRef<(value: string) => void>(() => {});
+
+  useEffect(() => {
+    debouncedHandleLocationChangeRef.current = debounce((value: string) => {
       if (autocompleteService && value) {
         autocompleteService.getPlacePredictions({ input: value }, (predictions, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
