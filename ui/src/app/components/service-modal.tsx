@@ -37,7 +37,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({ isOpen, onClose, service })
   const sectionBgColor = useColorModeValue('gray.50', 'gray.700');
   const highlightColor = useColorModeValue('pink.50', 'pink.900');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  
+
   const website = service.metadata?.website as string | undefined;
   const hours = service.metadata?.hours as string[] | string | undefined;
   const linkColor = useColorModeValue('pink.600', 'pink.300');
