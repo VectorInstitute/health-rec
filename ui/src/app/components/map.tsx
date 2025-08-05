@@ -96,10 +96,10 @@ function getBoundsZoomLevel(bounds: mapboxgl.LngLatBounds, mapDimensions: { widt
   return Math.min(Math.min(latZoom, lngZoom), ZOOM_MAX);
 }
 
-const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width, initialViewState }) => {
+const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width }) => {
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>(() =>
-    initialViewState ? initialViewState : computeViewState(locations)
+    computeViewState(locations)
   );
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isFullScreenMapOpen, setIsFullScreenMapOpen] = useState(false);
