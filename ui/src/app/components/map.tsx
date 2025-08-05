@@ -47,7 +47,6 @@ export const computeViewState = (locations: Location[]): ViewState => {
 
   // Calculate the center and appropriate zoom level
   const center = bounds.getCenter();
-  const [west, south, east, north] = bounds.toArray().flat();
 
   // Calculate the appropriate zoom level based on bounds
   const maxZoom = 15;
@@ -61,7 +60,7 @@ export const computeViewState = (locations: Location[]): ViewState => {
   };
 };
 
-function getBoundsZoomLevel(bounds: mapboxgl.LngLatBounds, mapDimensions: { width: number, height: number }, padding: any, maxZoom: number) {
+function getBoundsZoomLevel(bounds: mapboxgl.LngLatBounds, mapDimensions: { width: number, height: number }, padding: { top: number; bottom: number; left: number; right: number }, maxZoom: number) {
   const WORLD_DIM = { height: 256, width: 256 };
   const ZOOM_MAX = maxZoom;
 
@@ -97,7 +96,7 @@ function getBoundsZoomLevel(bounds: mapboxgl.LngLatBounds, mapDimensions: { widt
   return Math.min(Math.min(latZoom, lngZoom), ZOOM_MAX);
 }
 
-const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width, initialViewState }) => {
+const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, width }) => {
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState<ViewState>(() =>
     computeViewState(locations)

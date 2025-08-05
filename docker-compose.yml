@@ -1,5 +1,6 @@
 services:
   frontend:
+    profiles: ["frontend"]
     build:
       context: ./ui
       dockerfile: Dockerfile
@@ -7,6 +8,7 @@ services:
         - FRONTEND_PORT=${FRONTEND_PORT}
         - BACKEND_PORT=${BACKEND_PORT}
         - BACKEND_HOST=${BACKEND_HOST}
+        - NEXT_PUBLIC_MAPBOX_API_KEY=${MAPBOX_API_KEY}
     image: vectorinstitute/health-rec:frontend-${BUILD_ID}
     env_file: .env.production
     ports:
@@ -39,6 +41,7 @@ services:
       - CHROMA_HOST=${CHROMA_HOST}
       - CHROMA_PORT=${CHROMA_PORT}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COLLECTION_NAME=${COLLECTION_NAME}
     networks:
       - app-network
     depends_on:
@@ -46,7 +49,7 @@ services:
         condition: service_healthy
 
   chromadb:
-    image: ghcr.io/chroma-core/chroma:latest
+    image: ghcr.io/chroma-core/chroma:0.5.15
     volumes:
       - chroma_data:/chroma/chroma
     ports:

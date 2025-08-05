@@ -12,7 +12,7 @@ COPY --chown=appuser:appuser . .
 
 USER appuser
 
-RUN uv sync --dev
+RUN uv sync --dev --group docs --group eval
 
 ARG BACKEND_PORT
 ARG FRONTEND_PORT

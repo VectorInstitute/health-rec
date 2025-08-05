@@ -159,18 +159,15 @@ const SearchForm: React.FC = () => {
     }
   }, []);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
 
   const handleDistanceChange = useCallback((distance: string) => {
     setSelectedDistance(distance);
   }, []);
 
-  const debouncedHandleLocationChange = useCallback(
-    debounce((value: string) => {
+  const debouncedHandleLocationChangeRef = useRef<(value: string) => void>(() => {});
+
+  useEffect(() => {
+    debouncedHandleLocationChangeRef.current = debounce((value: string) => {
       if (autocompleteService && value) {
         autocompleteService.getPlacePredictions({ input: value }, (predictions, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
@@ -182,9 +179,12 @@ const SearchForm: React.FC = () => {
       } else {
         setPredictions([]);
       }
-    }, 300),
-    [autocompleteService]
-  );
+    }, 300);
+  }, [autocompleteService]);
+
+  const debouncedHandleLocationChange = useCallback((value: string) => {
+    debouncedHandleLocationChangeRef.current(value);
+  }, []);
 
   const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -277,7 +277,7 @@ const SearchForm: React.FC = () => {
                   />
                 </InputGroup>
                 <Text fontSize="sm" color="gray.500" mt={2}>
-                  Tell us a little about yourself and what you're looking for! The more you share, the better we can tailor our recommendations to suit your needs.
+                  Tell us a little about yourself and what you&apos;re looking for! The more you share, the better we can tailor our recommendations to suit your needs.
                 </Text>
               </Skeleton>
             </Box>
