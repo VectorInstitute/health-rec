@@ -97,7 +97,7 @@ const DevPage: React.FC = () => {
     setSelectedService(null);
   }, []);
 
-  const handleLocationClick = useCallback((location: Location) => {
+  const handleMarkerClick = useCallback((location: Location) => {
     const service = services.find(s => s.id === location.id);
     setSelectedService(service || null);
   }, [services]);

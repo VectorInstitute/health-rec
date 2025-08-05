@@ -2,7 +2,7 @@
 
 /// <reference types="@types/google.maps" />
 
-import React, { useState, useEffect, useCallback, memo, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { Box, Container, Input, Button, Text, VStack, InputGroup, InputRightElement, Flex, useBreakpointValue, Skeleton, useToast } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { MdMyLocation } from 'react-icons/md'
@@ -182,7 +182,9 @@ const SearchForm: React.FC = () => {
     }, 300);
   }, [autocompleteService]);
 
-  const debouncedHandleLocationChange = useMemo(() => debouncedHandleLocationChangeRef.current, []);
+  const debouncedHandleLocationChange = useCallback((value: string) => {
+    debouncedHandleLocationChangeRef.current(value);
+  }, []);
 
   const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
