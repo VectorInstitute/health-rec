@@ -179,9 +179,10 @@ const SearchForm: React.FC = () => {
       } else {
         setPredictions([]);
       }
-    }, 300),
-    [autocompleteService]
-  );
+    }, 300);
+  }, [autocompleteService]);
+
+  const debouncedHandleLocationChange = useMemo(() => debouncedHandleLocationChangeRef.current, []);
 
   const handleLocationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
