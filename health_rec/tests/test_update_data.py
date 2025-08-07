@@ -13,11 +13,10 @@ from update_data import calculate_hash, prepare_document, update_data
 
 @pytest.mark.unit
 class TestUpdateData:
-
     def test_calculate_hash(self):
         """Test hash calculation for consistency."""
         test_dict = {"key1": "value1", "key2": "value2"}
-        
+
         # Same dictionary should produce same hash
         hash1 = calculate_hash(test_dict)
         hash2 = calculate_hash(test_dict)
@@ -61,7 +60,7 @@ class TestUpdateData:
             "tags": ["tag1", "tag2", "tag3"],
             "categories": ["health", "mental health"],
         }
-        
+
         resource_name = "test_resource"
         doc, metadata, service_id = prepare_document(service_with_lists, resource_name)
 
@@ -78,7 +77,7 @@ class TestUpdateData:
             "description": None,
             "email": None,
         }
-        
+
         resource_name = "test_resource"
         doc, metadata, service_id = prepare_document(service_with_none, resource_name)
 
@@ -91,7 +90,9 @@ class TestUpdateData:
 
     @patch("update_data.get_or_create_collection")
     @patch("update_data.load_json_data")
-    def test_update_data_new_service(self, mock_load_json, mock_get_collection, sample_service):
+    def test_update_data_new_service(
+        self, mock_load_json, mock_get_collection, sample_service
+    ):
         """Test updating data with a new service."""
         # Setup mocks
         mock_load_json.return_value = [sample_service]
@@ -114,16 +115,18 @@ class TestUpdateData:
         # Verify collection.add was called (new service)
         mock_collection.add.assert_called_once()
         call_args = mock_collection.add.call_args
-        
+
         assert call_args.kwargs["ids"] == ["single_test"]
         assert call_args.kwargs["embeddings"][0] is None  # No embeddings
-        
+
         # Verify collection.update was not called
         mock_collection.update.assert_not_called()
 
     @patch("update_data.get_or_create_collection")
     @patch("update_data.load_json_data")
-    def test_update_data_existing_service_unchanged(self, mock_load_json, mock_get_collection, sample_service):
+    def test_update_data_existing_service_unchanged(
+        self, mock_load_json, mock_get_collection, sample_service
+    ):
         """Test updating data with existing unchanged service."""
         # Setup mocks
         mock_load_json.return_value = [sample_service]
@@ -132,6 +135,7 @@ class TestUpdateData:
 
         # Prepare the same document that would be generated
         from update_data import prepare_document
+
         doc, metadata, service_id = prepare_document(sample_service, "test_resource")
 
         # Mock collection.get to return existing identical data
@@ -157,7 +161,9 @@ class TestUpdateData:
 
     @patch("update_data.get_or_create_collection")
     @patch("update_data.load_json_data")
-    def test_update_data_existing_service_changed(self, mock_load_json, mock_get_collection, sample_service):
+    def test_update_data_existing_service_changed(
+        self, mock_load_json, mock_get_collection, sample_service
+    ):
         """Test updating data with existing changed service."""
         # Setup mocks
         mock_load_json.return_value = [sample_service]
@@ -167,7 +173,7 @@ class TestUpdateData:
         # Mock collection.get to return existing different data
         old_metadata = {"name": "Old Service Name", "resource": "test_resource"}
         old_doc = "name: Old Service Name | resource: test_resource"
-        
+
         mock_collection.get.return_value = {
             "ids": ["single_test"],
             "documents": [old_doc],
@@ -187,17 +193,19 @@ class TestUpdateData:
         # Verify collection.update was called (existing service changed)
         mock_collection.update.assert_called_once()
         call_args = mock_collection.update.call_args
-        
+
         assert call_args.kwargs["ids"] == ["single_test"]
         assert call_args.kwargs["embeddings"][0] is None  # No embeddings
-        
+
         # Verify collection.add was not called
         mock_collection.add.assert_not_called()
 
     @patch("update_data.OpenAIEmbedding")
     @patch("update_data.get_or_create_collection")
     @patch("update_data.load_json_data")
-    def test_update_data_with_embeddings(self, mock_load_json, mock_get_collection, mock_embedding_class, sample_service):
+    def test_update_data_with_embeddings(
+        self, mock_load_json, mock_get_collection, mock_embedding_class, sample_service
+    ):
         """Test updating data with embeddings enabled."""
         # Setup mocks
         mock_load_json.return_value = [sample_service]
@@ -234,7 +242,9 @@ class TestUpdateData:
 
     @patch("update_data.get_or_create_collection")
     @patch("update_data.load_json_data")
-    def test_update_data_processing_error(self, mock_load_json, mock_get_collection, sample_service):
+    def test_update_data_processing_error(
+        self, mock_load_json, mock_get_collection, sample_service
+    ):
         """Test handling of processing errors for individual services."""
         # Setup mocks
         mock_load_json.return_value = [sample_service]
@@ -269,7 +279,10 @@ class TestUpdateData:
 
             # Manually add initial service
             from update_data import prepare_document
-            doc, metadata, service_id = prepare_document(test_services[0], "test_resource")
+
+            doc, metadata, service_id = prepare_document(
+                test_services[0], "test_resource"
+            )
             collection.add(ids=[service_id], documents=[doc], metadatas=[metadata])
 
             # Verify service was added
