@@ -2,6 +2,7 @@
 
 import json
 import tempfile
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -10,17 +11,17 @@ import chromadb
 
 def create_test_json_file(services: List[Dict[str, Any]]) -> str:
     """Create a temporary JSON file with test services data.
-    
+
     Parameters
     ----------
     services : List[Dict[str, Any]]
         List of service dictionaries to write to JSON file
-        
+
     Returns
     -------
     str
         Path to the temporary JSON file
-        
+
     Note
     ----
     Remember to clean up the file after use with Path(file_path).unlink()
@@ -32,12 +33,12 @@ def create_test_json_file(services: List[Dict[str, Any]]) -> str:
 
 def create_ephemeral_collection(collection_name: str) -> chromadb.Collection:
     """Create an ephemeral ChromaDB collection for testing.
-    
+
     Parameters
     ----------
     collection_name : str
         Name of the collection to create
-        
+
     Returns
     -------
     chromadb.Collection
@@ -49,26 +50,26 @@ def create_ephemeral_collection(collection_name: str) -> chromadb.Collection:
 
 def cleanup_test_file(file_path: str) -> None:
     """Clean up a temporary test file.
-    
+
     Parameters
     ----------
     file_path : str
         Path to the file to delete
     """
-    try:
+    with suppress(FileNotFoundError):
         Path(file_path).unlink()
-    except FileNotFoundError:
-        pass  # File already deleted or doesn't exist
 
 
-def assert_valid_service_document(document: str, metadata: Dict[str, Any], service_id: str):
+def assert_valid_service_document(
+    document: str, metadata: Dict[str, Any], service_id: str
+):
     """Assert that a service document and metadata are valid.
-    
+
     Parameters
     ----------
     document : str
         The document string to validate
-    metadata : Dict[str, Any] 
+    metadata : Dict[str, Any]
         The metadata dictionary to validate
     service_id : str
         Expected service ID
@@ -76,14 +77,14 @@ def assert_valid_service_document(document: str, metadata: Dict[str, Any], servi
     # Check document format
     assert isinstance(document, str)
     assert len(document) > 0
-    
+
     # Check metadata structure
     assert isinstance(metadata, dict)
     assert "resource" in metadata
-    
-    # Check service ID
-    assert service_id == service_id
-    
+
+    # Check service ID is provided
+    assert service_id
+
     # Check that key fields appear in document
     if "name" in metadata and metadata["name"]:
         assert f"name: {metadata['name']}" in document

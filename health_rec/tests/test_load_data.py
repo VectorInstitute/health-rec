@@ -10,7 +10,7 @@ import pytest
 
 from load_data import (
     OpenAIEmbedding,
-    get_or_create_collection,
+    load_data,
     load_json_data,
     prepare_documents,
 )
@@ -18,6 +18,7 @@ from load_data import (
 
 @pytest.mark.unit
 class TestLoadData:
+    """Unit tests for load_data module."""
 
     def test_load_json_data_success(self, temp_json_file):
         """Test successful JSON data loading."""
@@ -97,7 +98,7 @@ class TestLoadData:
         mock_collection = Mock()
         mock_get_collection.return_value = mock_collection
 
-        from load_data import load_data
+        # Use load_data function imported at module level
 
         # Test without embeddings (no host/port needed for testing)
         load_data(
@@ -112,12 +113,12 @@ class TestLoadData:
         # Verify collection.add was called
         mock_collection.add.assert_called_once()
         call_args = mock_collection.add.call_args
-        
+
         # Check that documents, metadatas, and ids were passed
         assert "documents" in call_args.kwargs
         assert "metadatas" in call_args.kwargs
         assert "ids" in call_args.kwargs
-        
+
         # Verify correct number of documents
         assert len(call_args.kwargs["documents"]) == 3
         assert len(call_args.kwargs["metadatas"]) == 3
@@ -146,8 +147,10 @@ class TestLoadData:
         """Test OpenAI embedding function error handling."""
         with patch("openai.Client") as mock_client:
             # Mock an exception
-            mock_client.return_value.embeddings.create.side_effect = Exception("API Error")
+            mock_client.return_value.embeddings.create.side_effect = Exception(
+                "API Error"
+            )
 
             embedding_func = OpenAIEmbedding(api_key="test_key")
-            with pytest.raises(Exception):
+            with pytest.raises(Exception):  # noqa: B017
                 embedding_func(["test text"])
