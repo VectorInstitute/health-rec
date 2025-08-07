@@ -64,7 +64,6 @@ class TestIntegration:
 
             try:
                 # Manually test update functionality
-
                 update_services = update_load_json(update_file)
 
                 # Test update logic: check if service exists and needs update
