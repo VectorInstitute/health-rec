@@ -116,8 +116,25 @@ convention = "numpy"
 max-doc-length = 88
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=health_rec",
+    "--cov-report=term-missing",
+]
 markers = [
-    "integration_test: marks tests as integration tests",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
 ]
 
 [tool.coverage.run]

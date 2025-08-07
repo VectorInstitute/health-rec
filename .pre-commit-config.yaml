@@ -21,7 +21,7 @@ repos:
       - id: check-toml
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.4
+    rev: 0.8.5
     hooks:
       - id: uv-lock
 
@@ -75,6 +75,15 @@ repos:
         language: system
         types: [javascript, jsx, tsx]
         pass_filenames: false
+
+  - repo: local
+    hooks:
+    - id: pytest
+      name: pytest
+      entry: python3 -m pytest -m "not integration_test"
+      language: system
+      pass_filenames: false
+      always_run: true
 
 ci:
   autofix_commit_msg: |

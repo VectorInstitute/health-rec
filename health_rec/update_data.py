@@ -54,6 +54,7 @@ def update_data(
     host: str,
     port: int,
     collection_name: str,
+    resource_name: str,
     openai_api_key: Optional[str] = None,
     embedding_model: str = Config.OPENAI_EMBEDDING,
     load_embeddings: bool = False,
@@ -73,6 +74,8 @@ def update_data(
         The port number of the ChromaDB instance
     collection_name : str
         Name of the collection to update
+    resource_name : str
+        Name of the resource/data source (e.g., '211', 'Connex', 'Empower', 'Southlake')
     data_dir : str
         Directory containing JSON files to process
     openai_api_key : Optional[str]
@@ -110,7 +113,7 @@ def update_data(
         for service in services:
             total_processed += 1
 
-            doc, metadata, service_id = prepare_document(service, collection_name)
+            doc, metadata, service_id = prepare_document(service, resource_name)
 
             try:
                 # Check if the document exists
