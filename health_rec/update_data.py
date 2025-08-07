@@ -29,7 +29,9 @@ def calculate_hash(content: Dict[str, Any]) -> str:
     return hashlib.sha256(content_str.encode()).hexdigest()
 
 
-def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, Any], str]:
+def prepare_document(
+    service: Dict[str, Any], resource_name: str
+) -> Tuple[str, Dict[str, Any], str]:
     """Prepare a document and metadata for a service entry."""
     metadata = {
         key: ", ".join(map(str, value))
@@ -39,6 +41,7 @@ def prepare_document(service: Dict[str, Any]) -> Tuple[str, Dict[str, Any], str]
         else ""
         for key, value in service.items()
     }
+    metadata["resource"] = resource_name
 
     doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
     service_id = str(service.get("id", " "))
@@ -107,7 +110,7 @@ def update_data(
         for service in services:
             total_processed += 1
 
-            doc, metadata, service_id = prepare_document(service)
+            doc, metadata, service_id = prepare_document(service, collection_name)
 
             try:
                 # Check if the document exists

@@ -80,6 +80,7 @@ def load_json_data(file_path: str) -> List[Dict[str, Any]]:
 
 def prepare_documents(
     services: List[Dict[str, Any]],
+    resource_name: str,
 ) -> Tuple[Documents, List[Dict[str, Any]], List[str]]:
     """Prepare documents, metadata, and IDs from service data for Chroma storage.
 
@@ -90,6 +91,7 @@ def prepare_documents(
     ----------
     services (List[Dict[str, Any]]): A list of dictionaries representing
     the service data.
+    resource_name (str): The name of the resource/data source.
 
     Returns
     -------
@@ -112,6 +114,7 @@ def prepare_documents(
             else ""
             for key, value in service.items()
         }
+        metadata["resource"] = resource_name
         doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
 
         # Count tokens in the document
@@ -195,7 +198,7 @@ def load_data(
         services = load_json_data(file_path)
         logger.info(f"Loaded {len(services)} services from JSON file")
 
-        documents, metadatas, ids = prepare_documents(services)
+        documents, metadatas, ids = prepare_documents(services, collection_name)
         collection = get_or_create_collection(host, port, collection_name)
 
         if load_embeddings and openai_api_key:
