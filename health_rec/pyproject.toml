@@ -128,10 +128,6 @@ addopts = [
     "--cov=health_rec",
     "--cov-report=term-missing",
 ]
-markers = [
-    "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests",
-]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",

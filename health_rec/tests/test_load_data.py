@@ -16,7 +16,6 @@ from load_data import (
 )
 
 
-@pytest.mark.unit
 class TestLoadData:
     """Unit tests for load_data module."""
 

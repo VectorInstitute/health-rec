@@ -6,12 +6,10 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import chromadb
-import pytest
 
 from update_data import calculate_hash, prepare_document, update_data
 
 
-@pytest.mark.unit
 class TestUpdateData:
     """Unit tests for update_data module."""
 

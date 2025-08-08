@@ -1,4 +1,4 @@
-"""Integration tests for load_data and update_data modules."""
+"""Tests for combining load_data and update_data modules."""
 
 import json
 import tempfile
@@ -12,9 +12,8 @@ from update_data import load_json_data as update_load_json
 from update_data import prepare_document
 
 
-@pytest.mark.integration
-class TestIntegration:
-    """Integration tests using EphemeralClient."""
+class TestLoadAndUpdate:
+    """Tests for loading and updating data using EphemeralClient."""
 
     @pytest.fixture(autouse=True)
     def setup(self):
