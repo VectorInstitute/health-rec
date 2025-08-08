@@ -48,10 +48,10 @@ jobs:
 
       - name: Install dependencies and check code
         run: |
-          source .venv/bin/activate
+          source health_rec/.venv/bin/activate
           pre-commit run --all-files
 
       - name: pip-audit (gh-action-pip-audit)
         uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266
         with:
-          virtual-environment: .venv/
+          virtual-environment: health_rec/.venv/
