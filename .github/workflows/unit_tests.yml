@@ -60,7 +60,7 @@ jobs:
 
       - name: Install dependencies and check code
         run: |
-          uv run pytest --cov health_rec/ --cov-report=xml health_rec/tests
+          cd health_rec && uv run pytest --cov=. --cov-report=xml tests
 
       # Uncomment this once this repo is configured on Codecov
       - name: Upload coverage to Codecov
