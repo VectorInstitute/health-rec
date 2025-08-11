@@ -154,6 +154,7 @@ First we use an interactive container:
 
 ```bash
 docker run -it --network health-rec_app-network -v <path_to_data_dir_with_json_files>:/data -v `pwd`:/workspace -w /workspace vectorinstitute/health-rec:backend-dev-latest bash
+source health_rec/.venv/bin/activate
 ```
 
 Then we can run the following commands to upload the data to the vector database:
@@ -161,8 +162,8 @@ Then we can run the following commands to upload the data to the vector database
 **Note**: Replace `<collection_name>` with the name of the collection you want to create. The default collection name specified in the `.env.development` file is `test`.
 
 ```bash
-python3 health_rec/manage_data.py create --name <collection_name>
-OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --name <collection_name> --data_dir /data --load_embeddings
+python3 health_rec/manage_data.py create --collection_name <collection_name>
+OPENAI_API_KEY=$YOUR_OPENAI_API_KEY python3 health_rec/manage_data.py load --collection_name <collection_name> --resource_name <resource_name> --data_dir /data --load_embeddings
 python3 health_rec/manage_data.py list
 ```
 
@@ -171,7 +172,7 @@ python3 health_rec/manage_data.py list
 To remove specific data entries from a collection:
 
 ```bash
-python3 health_rec/manage_data.py remove --name <collection_name> --data_ids <data_id1> <data_id2> ...
+python3 health_rec/manage_data.py remove --collection_name <collection_name> --data_ids <data_id1> <data_id2> ...
 ```
 
 These commands allow you to manage your collections efficiently without the need to reload all data, saving time and resources.
@@ -183,7 +184,7 @@ Careful while loading embeddings, it uses the OpenAI API, and hence make sure th
 If you need to update the collections with new or modified data without reloading everything, you can use the following method:
 
 ```bash
-python3 health_rec/manage_data.py update --name <collection_name> --data_dir /data --load_embeddings
+python3 health_rec/manage_data.py update --collection_name <collection_name> --data_dir /data --load_embeddings
 ```
 
 This method will sparsely update the collection based on the IDs of the data entries. If the service is not present in the collection, it will be added. If the service is already present, it will be updated with the new data and embeddings will be generated.
