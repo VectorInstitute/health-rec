@@ -54,6 +54,7 @@ class TestConfig:
     def test_config_default_values_no_env(self):
         """Test Config with default values when no environment variables are set."""
         with patch.dict(os.environ, {}, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.OPENAI_API_KEY == ""
             assert config.OPENAI_MODEL == "gpt-4o-mini"
@@ -82,6 +83,7 @@ class TestConfig:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.OPENAI_API_KEY == "test-openai-key"
             assert config.OPENAI_MODEL == "gpt-4-turbo"
@@ -99,6 +101,7 @@ class TestConfig:
         env_vars = {"OPENAI_API_KEY": "test-key", "CHROMA_HOST": "remote-host"}
 
         with patch.dict(os.environ, env_vars, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.OPENAI_API_KEY == "test-key"
             assert config.CHROMA_HOST == "remote-host"
@@ -118,6 +121,7 @@ class TestConfig:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.OPENAI_API_KEY == ""
             assert config.OPENAI_MODEL == ""
@@ -131,6 +135,7 @@ class TestConfig:
 
         for env_value, expected_value in test_cases:
             with patch.dict(os.environ, {"RELEVANCY_WEIGHT": env_value}, clear=True):
+                Config._reset_instance()
                 config = Config()
                 assert expected_value == config.RELEVANCY_WEIGHT
                 assert isinstance(config.RELEVANCY_WEIGHT, float)
@@ -147,6 +152,7 @@ class TestConfig:
         """Test Config with OPENAI_EMBEDDING set to None-like values."""
         # Test explicit None string
         with patch.dict(os.environ, {"OPENAI_EMBEDDING": ""}, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.OPENAI_EMBEDDING == ""
 
@@ -163,6 +169,7 @@ class TestConfig:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
+            Config._reset_instance()
             config = Config()
             # Constants should not change
             assert config.CHROMA_PORT == 8000
@@ -216,6 +223,7 @@ class TestConfig:
     def test_config_type_checking(self):
         """Test that Config attributes have correct types."""
         with patch.dict(os.environ, {"RELEVANCY_WEIGHT": "0.6"}, clear=True):
+            Config._reset_instance()
             config = Config()
 
             # String attributes
@@ -252,6 +260,7 @@ class TestConfigIntegration:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
+            Config._reset_instance()
             fastapi_config = FastAPIConfig(title="Integration API")
             config = Config()
 
@@ -288,6 +297,7 @@ class TestConfigIntegration:
         }
 
         with patch.dict(os.environ, edge_cases, clear=True):
+            Config._reset_instance()
             config = Config()
             assert config.RELEVANCY_WEIGHT == 0.0
             assert config.OPENAI_MODEL == " "

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from os import getenv
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -28,7 +28,21 @@ class FastAPIConfig:
     root_path: str = "/api/v1"
 
 
-class Config:
+class ConfigMeta(type):
+    """Metaclass for Config that provides class-level attribute access."""
+
+    def __init__(cls, name: str, bases: tuple[type, ...], dct: dict[str, Any]) -> None:
+        super().__init__(name, bases, dct)
+        cls._instance = None
+
+    def __getattr__(cls, name: str) -> Any:
+        """Get attribute from the singleton instance."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return getattr(cls._instance, name)
+
+
+class Config(metaclass=ConfigMeta):
     """
     Configuration class for various API keys and settings.
 
@@ -92,3 +106,8 @@ class Config:
         self.TOP_K: int = 5
         self.RERANKER_MAX_CONTEXT_LENGTH: int = 150
         self.RERANKER_MAX_SERVICES: int = 20
+
+    @classmethod
+    def _reset_instance(cls) -> None:
+        """Reset the singleton instance. Used for testing."""
+        cls._instance = None
