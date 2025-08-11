@@ -1,5 +1,13 @@
 # Health Recommendation System
 
+----------------------------------------------------------------------------------------
+
+[![code checks](https://github.com/VectorInstitute/health-rec/actions/workflows/code_checks.yml/badge.svg)](https://github.com/VectorInstitute/health-rec/actions/workflows/code_checks.yml)
+[![unit tests](https://github.com/VectorInstitute/health-rec/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/VectorInstitute/health-rec/actions/workflows/unit_tests.yml)
+[![docs](https://github.com/VectorInstitute/health-rec/actions/workflows/docs.yml/badge.svg)](https://github.com/VectorInstitute/health-rec/actions/workflows/docs.yml)
+[![codecov](https://codecov.io/github/VectorInstitute/health-rec/graph/badge.svg?token=83MYFZ3UPA)](https://codecov.io/github/VectorInstitute/health-rec)
+![GitHub License](https://img.shields.io/github/license/VectorInstitute/health-rec)
+
 Welcome to the Health Recommendation System documentation! This system helps connect people with health and community services using AI-powered recommendations.
 
 ## 🌟 Overview
