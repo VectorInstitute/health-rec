@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -25,7 +25,6 @@ import { Service, Location, Address } from '../types/service';
 import {
   useRecommendationStore,
   Recommendation,
-  Query,
   RecommendationStore,
 } from '../stores/recommendation-store';
 import { useRouter } from 'next/navigation';
@@ -71,15 +70,7 @@ const RecommendationPage: React.FC = () => {
     return parts.join(', ');
   };
 
-  useEffect(() => {
-    if (!recommendation || !originalQuery) {
-      router.replace('/');
-    } else {
-      fetchAdditionalQuestions();
-    }
-  }, [recommendation, originalQuery, router]);
-
-  const fetchAdditionalQuestions = async () => {
+  const fetchAdditionalQuestions = useCallback(async () => {
     if (!recommendation?.message || !originalQuery) {
       console.error('No recommendation message or original query available');
       return;
@@ -98,7 +89,15 @@ const RecommendationPage: React.FC = () => {
       console.error('Error fetching additional questions:', error);
       setIsLoading(false);
     }
-  };
+  }, [recommendation?.message, originalQuery]);
+
+  useEffect(() => {
+    if (!recommendation || !originalQuery) {
+      router.replace('/');
+    } else {
+      fetchAdditionalQuestions();
+    }
+  }, [recommendation, originalQuery, router, fetchAdditionalQuestions]);
 
   const handleRefineRecommendations = async (answers: string[]) => {
     if (!recommendation || !originalQuery) {

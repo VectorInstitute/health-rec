@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 # Configure logging
@@ -122,7 +122,8 @@ class Service(BaseModel):
     # Source tracking
     last_updated: Optional[datetime] = None
 
-    @validator("phone_numbers")
+    @field_validator("phone_numbers")
+    @classmethod
     def validate_phone_numbers(cls, v: List[PhoneNumber]) -> List[PhoneNumber]:  # noqa: N805
         """Ensure at least one phone number exists."""
         if not v:

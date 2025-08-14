@@ -11,13 +11,9 @@ import {
   AlertIcon,
   useBreakpointValue,
   Button,
-  Skeleton,
-  Flex,
-  Badge,
-  Icon
+  Skeleton
 } from '@chakra-ui/react';
-import { FaBuilding } from 'react-icons/fa';
-import { Service, Address } from '../types/service';
+import { Service, Address, Location } from '../types/service';
 import Map, { computeViewState, TORONTO_COORDINATES } from '../components/map';
 
 const DevPage: React.FC = () => {
@@ -72,8 +68,12 @@ const DevPage: React.FC = () => {
 
         if (validServices.length > 0) {
           const locations = validServices.map(service => ({
+            id: service.id,
+            name: service.name,
             latitude: service.latitude,
             longitude: service.longitude,
+            description: service.description,
+            address: formatAddress(service.address),
           }));
           const newViewState = computeViewState(locations);
           setMapViewState(newViewState);
@@ -97,8 +97,8 @@ const DevPage: React.FC = () => {
     setSelectedService(null);
   }, []);
 
-  const handleMarkerClick = useCallback((serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
+  const handleMarkerClick = useCallback((location: Location) => {
+    const service = services.find(s => s.id === location.id);
     setSelectedService(service || null);
   }, [services]);
 
@@ -112,36 +112,6 @@ const DevPage: React.FC = () => {
     phone: service.phone_numbers?.[0]?.number || '',
   }));
 
-  const renderLocationsList = useCallback(() => (
-    <VStack align="stretch" spacing={4} overflowY="auto" height="100%">
-      {services.map(service => (
-        <Flex
-          key={service.id}
-          p={4}
-          borderWidth={1}
-          borderRadius="md"
-          alignItems="center"
-          cursor="pointer"
-          onClick={() => handleMarkerClick(service.id)}
-          bg={selectedService?.id === service.id ? 'gray.100' : 'white'}
-          _hover={{ bg: 'gray.50' }}
-        >
-          <Icon as={FaBuilding} boxSize="30px" color="brand.pink" mr={3} />
-          <VStack align="start" spacing={1} flex={1}>
-            <Text fontWeight="bold">{service.name}</Text>
-            <Text fontSize="sm" color="gray.600">
-              {formatAddress(service.address)}
-            </Text>
-            {service.phone_numbers?.[0]?.number && (
-              <Badge colorScheme="blue">
-                {service.phone_numbers[0].number}
-              </Badge>
-            )}
-          </VStack>
-        </Flex>
-      ))}
-    </VStack>
-  ), [services, selectedService, handleMarkerClick]);
 
   return (
     <Container maxW="container.xl" py={8}>

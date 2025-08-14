@@ -86,7 +86,7 @@ def delete_collection(name: str) -> None:
 
 
 def load_data_to_collection(
-    collection_name: str, data_dir: str, load_embeddings: bool
+    collection_name: str, resource_name: str, data_dir: str, load_embeddings: bool
 ) -> None:
     """
     Load data into a specified collection.
@@ -95,6 +95,8 @@ def load_data_to_collection(
     ----------
     collection_name : str
         The name of the collection to load data into.
+    resource_name : str
+        The name of the resource/data source.
     data_dir : str
         The directory containing JSON files to load.
     load_embeddings : bool
@@ -110,6 +112,7 @@ def load_data_to_collection(
             host=Config.CHROMA_HOST,
             port=Config.CHROMA_PORT,
             collection_name=collection_name,
+            resource_name=resource_name,
             openai_api_key=Config.OPENAI_API_KEY,
             load_embeddings=load_embeddings,
         )
@@ -211,7 +214,7 @@ def main() -> None:
         help="Action to perform",
     )
     parser.add_argument(
-        "--name",
+        "--collection_name",
         help="Name of the collection (required for create, delete, load, and inspect actions)",
     )
     parser.add_argument(
@@ -223,6 +226,10 @@ def main() -> None:
         action="store_true",
         help="Generate and load embeddings (for load and update action)",
     )
+    parser.add_argument(
+        "--resource_name",
+        help="Name of the resource/data source (optional, defaults to 'default')",
+    )
 
     args = parser.parse_args()
 
@@ -232,27 +239,36 @@ def main() -> None:
         for collection in collections:
             print(f"- {collection}")
     elif args.action == "create":
-        if not args.name:
-            parser.error("--name is required for create action")
-        create_collection(args.name)
+        if not args.collection_name:
+            parser.error("--collection_name is required for create action")
+        create_collection(args.collection_name)
     elif args.action == "delete":
-        if not args.name:
-            parser.error("--name is required for delete action")
-        delete_collection(args.name)
+        if not args.collection_name:
+            parser.error("--collection_name is required for delete action")
+        delete_collection(args.collection_name)
     elif args.action == "load":
-        if not args.name or not args.data_dir:
-            parser.error("--name and --data_dir are required for load action")
-        load_data_to_collection(args.name, args.data_dir, args.load_embeddings)
+        if not args.collection_name or not args.data_dir or not args.resource_name:
+            parser.error(
+                "--collection_name, --data_dir, and --resource_name are required for load action"
+            )
+        load_data_to_collection(
+            args.collection_name,
+            args.resource_name,
+            args.data_dir,
+            args.load_embeddings,
+        )
     elif args.action == "inspect":
-        if not args.name:
-            parser.error("--name is required for inspect action")
-        details = get_collection_details(args.name)
+        if not args.collection_name:
+            parser.error("--collection_name is required for inspect action")
+        details = get_collection_details(args.collection_name)
         print_collection_details(details)
     elif args.action == "update":
-        if not args.name or not args.data_dir:
-            parser.error("--name and --data_dir are required for update action")
+        if not args.collection_name or not args.data_dir:
+            parser.error(
+                "--collection_name and --data_dir are required for update action"
+            )
         update_data_in_collection(
-            collection_name=args.name,
+            collection_name=args.collection_name,
             data_dir=args.data_dir,
             load_embeddings=args.load_embeddings,
         )
