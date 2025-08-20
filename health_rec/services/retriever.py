@@ -1,7 +1,7 @@
 """Service for retrieving documents using ChromaDB vector similarity search."""
 
 import logging
-from typing import List
+from typing import Any, List, cast
 
 import chromadb
 import openai
@@ -89,7 +89,7 @@ class Retriever:
 
             # Retrieve documents from ChromaDB
             results: QueryResult = self.collection.query(
-                query_embeddings=query_embedding, n_results=n_results
+                query_embeddings=cast("Any", [query_embedding]), n_results=n_results
             )
 
             # Parse and return results

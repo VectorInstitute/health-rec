@@ -49,7 +49,7 @@ services:
         condition: service_healthy
 
   chromadb:
-    image: ghcr.io/chroma-core/chroma:0.5.15
+    image: ghcr.io/chroma-core/chroma:1.0.20
     volumes:
       - chroma_data:/chroma/chroma
     ports:
@@ -59,7 +59,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      test: ["CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8000"]
       interval: 10s
       timeout: 5s
       retries: 5

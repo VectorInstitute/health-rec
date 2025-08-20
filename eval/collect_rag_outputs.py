@@ -8,7 +8,7 @@ from tqdm import tqdm
 import aiohttp
 import chromadb
 from chromadb.config import Settings
-from chromadb.api.types import IncludeEnum
+# IncludeEnum no longer exists in ChromaDB 1.0, use literal strings instead
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class DocumentFetcher:
         """Fetch document content by ID."""
         try:
             collection = self.client.get_collection(collection_name)
-            result = collection.get(ids=[str(doc_id)], include=[IncludeEnum.documents])
+            result = collection.get(ids=[str(doc_id)], include=["documents"])
             if result and result["documents"] and result["documents"][0]:
                 return result["documents"][0]
             return None

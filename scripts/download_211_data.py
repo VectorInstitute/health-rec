@@ -127,7 +127,7 @@ def save_to_file(data: Dict[str, Any], file_path: Path) -> None:
     for service_data in data["Records"]:
         try:
             service = map_211_data_to_service(service_data)
-            mapped_services.append(service.dict(exclude_none=True))
+            mapped_services.append(service.model_dump(exclude_none=True))
         except Exception as e:
             logger.error(f"Failed to process service: {e}")
             continue
