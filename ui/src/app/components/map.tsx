@@ -113,7 +113,7 @@ const MapComponent: React.FC<MapProps> = ({ locations, onMarkerClick, height, wi
         duration: 1000
       });
     }
-    onMarkerClick && onMarkerClick(location);
+    onMarkerClick?.(location);
   }, [onMarkerClick]);
 
   const fitMapToLocations = useCallback(() => {

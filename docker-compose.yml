@@ -59,7 +59,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "test", "-f", "/proc/1/cmdline"]
+      test: ["CMD", "/bin/bash", "-c", "cat < /dev/null > /dev/tcp/localhost/8000"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -8,6 +8,9 @@ RUN npm ci
 
 COPY . .
 
+# Copy certificates for HTTPS support
+COPY certificates/ /app/certificates/
+
 ARG FRONTEND_PORT
 ARG BACKEND_PORT
 ENV NEXT_PUBLIC_FRONTEND_PORT=${FRONTEND_PORT}
@@ -20,4 +23,4 @@ RUN echo "BACKEND_PORT: ${BACKEND_PORT}"
 EXPOSE ${FRONTEND_PORT}
 
 # Use shell form to ensure environment variable expansion
-CMD sh -c "npm run dev -- -p ${FRONTEND_PORT} --experimental-https"
+CMD sh -c "npm run dev -- -p ${FRONTEND_PORT} --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem"
