@@ -4,8 +4,8 @@ from typing import Any
 
 import chromadb
 from chromadb.api.models.Collection import Collection
-from chromadb.api.types import IncludeEnum
 
+# IncludeEnum no longer exists in ChromaDB 1.0, use literal strings instead
 from api.config import Config
 from services.utils import _metadata_to_service
 
@@ -29,7 +29,7 @@ class ChromaService:
         List[Service]
             A list of services.
         """
-        result = self.collection.get(include=[IncludeEnum.metadatas])
+        result = self.collection.get(include=["metadatas"])
         if result["metadatas"] is not None:
             return [_metadata_to_service(metadata) for metadata in result["metadatas"]]
         return []

@@ -56,3 +56,4 @@ validation_results.json
 
 # data directory
 data
+*.coverage

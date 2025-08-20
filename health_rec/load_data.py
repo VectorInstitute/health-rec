@@ -81,7 +81,7 @@ def load_json_data(file_path: str) -> List[Dict[str, Any]]:
 def prepare_documents(
     services: List[Dict[str, Any]],
     resource_name: str,
-) -> Tuple[Documents, List[Dict[str, Any]], List[str]]:
+) -> Tuple[Documents, List[dict[str, str]], List[str]]:
     """Prepare documents, metadata, and IDs from service data for Chroma storage.
 
     Truncates documents that exceed the maximum token length for embeddings.
@@ -99,21 +99,24 @@ def prepare_documents(
     documents, metadata, and IDs.
     """
     documents: Documents = []
-    metadatas: List[Dict[str, Any]] = []
+    metadatas: List[dict[str, str]] = []
     ids: List[str] = []
 
     # Get the appropriate tokenizer for the embedding model
     tokenizer = get_encoding("cl100k_base")  # Used by text-embedding API
 
     for service in services:
-        metadata = {
-            key: ", ".join(map(str, value))
-            if isinstance(value, list)
-            else str(value)
-            if value is not None
-            else ""
-            for key, value in service.items()
-        }
+        metadata: dict[str, str] = {}
+        for key, value in service.items():
+            if isinstance(value, list):
+                metadata[key] = ", ".join(map(str, value))
+            elif isinstance(value, dict):
+                # Convert dict to JSON string for ChromaDB compatibility
+                metadata[key] = str(value)
+            elif value is not None:
+                metadata[key] = str(value)
+            else:
+                metadata[key] = ""
         metadata["resource"] = resource_name
         doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
 
@@ -154,13 +157,8 @@ def get_or_create_collection(host: str, port: int, name: str) -> chromadb.Collec
     logger.info(f"Connecting to Chroma at {host}:{port}")
     chroma_client = chromadb.HttpClient(host=host, port=port)
 
-    try:
-        collection = chroma_client.get_collection(name=name)
-        logger.info(f"Retrieved existing collection: {name}")
-    except ValueError:
-        logger.info(f"Creating new collection: {name}")
-        collection = chroma_client.create_collection(name=name)
-
+    collection = chroma_client.get_or_create_collection(name=name)
+    logger.info(f"Retrieved or created collection: {name}")
     return collection
 
 
