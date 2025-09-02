@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIEmbedding(EmbeddingFunction[Documents]):
-    """A class to generate embeddings using OpenAI's API with rate limiting and retry logic."""
+    """A class to generate embeddings using OpenAI's API with rate limiting."""
 
     def __init__(
         self, api_key: str, model: str = Config.OPENAI_EMBEDDING, max_retries: int = 5
@@ -71,6 +71,9 @@ class OpenAIEmbedding(EmbeddingFunction[Documents]):
             except Exception as e:
                 logger.error(f"Error generating embeddings: {e}")
                 raise
+
+        # This should never be reached due to the raise statements above
+        return []
 
 
 def load_json_data(file_path: str) -> List[Dict[str, Any]]:
