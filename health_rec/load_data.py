@@ -7,6 +7,7 @@ prepare it for storage in a Chroma database, and add OpenAI embeddings to the da
 
 import json
 import logging
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import chromadb
@@ -25,15 +26,18 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIEmbedding(EmbeddingFunction[Documents]):
-    """A class to generate embeddings using OpenAI's API."""
+    """A class to generate embeddings using OpenAI's API with rate limiting and retry logic."""
 
-    def __init__(self, api_key: str, model: str = Config.OPENAI_EMBEDDING):
+    def __init__(
+        self, api_key: str, model: str = Config.OPENAI_EMBEDDING, max_retries: int = 5
+    ):
         """Initialize the OpenAI embedding client."""
         self.client = openai.Client(api_key=api_key)
         self.model = model
+        self.max_retries = max_retries
 
     def __call__(self, texts: Documents) -> Embeddings:
-        """Generate embeddings for the given texts.
+        """Generate embeddings for the given texts with exponential backoff retry logic.
 
         Parameters
         ----------
@@ -44,12 +48,29 @@ class OpenAIEmbedding(EmbeddingFunction[Documents]):
         Embeddings: The embeddings for the given texts.
 
         """
-        try:
-            response = self.client.embeddings.create(input=texts, model=self.model)
-            return [data.embedding for data in response.data]  # type: ignore
-        except Exception as e:
-            logger.error(f"Error generating embeddings: {e}")
-            raise
+        retry_count = 0
+        base_delay = 1.0
+
+        while retry_count <= self.max_retries:
+            try:
+                response = self.client.embeddings.create(input=texts, model=self.model)
+                return [data.embedding for data in response.data]  # type: ignore
+            except openai.RateLimitError as e:
+                retry_count += 1
+                if retry_count > self.max_retries:
+                    logger.error(
+                        f"Rate limit exceeded after {self.max_retries} retries: {e}"
+                    )
+                    raise
+
+                delay = base_delay * (2 ** (retry_count - 1))
+                logger.warning(
+                    f"Rate limit hit. Retrying in {delay:.2f} seconds (attempt {retry_count}/{self.max_retries})"
+                )
+                time.sleep(delay)
+            except Exception as e:
+                logger.error(f"Error generating embeddings: {e}")
+                raise
 
 
 def load_json_data(file_path: str) -> List[Dict[str, Any]]:
@@ -170,7 +191,7 @@ def load_data(
     resource_name: str,
     openai_api_key: Optional[str] = None,
     embedding_model: str = Config.OPENAI_EMBEDDING,
-    batch_size: int = 100,
+    batch_size: int = 50,
     load_embeddings: bool = False,
 ) -> None:
     """Load data into Chroma database and add embeddings if OpenAI API key is provided.
@@ -207,21 +228,35 @@ def load_data(
                 api_key=openai_api_key, model=embedding_model
             )
 
-            for i in range(0, len(documents), batch_size):
-                batch_docs = documents[i : i + batch_size]
-                batch_metadatas = metadatas[i : i + batch_size]
-                batch_ids = ids[i : i + batch_size]
+            current_batch_size = batch_size
+            i = 0
+            while i < len(documents):
+                try:
+                    batch_docs = documents[i : i + current_batch_size]
+                    batch_metadatas = metadatas[i : i + current_batch_size]
+                    batch_ids = ids[i : i + current_batch_size]
 
-                embeddings = openai_embedding(batch_docs)
-                collection.add(
-                    documents=batch_docs,
-                    metadatas=batch_metadatas,  # type: ignore
-                    ids=batch_ids,
-                    embeddings=embeddings,
-                )
-                logger.info(
-                    f"Added documents {i} to {i + len(batch_docs)} with embeddings"
-                )
+                    embeddings = openai_embedding(batch_docs)
+                    collection.add(
+                        documents=batch_docs,
+                        metadatas=batch_metadatas,  # type: ignore
+                        ids=batch_ids,
+                        embeddings=embeddings,
+                    )
+                    logger.info(
+                        f"Added documents {i} to {i + len(batch_docs)} with embeddings (batch size: {current_batch_size})"
+                    )
+                    i += current_batch_size
+
+                    time.sleep(0.5)
+
+                except openai.RateLimitError:
+                    current_batch_size = max(1, current_batch_size // 2)
+                    logger.warning(
+                        f"Reducing batch size to {current_batch_size} due to rate limits"
+                    )
+                    if current_batch_size < batch_size:
+                        time.sleep(2.0)
 
             logger.info("Completed the data loading and embedding process")
         else:
