@@ -32,6 +32,7 @@ nav:
   - Home: index.md
   - API Reference: api.md
   - Data Schema: schema.md
+  - Data Persistence: data-persistence.md
   - Safety and Evaluation: safety_and_evaluation.md
 plugins:
   - search

@@ -56,6 +56,7 @@ services:
       - "${CHROMA_PORT}:8000"
     environment:
       - ALLOW_RESET=true
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
     networks:
       - app-network
     healthcheck:
@@ -63,6 +64,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   chroma_data:

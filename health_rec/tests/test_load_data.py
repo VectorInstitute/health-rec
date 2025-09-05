@@ -2,6 +2,7 @@
 
 import json
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -153,3 +154,175 @@ class TestLoadData:
             embedding_func = OpenAIEmbedding(api_key="test_key")
             with pytest.raises(Exception):  # noqa: B017
                 embedding_func(["test text"])
+
+
+class TestLoadDataDeduplication:
+    """Integration tests for load_data with deduplication."""
+
+    @pytest.fixture
+    def services_with_duplicates_json(self):
+        """Create a temporary JSON file with duplicate services."""
+        base_time = datetime.now()
+        services_data = [
+            {
+                "id": "1",
+                "name": "Health Center",
+                "description": "Primary care",
+                "latitude": 43.6532,
+                "longitude": -79.3832,
+                "phone_numbers": [{"number": "416-555-1234", "type": "primary"}],
+                "address": {"street1": "123 Main St", "city": "Toronto"},
+                "metadata": {"email": "health1@example.com"},
+                "last_updated": base_time.isoformat(),
+            },
+            {
+                "id": "2",
+                "name": "Health Center",  # Duplicate
+                "description": "Same location, different description",
+                "latitude": 43.6532,
+                "longitude": -79.3832,
+                "phone_numbers": [{"number": "416-555-5678", "type": "primary"}],
+                "address": {"street1": "123 Main St", "city": "Toronto"},
+                "metadata": {"email": "health2@example.com"},
+                "last_updated": (
+                    base_time + timedelta(hours=1)
+                ).isoformat(),  # More recent
+            },
+            {
+                "id": "3",
+                "name": "Unique Service",
+                "description": "No duplicates",
+                "latitude": 43.6600,
+                "longitude": -79.3900,
+                "phone_numbers": [{"number": "416-555-9999", "type": "primary"}],
+                "address": {"street1": "456 Queen St", "city": "Toronto"},
+                "metadata": {"email": "unique@example.com"},
+                "last_updated": base_time.isoformat(),
+            },
+        ]
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(services_data, f, indent=2)
+            temp_path = f.name
+
+        yield temp_path
+        Path(temp_path).unlink(missing_ok=True)
+
+    @patch("load_data.get_or_create_collection")
+    @patch("load_data.logger")
+    def test_load_data_with_deduplication_enabled(
+        self, mock_logger, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test load_data with deduplication enabled."""
+        # Setup mock collection
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        # Call load_data with deduplication enabled
+        load_data(
+            file_path=services_with_duplicates_json,
+            host="localhost",
+            port=8000,
+            collection_name="test_collection",
+            resource_name="test",
+            load_embeddings=False,
+            remove_duplicates_before_load=True,
+        )
+
+        # Verify deduplication logging
+        mock_logger.info.assert_any_call(
+            "Removed 1 duplicate services during data loading"
+        )
+
+        # Verify collection.add was called with deduplicated data
+        mock_collection.add.assert_called_once()
+        call_args = mock_collection.add.call_args
+
+        # Should have 2 unique services (removed 1 duplicate)
+        assert len(call_args.kwargs["documents"]) == 2
+        assert len(call_args.kwargs["metadatas"]) == 2
+        assert len(call_args.kwargs["ids"]) == 2
+
+        # Verify the most recent duplicate was kept (id="2")
+        ids = call_args.kwargs["ids"]
+        assert "2" in ids
+        assert "3" in ids
+        assert "1" not in ids
+
+    @patch("load_data.get_or_create_collection")
+    @patch("load_data.logger")
+    def test_load_data_with_deduplication_disabled(
+        self, mock_logger, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test load_data with deduplication disabled."""
+        # Setup mock collection
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        # Call load_data with deduplication disabled
+        load_data(
+            file_path=services_with_duplicates_json,
+            host="localhost",
+            port=8000,
+            collection_name="test_collection",
+            resource_name="test",
+            load_embeddings=False,
+            remove_duplicates_before_load=False,
+        )
+
+        # Verify no deduplication logging
+        dedup_logs = [
+            call for call in mock_logger.info.call_args_list if "duplicate" in str(call)
+        ]
+        assert len(dedup_logs) == 0
+
+        # Verify collection.add was called with all original data
+        mock_collection.add.assert_called_once()
+        call_args = mock_collection.add.call_args
+
+        # Should have all 3 services (no deduplication)
+        assert len(call_args.kwargs["documents"]) == 3
+        assert len(call_args.kwargs["metadatas"]) == 3
+        assert len(call_args.kwargs["ids"]) == 3
+
+    @patch("load_data.get_or_create_collection")
+    def test_load_data_with_embeddings_and_deduplication(
+        self, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test load_data with both embeddings and deduplication enabled."""
+        # Setup mocks
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        with patch("load_data.OpenAIEmbedding") as mock_embedding_class:
+            mock_embedding_instance = Mock()
+            mock_embedding_instance.return_value = [[0.1, 0.2], [0.3, 0.4]]
+            mock_embedding_class.return_value = mock_embedding_instance
+
+            # Call load_data with both features enabled
+            load_data(
+                file_path=services_with_duplicates_json,
+                host="localhost",
+                port=8000,
+                collection_name="test_collection",
+                resource_name="test",
+                openai_api_key="test_key",
+                load_embeddings=True,
+                remove_duplicates_before_load=True,
+            )
+
+            # Verify embedding function was created
+            mock_embedding_class.assert_called_once_with(
+                api_key="test_key", model="text-embedding-3-small"
+            )
+
+            # Verify embeddings were generated for deduplicated data only
+            mock_embedding_instance.assert_called()
+            call_args = mock_embedding_instance.call_args[0][0]  # First positional arg
+            assert len(call_args) == 2  # Should be 2 deduplicated services
+
+            # Verify collection.add was called with embeddings
+            mock_collection.add.assert_called_once()
+            add_call_args = mock_collection.add.call_args
+            assert "embeddings" in add_call_args.kwargs
+            assert len(add_call_args.kwargs["embeddings"]) == 2
