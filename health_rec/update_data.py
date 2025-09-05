@@ -45,7 +45,9 @@ def prepare_document(
     }
     metadata["resource"] = resource_name
 
-    doc = " | ".join(f"{key}: {value}" for key, value in metadata.items() if value)
+    doc = " | ".join(
+        f"{key}: {value}" for key, value in sorted(metadata.items()) if value
+    )
     service_id = str(service.get("id", " "))
 
     return doc, metadata, service_id

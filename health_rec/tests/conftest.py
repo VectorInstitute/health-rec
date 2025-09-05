@@ -73,6 +73,12 @@ def test_services() -> List[Dict[str, Any]]:
             "description": "Emergency food assistance",
             "latitude": 43.6400,
             "longitude": -79.3900,
+            "address": {
+                "street1": "789 Food St",
+                "city": "Toronto",
+                "province": "ON",
+                "postal_code": "M5V 1A1",
+            },
             "phone_numbers": [{"number": "416-555-3333", "type": "primary"}],
             "categories": ["food", "emergency assistance"],
             "eligibility": "Low income families",
@@ -112,4 +118,5 @@ def sample_service() -> Dict[str, Any]:
         "longitude": -79.3832,
         "address": {"street1": "123 Test St", "city": "Toronto"},
         "phone_numbers": [{"number": "555-1234", "type": "primary"}],
+        "metadata": {},
     }

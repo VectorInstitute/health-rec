@@ -311,6 +311,7 @@ class TestUpdateDataDeduplication:
                 "latitude": 43.6532,
                 "longitude": -79.3832,
                 "phone_numbers": [{"number": "416-555-1234", "type": "primary"}],
+                "address": {"street1": "123 Main St", "city": "Toronto"},
                 "email": "medical1@example.com",
                 "last_updated": base_time.isoformat(),
             },
@@ -322,7 +323,7 @@ class TestUpdateDataDeduplication:
                 "longitude": -79.3832,
                 "phone_numbers": [{"number": "416-555-5678", "type": "primary"}],
                 "address": {"street1": "123 Main St", "city": "Toronto"},
-                "metadata": {"email": "medical2@example.com"},
+                "email": "medical2@example.com",
                 "last_updated": (
                     base_time + timedelta(hours=2)
                 ).isoformat(),  # More recent
@@ -334,6 +335,7 @@ class TestUpdateDataDeduplication:
                 "latitude": 43.6600,
                 "longitude": -79.3900,
                 "phone_numbers": [{"number": "416-555-9999", "type": "primary"}],
+                "address": {"street1": "456 Wellness Ave", "city": "Toronto"},
                 "email": "wellness@example.com",
                 "last_updated": base_time.isoformat(),
             },
@@ -345,7 +347,7 @@ class TestUpdateDataDeduplication:
                 "longitude": -79.3832,
                 "phone_numbers": [{"number": "416-555-0000", "type": "primary"}],
                 "address": {"street1": "123 Main St", "city": "Toronto"},
-                "metadata": {"email": "medical3@example.com"},
+                "email": "medical3@example.com",
                 "last_updated": (base_time - timedelta(hours=1)).isoformat(),  # Oldest
             },
         ]
