@@ -92,7 +92,7 @@ def create_test_data(num_services: int, output_dir: Path) -> None:
     services = [generate_dummy_service(i) for i in range(1, num_services + 1)]
 
     # Convert to JSON-serializable format
-    json_services = [service.dict(exclude_none=True) for service in services]
+    json_services = [service.model_dump(exclude_none=True) for service in services]
 
     # Save to file
     with open(output_file, "w") as f:
