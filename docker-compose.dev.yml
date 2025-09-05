@@ -56,10 +56,13 @@ services:
     image: ghcr.io/chroma-core/chroma:1.0.20
     volumes:
       - chroma_data_dev:/chroma/chroma
+      # Alternative: bind mount for better persistence during development
+      # - ./data/chroma_dev:/chroma/chroma
     ports:
       - "${CHROMA_PORT}:8000"
     environment:
       - ALLOW_RESET=true
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["*"]
     networks:
       - app-network
     healthcheck:
@@ -67,6 +70,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   chroma_data_dev:

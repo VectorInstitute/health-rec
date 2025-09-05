@@ -2,10 +2,12 @@
 
 import json
 import tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import chromadb
+import pytest
 
 from update_data import calculate_hash, prepare_document, update_data
 
@@ -292,3 +294,184 @@ class TestUpdateData:
 
         finally:
             Path(temp_path).unlink()
+
+
+class TestUpdateDataDeduplication:
+    """Integration tests for update_data with deduplication."""
+
+    @pytest.fixture
+    def services_with_duplicates_json(self):
+        """Create a temporary JSON file with duplicate services for update testing."""
+        base_time = datetime.now()
+        services_data = [
+            {
+                "id": "1",
+                "name": "Medical Center",
+                "description": "Updated primary care",
+                "latitude": 43.6532,
+                "longitude": -79.3832,
+                "phone_numbers": [{"number": "416-555-1234", "type": "primary"}],
+                "email": "medical1@example.com",
+                "last_updated": base_time.isoformat(),
+            },
+            {
+                "id": "2",
+                "name": "Medical Center",  # Duplicate
+                "description": "Same location, updated description",
+                "latitude": 43.6532,
+                "longitude": -79.3832,
+                "phone_numbers": [{"number": "416-555-5678", "type": "primary"}],
+                "address": {"street1": "123 Main St", "city": "Toronto"},
+                "metadata": {"email": "medical2@example.com"},
+                "last_updated": (
+                    base_time + timedelta(hours=2)
+                ).isoformat(),  # More recent
+            },
+            {
+                "id": "3",
+                "name": "Wellness Center",
+                "description": "Updated wellness services",
+                "latitude": 43.6600,
+                "longitude": -79.3900,
+                "phone_numbers": [{"number": "416-555-9999", "type": "primary"}],
+                "email": "wellness@example.com",
+                "last_updated": base_time.isoformat(),
+            },
+            {
+                "id": "4",
+                "name": "Medical Center",  # Another duplicate
+                "description": "Third instance, older",
+                "latitude": 43.6532,
+                "longitude": -79.3832,
+                "phone_numbers": [{"number": "416-555-0000", "type": "primary"}],
+                "address": {"street1": "123 Main St", "city": "Toronto"},
+                "metadata": {"email": "medical3@example.com"},
+                "last_updated": (base_time - timedelta(hours=1)).isoformat(),  # Oldest
+            },
+        ]
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(services_data, f, indent=2)
+            temp_path = f.name
+
+        yield temp_path
+        Path(temp_path).unlink(missing_ok=True)
+
+    @patch("update_data.get_or_create_collection")
+    @patch("update_data.logger")
+    def test_update_data_with_deduplication_enabled(
+        self, mock_logger, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test update_data with deduplication enabled."""
+        # Setup mock collection
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        # Mock that all services are new (not existing)
+        mock_collection.get.return_value = {"ids": []}
+
+        # Call update_data with deduplication enabled
+        update_data(
+            file_path=services_with_duplicates_json,
+            host="localhost",
+            port=8000,
+            collection_name="test_collection",
+            resource_name="test",
+            load_embeddings=False,
+            remove_duplicates_before_update=True,
+        )
+
+        # Verify deduplication logging
+        mock_logger.info.assert_any_call(
+            "Removed 2 duplicate services during data update"
+        )
+
+        # Verify collection operations
+        # Should have 2 unique services after deduplication
+        add_calls = list(mock_collection.add.call_args_list)
+        update_calls = list(mock_collection.update.call_args_list)
+        total_operations = len(add_calls) + len(update_calls)
+
+        assert total_operations == 2  # 2 unique services
+
+    @patch("update_data.get_or_create_collection")
+    @patch("update_data.logger")
+    def test_update_data_with_deduplication_disabled(
+        self, mock_logger, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test update_data with deduplication disabled."""
+        # Setup mock collection
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        # Mock that all services are new (not existing)
+        mock_collection.get.return_value = {"ids": []}
+
+        # Call update_data with deduplication disabled
+        update_data(
+            file_path=services_with_duplicates_json,
+            host="localhost",
+            port=8000,
+            collection_name="test_collection",
+            resource_name="test",
+            load_embeddings=False,
+            remove_duplicates_before_update=False,
+        )
+
+        # Verify no deduplication logging
+        dedup_logs = [
+            call for call in mock_logger.info.call_args_list if "duplicate" in str(call)
+        ]
+        assert len(dedup_logs) == 0
+
+        # Verify collection operations
+        # Should have all 4 services processed
+        add_calls = list(mock_collection.add.call_args_list)
+        update_calls = list(mock_collection.update.call_args_list)
+        total_operations = len(add_calls) + len(update_calls)
+
+        assert total_operations == 4  # All 4 services
+
+    @patch("update_data.get_or_create_collection")
+    def test_update_data_preserves_existing_unique_services(
+        self, mock_get_collection, services_with_duplicates_json
+    ):
+        """Test deduplication preserves existing services that aren't duplicates."""
+        # Setup mock collection
+        mock_collection = Mock()
+        mock_get_collection.return_value = mock_collection
+
+        # Mock get method to simulate existing service "3" and new services for others
+        def mock_get_side_effect(ids, **kwargs):
+            if ids[0] == "3":
+                # Service 3 already exists
+                return {
+                    "ids": ["3"],
+                    "documents": ["existing doc"],
+                    "metadatas": [{"name": "Old Wellness Center", "resource": "test"}],
+                }
+            # Other services are new
+            return {"ids": []}
+
+        mock_collection.get.side_effect = mock_get_side_effect
+
+        # Call update_data with deduplication enabled
+        update_data(
+            file_path=services_with_duplicates_json,
+            host="localhost",
+            port=8000,
+            collection_name="test_collection",
+            resource_name="test",
+            load_embeddings=False,
+            remove_duplicates_before_update=True,
+        )
+
+        # Verify that service 3 was updated (not added)
+        # and only one Medical Center was added
+        add_calls = mock_collection.add.call_args_list
+        update_calls = mock_collection.update.call_args_list
+
+        # Should have 1 add call (for the deduplicated Medical Center)
+        # and 1 update call (for the existing Wellness Center)
+        assert len(add_calls) == 1
+        assert len(update_calls) == 1

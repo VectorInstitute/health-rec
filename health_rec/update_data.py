@@ -13,7 +13,9 @@ import logging
 from typing import Any, Dict, Optional, Tuple
 
 from api.config import Config
+from api.data import Service
 from load_data import OpenAIEmbedding, get_or_create_collection, load_json_data
+from services.deduplication import remove_duplicates
 
 
 logging.basicConfig(
@@ -49,7 +51,7 @@ def prepare_document(
     return doc, metadata, service_id
 
 
-def update_data(
+def update_data(  # noqa: PLR0912, PLR0915
     file_path: str,
     host: str,
     port: int,
@@ -58,6 +60,7 @@ def update_data(
     openai_api_key: Optional[str] = None,
     embedding_model: str = Config.OPENAI_EMBEDDING,
     load_embeddings: bool = False,
+    remove_duplicates_before_update: bool = True,
 ) -> None:
     """
     Update a ChromaDB collection by comparing existing entries with new data.
@@ -84,6 +87,8 @@ def update_data(
         The OpenAI embedding model to use
     load_embeddings : bool
         Whether to load embeddings for the new data
+    remove_duplicates_before_update : bool
+        Whether to remove duplicates before updating data
 
     """
     logger.info("Starting update process")
@@ -92,8 +97,24 @@ def update_data(
     logger.info(f"Port: {port}")
     logger.info(f"Collection name: {collection_name}")
     try:
-        services = load_json_data(file_path)
-        logger.info(f"Loaded {len(services)} services from JSON file")
+        services_data = load_json_data(file_path)
+        logger.info(f"Loaded {len(services_data)} services from JSON file")
+
+        # Remove duplicates before processing if enabled
+        if remove_duplicates_before_update:
+            # Convert to Service objects for deduplication
+            services_obj = [Service(**service_data) for service_data in services_data]
+            services_obj, duplicates_removed = remove_duplicates(
+                services_obj, keep_strategy="most_recent"
+            )
+            if duplicates_removed > 0:
+                logger.info(
+                    f"Removed {duplicates_removed} duplicate services during data update"
+                )
+            # Convert back to dict format
+            services_data = [
+                service.model_dump(exclude_none=True) for service in services_obj
+            ]
 
         collection = get_or_create_collection(host, port, collection_name)
 
@@ -110,7 +131,7 @@ def update_data(
         total_updated = 0
         total_added = 0
 
-        for service in services:
+        for service in services_data:
             total_processed += 1
 
             doc, metadata, service_id = prepare_document(service, resource_name)
