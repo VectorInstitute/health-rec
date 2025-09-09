@@ -16,7 +16,7 @@ class TestFastAPIConfig:
         config = FastAPIConfig()
         assert config.title == "health-rec"
         assert config.description == "Health Services Recommendation API"
-        assert config.version == "0.1.0"
+        assert config.version == "0.2.0"
         assert config.root_path == "/api/v1"
 
     def test_fastapi_config_custom_values(self):

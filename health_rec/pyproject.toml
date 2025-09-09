@@ -1,6 +1,6 @@
 [project]
 name = "health-rec"
-version = "0.1.0"
+version = "0.2.0"
 description = "Health services recommendation API"
 readme = "README.md"
 authors = [{name = "Vector Institute", email = "ai_engineering@vectorinstitute.ai"}]
