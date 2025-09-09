@@ -86,7 +86,11 @@ def delete_collection(name: str) -> None:
 
 
 def load_data_to_collection(
-    collection_name: str, resource_name: str, data_dir: str, load_embeddings: bool
+    collection_name: str,
+    resource_name: str,
+    data_dir: str,
+    load_embeddings: bool,
+    remove_duplicates: bool = True,
 ) -> None:
     """
     Load data into a specified collection.
@@ -101,6 +105,8 @@ def load_data_to_collection(
         The directory containing JSON files to load.
     load_embeddings : bool
         Whether to generate and load embeddings.
+    remove_duplicates : bool
+        Whether to remove duplicates during data loading.
     """
     files = sorted(glob.glob(os.path.join(data_dir, "*.json")))
     logger.info(
@@ -115,6 +121,7 @@ def load_data_to_collection(
             resource_name=resource_name,
             openai_api_key=Config.OPENAI_API_KEY,
             load_embeddings=load_embeddings,
+            remove_duplicates_before_load=remove_duplicates,
         )
 
     logger.info(f"Finished loading data into collection: {collection_name}")
@@ -168,6 +175,7 @@ def update_data_in_collection(
     collection_name: str,
     data_dir: str,
     load_embeddings: bool,
+    remove_duplicates: bool = True,
 ) -> None:
     """
     Update a ChromaDB collection by comparing existing entries with new data.
@@ -180,6 +188,10 @@ def update_data_in_collection(
         Name of the collection to update
     data_dir : str
         Directory containing JSON files to process
+    load_embeddings : bool
+        Whether to generate and load embeddings
+    remove_duplicates : bool
+        Whether to remove duplicates during data update
 
     Notes
     -----
@@ -198,6 +210,7 @@ def update_data_in_collection(
             collection_name=collection_name,
             openai_api_key=Config.OPENAI_API_KEY,
             load_embeddings=load_embeddings,
+            remove_duplicates_before_update=remove_duplicates,
         )
 
     logger.info(f"Finished updating data into collection: {collection_name}")
@@ -230,6 +243,11 @@ def main() -> None:
         "--resource_name",
         help="Name of the resource/data source (optional, defaults to 'default')",
     )
+    parser.add_argument(
+        "--no-deduplication",
+        action="store_true",
+        help="Skip deduplication during data loading",
+    )
 
     args = parser.parse_args()
 
@@ -256,6 +274,7 @@ def main() -> None:
             args.resource_name,
             args.data_dir,
             args.load_embeddings,
+            remove_duplicates=not args.no_deduplication,
         )
     elif args.action == "inspect":
         if not args.collection_name:
@@ -271,6 +290,7 @@ def main() -> None:
             collection_name=args.collection_name,
             data_dir=args.data_dir,
             load_embeddings=args.load_embeddings,
+            remove_duplicates=not args.no_deduplication,
         )
 
 
