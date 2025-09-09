@@ -51,7 +51,7 @@ jobs:
           enable-cache: true
 
       - name: "Set up Python"
-        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
           python-version-file: ".python-version"
 
@@ -64,7 +64,7 @@ jobs:
 
       # Uncomment this once this repo is configured on Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: VectorInstitute/health-rec

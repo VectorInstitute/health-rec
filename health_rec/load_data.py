@@ -16,6 +16,8 @@ from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 from tiktoken import get_encoding
 
 from api.config import Config
+from api.data import Service
+from services.deduplication import remove_duplicates
 
 
 # Set up logging
@@ -196,6 +198,7 @@ def load_data(
     embedding_model: str = Config.OPENAI_EMBEDDING,
     batch_size: int = 50,
     load_embeddings: bool = False,
+    remove_duplicates_before_load: bool = True,
 ) -> None:
     """Load data into Chroma database and add embeddings if OpenAI API key is provided.
 
@@ -210,6 +213,8 @@ def load_data(
     embedding_model (str): The OpenAI embedding model to use.
     batch_size (int): The number of documents to process in a single batch.
     load_embeddings (bool): Whether to load embeddings into the collection.
+    remove_duplicates_before_load (bool): Whether to remove duplicates before
+        loading data.
 
     """
     logger.info("Starting the data loading process")
@@ -219,10 +224,26 @@ def load_data(
     logger.info(f"Collection name: {collection_name}")
 
     try:
-        services = load_json_data(file_path)
-        logger.info(f"Loaded {len(services)} services from JSON file")
+        services_data = load_json_data(file_path)
+        logger.info(f"Loaded {len(services_data)} services from JSON file")
 
-        documents, metadatas, ids = prepare_documents(services, resource_name)
+        # Remove duplicates before processing if enabled
+        if remove_duplicates_before_load:
+            # Convert to Service objects for deduplication
+            services = [Service(**service_data) for service_data in services_data]
+            services, duplicates_removed = remove_duplicates(
+                services, keep_strategy="most_recent"
+            )
+            if duplicates_removed > 0:
+                logger.info(
+                    f"Removed {duplicates_removed} duplicate services during data loading"
+                )
+            # Convert back to dict format
+            services_data = [
+                service.model_dump(exclude_none=True) for service in services
+            ]
+
+        documents, metadatas, ids = prepare_documents(services_data, resource_name)
         collection = get_or_create_collection(host, port, collection_name)
 
         if load_embeddings and openai_api_key:

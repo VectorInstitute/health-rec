@@ -17,6 +17,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def create_duplicate_service(original: Service, new_id: int) -> Service:
+    """Create a duplicate service with same name and location but different ID."""
+    duplicate = Service(
+        id=str(new_id),
+        name=original.name,
+        description=f"{original.description} - Duplicate location",
+        latitude=original.latitude,
+        longitude=original.longitude,
+        phone_numbers=original.phone_numbers,
+        address=original.address,
+        email=f"service{new_id}@example.com",
+        metadata=original.metadata.copy(),
+        last_updated=datetime.now(),
+    )
+    return duplicate
+
+
 def generate_dummy_service(service_id: int) -> Service:
     """Generate a dummy service with random data around Toronto."""
     # Generate random coordinates around Toronto
@@ -81,7 +98,30 @@ def generate_dummy_service(service_id: int) -> Service:
     )
 
 
-def create_test_data(num_services: int, output_dir: Path) -> None:
+def add_duplicate_services(
+    services: list[Service], duplicate_ratio: float = 0.25
+) -> list[Service]:
+    """Add duplicate services for testing duplicate detection."""
+    if not services:
+        return services
+
+    duplicate_count = min(10, max(1, int(len(services) * duplicate_ratio)))
+    logger.info(f"Adding {duplicate_count} duplicate services for testing...")
+
+    duplicates = []
+    for i in range(duplicate_count):
+        # Pick a random original service to duplicate
+        original = services[i % len(services)]
+        new_id = len(services) + i + 1000  # Use high IDs to avoid conflicts
+        duplicate = create_duplicate_service(original, new_id)
+        duplicates.append(duplicate)
+
+    return services + duplicates
+
+
+def create_test_data(
+    num_services: int, output_dir: Path, include_duplicates: bool = True
+) -> None:
     """Create test data and save to JSON file."""
     # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -91,14 +131,21 @@ def create_test_data(num_services: int, output_dir: Path) -> None:
     logger.info(f"Generating {num_services} test services...")
     services = [generate_dummy_service(i) for i in range(1, num_services + 1)]
 
+    # Add duplicates if requested
+    if include_duplicates:
+        services = add_duplicate_services(services)
+
     # Convert to JSON-serializable format
-    json_services = [service.dict(exclude_none=True) for service in services]
+    json_services = [service.model_dump(exclude_none=True) for service in services]
 
     # Save to file
     with open(output_file, "w") as f:
         json.dump(json_services, f, indent=2, default=str)
 
-    logger.info(f"Successfully saved {len(services)} services to {output_file}")
+    duplicate_count = len(services) - num_services if include_duplicates else 0
+    logger.info(
+        f"Successfully saved {len(services)} services ({duplicate_count} duplicates) to {output_file}"
+    )
 
 
 def main() -> None:
@@ -118,11 +165,16 @@ def main() -> None:
         default=Path("./data/test_data"),
         help="Directory to save the test data",
     )
+    parser.add_argument(
+        "--no-duplicates",
+        action="store_true",
+        help="Don't include duplicate services for testing",
+    )
 
     args = parser.parse_args()
 
     try:
-        create_test_data(args.num_services, args.output_dir)
+        create_test_data(args.num_services, args.output_dir, not args.no_duplicates)
     except Exception as e:
         logger.error(f"Error generating test data: {e}")
         raise

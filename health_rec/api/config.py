@@ -24,7 +24,7 @@ class FastAPIConfig:
 
     title: str = "health-rec"
     description: str = "Health Services Recommendation API"
-    version: str = "0.1.0"
+    version: str = "0.2.0"
     root_path: str = "/api/v1"
 
 
