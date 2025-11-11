@@ -1,6 +1,6 @@
 [project]
 name = "health-rec"
-version = "0.2.0"
+version = "0.3.0"
 description = "Health services recommendation API"
 readme = "README.md"
 authors = [{name = "Vector Institute", email = "ai_engineering@vectorinstitute.ai"}]
@@ -8,12 +8,14 @@ license = "Apache-2.0"
 repository = "https://github.com/VectorInstitute/health-rec"
 requires-python = ">=3.11"
 dependencies = [
+    "pip>=25.2",
     "fastapi>=0.115.2",
     "uvicorn>=0.30.6",
     "openai>=1.45.1",
     "chromadb==1.0.20",
     "python-dotenv>=1.0.1",
     "tiktoken>=0.8.0",
+    "urllib3>=2.5.0",
 ]
 
 [build-system]
