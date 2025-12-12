@@ -15,7 +15,7 @@ dependencies = [
     "chromadb==1.0.20",
     "python-dotenv>=1.0.1",
     "tiktoken>=0.8.0",
-    "urllib3>=2.5.0",
+    "urllib3>=2.6.0",
 ]
 
 [build-system]
