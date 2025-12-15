@@ -102,7 +102,7 @@ jobs:
         run: touch site/.nojekyll
 
       - name: Deploy to Github pages
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           branch: gh-pages
           folder: site
