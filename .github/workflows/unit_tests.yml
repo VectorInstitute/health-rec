@@ -68,5 +68,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: VectorInstitute/health-rec
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
