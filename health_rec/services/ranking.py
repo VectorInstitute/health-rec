@@ -63,9 +63,7 @@ class RankingService:
                 float(service.metadata["longitude"]),
             )
             service.distance = _calculate_distance(service_location, user_location)
-        services.sort(
-            key=lambda service: self._calculate_ranking_score(service), reverse=True
-        )
+        services.sort(key=self._calculate_ranking_score, reverse=True)
         return services
 
     def _calculate_ranking_score(self, service: ServiceDocument) -> float:
