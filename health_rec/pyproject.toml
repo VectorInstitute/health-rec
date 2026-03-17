@@ -17,7 +17,7 @@ dependencies = [
     "tiktoken>=0.8.0",
     "urllib3==2.6.3",
     "filelock==3.20.3",
-    "pyasn1==0.6.2",
+    "pyasn1==0.6.3",
     "virtualenv==20.36.1",
 ]
 
