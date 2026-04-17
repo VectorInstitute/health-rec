@@ -50,7 +50,7 @@ docs = [
 
 eval = [
     "langchain-core>=0.3.13",
-    "langchain-openai>=0.2.4",
+    "langchain-openai>=1.1.14",
     "langchain-community>=0.3.3",
     "ragas>=0.2.3",
     "datasets>=3.0.2",
