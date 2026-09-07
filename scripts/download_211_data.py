@@ -7,16 +7,14 @@ import math
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
-from dotenv import load_dotenv
-from pydantic import ValidationError
-
 from api.data import Address, PhoneNumber, Service
 from common import RetryableSession
+from dotenv import load_dotenv
 from fields import FIELDS
-
+from pydantic import ValidationError
 
 # Configure logging
 logging.basicConfig(
@@ -25,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def parse_phone_numbers(phones: List[Dict[str, str]]) -> List[PhoneNumber]:
+def parse_phone_numbers(phones: list[dict[str, str]]) -> list[PhoneNumber]:
     """Parse phone numbers from 211 data format."""
     phone_numbers = []
     for phone in phones:
@@ -56,7 +54,7 @@ def parse_phone_numbers(phones: List[Dict[str, str]]) -> List[PhoneNumber]:
     return phone_numbers
 
 
-def map_211_data_to_service(data: Dict[str, Any]) -> Service:
+def map_211_data_to_service(data: dict[str, Any]) -> Service:
     """Map 211 API data to standardized Service format."""
     try:
         # Parse required fields
@@ -117,11 +115,11 @@ def map_211_data_to_service(data: Dict[str, Any]) -> Service:
             last_updated=datetime.now(),
         )
     except (ValueError, ValidationError) as e:
-        logger.error(f"Error mapping service {data.get('id')}: {str(e)}")
+        logger.error(f"Error mapping service {data.get('id')}: {e!s}")
         raise
 
 
-def save_to_file(data: Dict[str, Any], file_path: Path) -> None:
+def save_to_file(data: dict[str, Any], file_path: Path) -> None:
     """Save the data to a JSON file."""
     mapped_services = []
     for service_data in data["Records"]:
@@ -138,7 +136,7 @@ def save_to_file(data: Dict[str, Any], file_path: Path) -> None:
 
 def create_payload(
     page_index: int, dataset: str, is_gta: bool, page_size: int
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create the payload for the API request."""
     payload = {
         "Dataset": dataset,
