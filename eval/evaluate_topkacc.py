@@ -1,12 +1,12 @@
-import json
-import requests
-from typing import List, Dict
-from urllib.parse import urljoin
 import argparse
+import json
+from urllib.parse import urljoin
+
+import requests
 
 
 def calculate_topk_accuracy(
-    retrieved_ids: List[str], relevant_id: str, k: int
+    retrieved_ids: list[str], relevant_id: str, k: int
 ) -> float:
     """
     Calculates the top-k accuracy for a single relevant ID.
@@ -33,8 +33,8 @@ def calculate_topk_accuracy(
 
 
 def evaluate_retrieval_accuracy(
-    dataset_path: str, endpoint: str, top_k_values: List[int]
-) -> Dict[str, Dict[str, Dict[int, float]]]:
+    dataset_path: str, endpoint: str, top_k_values: list[int]
+) -> dict[str, dict[str, dict[int, float]]]:
     """
     Evaluates the top-k accuracy of the retrieval API, split by categories.
 
@@ -60,7 +60,7 @@ def evaluate_retrieval_accuracy(
         dataset = json.load(f)
 
     # Initialize results dictionary
-    results: Dict[str, Dict[str, Dict[int, List[float]]]] = {
+    results: dict[str, dict[str, dict[int, list[float]]]] = {
         "is_emergency": {},
         "is_out_of_scope": {},
         "detail_level": {},
@@ -133,7 +133,7 @@ def evaluate_retrieval_accuracy(
             continue
 
     # Calculate average accuracies
-    average_accuracies: Dict[str, Dict[str, Dict[int, float]]] = {}
+    average_accuracies: dict[str, dict[str, dict[int, float]]] = {}
     for category, sub_categories in results.items():
         average_accuracies[category] = {}
         for sub_category, k_values in sub_categories.items():

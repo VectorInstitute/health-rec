@@ -5,22 +5,21 @@ This module provides functionality to evaluate RAG system outputs using RAGAS me
 including category-based analysis and aggregation.
 """
 
-import os
 import argparse
 import json
 import logging
-from typing import Any, Dict, List
+import os
+from typing import Any
 
 import pandas as pd
+from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
     answer_relevancy,
-    faithfulness,
-    context_recall,
     context_precision,
+    context_recall,
+    faithfulness,
 )
-from datasets import Dataset
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,10 +32,10 @@ def load_dataset(file_path: str) -> Any:
 
 
 def prepare_dataset(
-    samples: List[Dict[str, Any]], query_dataset: List[Dict[str, Any]]
+    samples: list[dict[str, Any]], query_dataset: list[dict[str, Any]]
 ) -> Dataset:
     """Prepare the dataset for RAGAS evaluation with category information."""
-    processed_data: Dict[str, List[Any]] = {
+    processed_data: dict[str, list[Any]] = {
         "question": [],
         "answer": [],
         "contexts": [],
@@ -79,7 +78,7 @@ def run_evaluation(dataset: Dataset) -> pd.DataFrame:
 
 def aggregate_by_category(
     results: pd.DataFrame, dataset: Dataset
-) -> Dict[str, Dict[str, Dict[str, float]]]:
+) -> dict[str, dict[str, dict[str, float]]]:
     """
     Aggregate evaluation results by category.
 
@@ -103,13 +102,13 @@ def aggregate_by_category(
         "context_recall",
         "context_precision",
     ]
-    categories: Dict[str, List[Any]] = {
+    categories: dict[str, list[Any]] = {
         "is_emergency": [True, False],
         "is_out_of_scope": [True, False],
         "detail_level": ["low", "medium", "high"],
     }
 
-    aggregated_results: Dict[str, Dict[str, Dict[str, float]]] = {}
+    aggregated_results: dict[str, dict[str, dict[str, float]]] = {}
 
     for category, values in categories.items():
         aggregated_results[category] = {}
