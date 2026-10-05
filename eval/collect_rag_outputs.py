@@ -2,12 +2,13 @@ import argparse
 import asyncio
 import json
 import logging
-from typing import Dict, Any, List, Optional
-from tqdm import tqdm
+from typing import Any
 
 import aiohttp
 import chromadb
 from chromadb.config import Settings
+from tqdm import tqdm
+
 # IncludeEnum no longer exists in ChromaDB 1.0, use literal strings instead
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +23,7 @@ class DocumentFetcher:
             host=host, port=port, settings=Settings(allow_reset=True)
         )
 
-    def get_document_by_id(self, collection_name: str, doc_id: str) -> Optional[str]:
+    def get_document_by_id(self, collection_name: str, doc_id: str) -> str | None:
         """Fetch document content by ID."""
         try:
             collection = self.client.get_collection(collection_name)
@@ -37,11 +38,11 @@ class DocumentFetcher:
 
 async def fetch_recommendation(
     session: aiohttp.ClientSession,
-    query: Dict[str, Any],
+    query: dict[str, Any],
     endpoint: str,
     doc_fetcher: DocumentFetcher,
     collection_name: str,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Fetch recommendation from the RAG system API and include document content."""
     try:
         async with session.post(
@@ -106,7 +107,7 @@ async def process_samples(
     # Initialize document fetcher
     doc_fetcher = DocumentFetcher(host=chroma_host, port=chroma_port)
 
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     async with aiohttp.ClientSession() as session:
         # Set up progress bar for overall processing
         pbar = tqdm(total=len(samples), desc="Processing samples")
