@@ -3,16 +3,14 @@ import json
 import logging
 import os
 import random
-from typing import Any, Dict, List
-
-
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-from langchain_core.runnables import RunnablePassthrough
+from typing import Any
 
 # get env variables
 from dotenv import load_dotenv
+from langchain.output_parsers import ResponseSchema, StructuredOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_openai import ChatOpenAI
 
 load_dotenv(".env.development")
 
@@ -23,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def load_services(data_dir: str) -> List[Dict[str, Any]]:
+def load_services(data_dir: str) -> list[dict[str, Any]]:
     """
     Load services from multiple JSON files in a directory.
 
@@ -55,13 +53,13 @@ def load_services(data_dir: str) -> List[Dict[str, Any]]:
         except json.JSONDecodeError:
             logger.error(f"Error decoding JSON from {file_path}")
         except Exception as e:
-            logger.error(f"Error loading {file_path}: {str(e)}")
+            logger.error(f"Error loading {file_path}: {e!s}")
 
     logger.info(f"Loaded {len(services)} services total")
     return services
 
 
-def parse_demographics_string(demographics: str) -> Dict[str, str]:
+def parse_demographics_string(demographics: str) -> dict[str, str]:
     """Convert a comma-separated demographics string into a structured dictionary."""
     demo_dict = {
         "Age": "N/A",
@@ -95,7 +93,7 @@ def parse_demographics_string(demographics: str) -> Dict[str, str]:
     return demo_dict
 
 
-def process_result(result: Dict[str, Any]) -> Dict[str, Any]:
+def process_result(result: dict[str, Any]) -> dict[str, Any]:
     """Process and standardize the result from the LLM."""
     processed = result.copy()
 
@@ -182,12 +180,12 @@ output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 
 def create_synthetic_dataset(
-    services: List[Dict[str, Any]],
+    services: list[dict[str, Any]],
     num_samples: int,
     situation_type: str,
     detail_level: str,
     name: str,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Create synthetic dataset from services with robust demographics handling."""
     llm = ChatOpenAI(model="gpt-4", temperature=0.7)
     prompt = ChatPromptTemplate.from_template(query_generation_template)
@@ -209,9 +207,9 @@ def create_synthetic_dataset(
 
     for context_service in random_services:
         if "gta" in name:
-            context = f"Service {str(context_service.get('id', ''))}:\n{context_service.get('name', 'Unnamed Service')}\n{context_service.get('description', 'No description available')}"
+            context = f"Service {context_service.get('id', '')!s}:\n{context_service.get('name', 'Unnamed Service')}\n{context_service.get('description', 'No description available')}"
         else:
-            context = f"Service {str(context_service.get('id', ''))}:\n{context_service.get('PublicName', 'Unnamed Service')}\n{context_service.get('Description', 'No description available')}"
+            context = f"Service {context_service.get('id', '')!s}:\n{context_service.get('PublicName', 'Unnamed Service')}\n{context_service.get('Description', 'No description available')}"
 
         # Set situation instruction based on the specified type
         if situation_type == "emergency":

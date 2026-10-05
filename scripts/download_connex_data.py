@@ -4,7 +4,7 @@ import logging
 import math
 import os
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 from common import RetryableSession
 from fields import FIELDS
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def create_payload(page_index: int, dataset: str, page_size: int) -> Dict[str, Any]:
+def create_payload(page_index: int, dataset: str, page_size: int) -> dict[str, Any]:
     """Create the payload for the API request."""
     payload = {
         "Dataset": dataset,
@@ -36,7 +36,7 @@ def create_payload(page_index: int, dataset: str, page_size: int) -> Dict[str, A
 
 def download_dataset(
     api_key: str, base_url: str, dataset: str, output_dir: Path, page_size: int = 1000
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Download a complete dataset and return all services."""
     session = RetryableSession()
     all_services = []
@@ -106,8 +106,8 @@ def download_dataset(
 
 
 def find_connex_services(
-    on_services: List[Dict[str, Any]], cx_services: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
+    on_services: list[dict[str, Any]], cx_services: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """
     Find services that exist in 211CX but not in ON dataset.
     We use the id field to identify unique services.
@@ -128,7 +128,7 @@ def find_connex_services(
 
 
 def save_connex_data(
-    connex_services: List[Dict[str, Any]], output_dir: Path, batch_size: int = 1000
+    connex_services: list[dict[str, Any]], output_dir: Path, batch_size: int = 1000
 ) -> None:
     """Save Connex services to JSON files in batches."""
     connex_dir = output_dir / "connex"

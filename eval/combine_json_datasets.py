@@ -1,5 +1,5 @@
-import json
 import glob
+import json
 
 
 def combine_json_files(input_pattern: str, output_file: str) -> None:
