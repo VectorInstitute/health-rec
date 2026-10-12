@@ -1,9 +1,8 @@
 """Common utilities for the project."""
 
 import requests
-from typing import List, Optional
-from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 class RetryableSession(requests.Session):
@@ -13,7 +12,7 @@ class RetryableSession(requests.Session):
         self,
         retries: int = 3,
         backoff_factor: float = 0.5,
-        status_forcelist: Optional[List[int]] = None,
+        status_forcelist: list[int] | None = None,
     ):
         """Initialize session with retry strategy."""
         super().__init__()

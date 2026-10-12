@@ -6,7 +6,7 @@ import logging
 import random
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from api.data import Address, PhoneNumber, Service
 
@@ -66,7 +66,7 @@ def generate_dummy_service(service_id: int) -> Service:
     service_type = random.choice(service_types)
 
     # Generate metadata
-    metadata: Dict[str, Any] = {
+    metadata: dict[str, Any] = {
         "type": service_type,
         "languages": ["English", "French"],
         "hours": [

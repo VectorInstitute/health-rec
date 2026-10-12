@@ -7,13 +7,11 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
-from dotenv import load_dotenv
-
 from api.data import Address, PhoneNumber, Service
-
+from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -22,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def map_empower_data_to_service(data: Dict[str, Any]) -> Service:
+def map_empower_data_to_service(data: dict[str, Any]) -> Service:
     """Map Empower API data to unified Service model."""
     try:
         # Parse required fields
@@ -79,7 +77,7 @@ def map_empower_data_to_service(data: Dict[str, Any]) -> Service:
             last_updated=datetime.now(),
         )
     except Exception as e:
-        logger.error(f"Error mapping service {data.get('id')}: {str(e)}")
+        logger.error(f"Error mapping service {data.get('id')}: {e!s}")
         raise
 
 
@@ -112,10 +110,10 @@ class EmpowerDataFetcher:
 
     def fetch_providers_list(
         self, lat: float, long: float, radius: float, page: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Fetch list of providers for a given page."""
         url = f"{self.base_url}/providers"
-        params: Dict[str, Any] = {
+        params: dict[str, Any] = {
             "api_key": self.api_key,
             "lat": lat,
             "long": long,
@@ -128,7 +126,7 @@ class EmpowerDataFetcher:
         raw_data: Any = response.json()
 
         # Create a properly typed dictionary
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "providers": raw_data.get("providers", []),
             "pages": raw_data.get("pages", {}),
         }
@@ -140,17 +138,17 @@ class EmpowerDataFetcher:
 
         return data
 
-    def fetch_provider_details(self, provider_id: int) -> Dict[str, Any]:
+    def fetch_provider_details(self, provider_id: int) -> dict[str, Any]:
         """Fetch detailed information for a specific provider."""
         url = f"{self.base_url}/providers/{provider_id}"
-        params: Dict[str, str] = {"api_key": self.api_key}
+        params: dict[str, str] = {"api_key": self.api_key}
 
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
         raw_data: Any = response.json()
 
         # Create a properly typed dictionary
-        data: Dict[str, Any] = dict(raw_data)
+        data: dict[str, Any] = dict(raw_data)
 
         # Map provider type in the response
         if "type" in data:
@@ -158,7 +156,7 @@ class EmpowerDataFetcher:
 
         return data
 
-    def collect_provider_ids(self, lat: float, long: float, radius: float) -> List[int]:
+    def collect_provider_ids(self, lat: float, long: float, radius: float) -> list[int]:
         """Collect all provider IDs from paginated results."""
         provider_ids = []
         page = 1
@@ -184,7 +182,7 @@ class EmpowerDataFetcher:
         return provider_ids
 
     def fetch_all_provider_details(
-        self, provider_ids: List[int], output_dir: Path
+        self, provider_ids: list[int], output_dir: Path
     ) -> None:
         """Fetch and save mapped provider details."""
         output_dir = Path(output_dir)
